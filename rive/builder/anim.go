@@ -127,7 +127,7 @@ type cubicKey struct{ x1, y1, x2, y2 float64 }
 
 // emit writes the LinearAnimation object graph into the slice.
 // Must be called after all ShapeRef.emitObjects() so that ShapeRef indices are set.
-func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
+func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) error {
 	// Collect unique cubic Bezier curves used by this animation's keyframes.
 	// Emit a CubicEaseInterpolator object for each unique curve BEFORE the
 	// LinearAnimation so that the global object indices are stable.
@@ -142,7 +142,7 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 		if ci, ok := kf.interp.(CubicInterp); ok {
 			ck := cubicKey{ci.X1, ci.Y1, ci.X2, ci.Y2}
 			if _, seen := curveMap[ck]; !seen {
-				curveMap[ck] = uint64(len(*objects))
+				curveMap[ck] = uint64(len(*objects)) - artboardOffset
 				curveOrder = append(curveOrder, ck)
 				ce := &rive.CubicEaseInterpolator{}
 				ce.X1 = ci.X1

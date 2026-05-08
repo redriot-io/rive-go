@@ -75,7 +75,7 @@ type ArtboardBuilder struct {
 // childEmitter is implemented by shapes, paths, and nodes that can be added
 // directly to an artboard or node.
 type childEmitter interface {
-	emitObjects(objects *[]rive.Object, parentIdx uint64)
+	emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64)
 }
 
 // Rectangle adds a rectangle child to the artboard.
@@ -115,7 +115,7 @@ func (ab *ArtboardBuilder) StateMachine(name string) *StateMachineBuilder {
 }
 
 func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
-	artboardIdx := uint64(len(*objects))
+	artboardOffset := uint64(len(*objects))
 
 	a := &rive.Artboard{}
 	a.Name = ab.name
@@ -136,12 +136,12 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 
 	// Emit children (shapes, nodes) depth-first
 	for _, child := range ab.children {
-		child.emitObjects(objects, artboardIdx)
+		child.emitObjects(objects, 0, artboardOffset)
 	}
 
 	// Emit animations (after all artboard children, so ShapeRef.idx are set)
 	for _, anim := range ab.animations {
-		if err := anim.emit(objects); err != nil {
+		if err := anim.emit(objects, artboardOffset); err != nil {
 			return err
 		}
 	}

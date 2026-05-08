@@ -157,15 +157,16 @@ func TestBuilder_RectangleWithFill(t *testing.T) {
 		t.Error("shape.Y (key 14) missing")
 	}
 
-	// Verify parentId chain.
-	// Note: parentId=0 is the generator's default and is NOT emitted on Artboard.
+	// Verify parentId chain (artboard-relative indexing).
+	// parentId=0 means "artboard root" and is suppressed by the writer (gen_root.go).
 	shapeParent := propsByKey(f.Objects[2].Properties())
-	if v, ok := shapeParent[5]; !ok || v.Value.(uint64) != 1 {
-		t.Errorf("shape parentId = %v, want 1 (artboard)", v.Value)
+	if v, ok := shapeParent[5]; ok && v.Value.(uint64) != 0 {
+		t.Errorf("shape parentId = %v, want 0 (artboard root, suppressed)", v.Value)
 	}
+	// Rectangle's parent is Shape at artboard-relative index 1.
 	rectParent := propsByKey(f.Objects[3].Properties())
-	if v, ok := rectParent[5]; !ok || v.Value.(uint64) != 2 {
-		t.Errorf("rectangle parentId = %v, want 2 (shape)", v.Value)
+	if v, ok := rectParent[5]; !ok || v.Value.(uint64) != 1 {
+		t.Errorf("rectangle parentId = %v, want 1 (shape, artboard-relative)", v.Value)
 	}
 }
 
@@ -210,9 +211,9 @@ func TestBuilder_MultipleShapes(t *testing.T) {
 		t.Fatalf("want 14 objects, got %d: %v", len(f.Objects), typeKeyList(f.Objects))
 	}
 
-	// Verify second shape's parentId points to artboard (1)
-	if v, ok := propsByKey(f.Objects[6].Properties())[5]; !ok || v.Value.(uint64) != 1 {
-		t.Errorf("second shape parentId = %v, want 1", v.Value)
+	// Verify second shape's parentId: artboard-relative 0 = artboard root, suppressed.
+	if v, ok := propsByKey(f.Objects[6].Properties())[5]; ok && v.Value.(uint64) != 0 {
+		t.Errorf("second shape parentId = %v, want 0 (artboard root, suppressed)", v.Value)
 	}
 }
 

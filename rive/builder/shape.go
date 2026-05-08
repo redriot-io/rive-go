@@ -89,9 +89,9 @@ func (s *ShapeRef) Name(n string) *ShapeRef {
 
 // emitObjects writes the Shape, its path child, and its paint children
 // into the object list, recording indices for later animation use.
-func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
+func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
 	// --- Shape (transform node) ---
-	s.shapeIdx = uint64(len(*objects))
+	s.shapeIdx = uint64(len(*objects)) - artboardOffset
 	shape := &rive.Shape{}
 	shape.Name = s.name
 	shape.ParentId = parentIdx
@@ -107,7 +107,7 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 	*objects = append(*objects, shape)
 
 	// --- Path child (Rectangle or Ellipse) ---
-	s.pathIdx = uint64(len(*objects))
+	s.pathIdx = uint64(len(*objects)) - artboardOffset
 	switch s.kind {
 	case shapeRect:
 		r := &rive.Rectangle{}
@@ -136,7 +136,7 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 
 	// --- Fill paint ---
 	if s.fill != nil {
-		fillIdx := uint64(len(*objects))
+		fillRelIdx := uint64(len(*objects)) - artboardOffset
 		fill := &rive.Fill{}
 		fill.ParentId = s.shapeIdx
 		fill.IsVisible = true
@@ -144,20 +144,20 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		*objects = append(*objects, fill)
 
 		if s.fill.gradient != nil {
-			s.emitGradient(objects, fillIdx, s.fill.gradient)
+			s.emitGradient(objects, fillRelIdx, artboardOffset, s.fill.gradient)
 		} else {
-			s.solidColorIdx = uint64(len(*objects))
+			s.solidColorIdx = uint64(len(*objects)) - artboardOffset
 			s.hasSolidColorIdx = true
 			sc := &rive.SolidColor{}
 			sc.ColorValue = s.fill.color
-			sc.ParentId = fillIdx
+			sc.ParentId = fillRelIdx
 			*objects = append(*objects, sc)
 		}
 	}
 
 	// --- Stroke paint ---
 	if s.stroke != nil {
-		strokeIdx := uint64(len(*objects))
+		strokeRelIdx := uint64(len(*objects)) - artboardOffset
 		st := &rive.Stroke{}
 		st.Thickness = s.stroke.thickness
 		st.ParentId = s.shapeIdx
@@ -167,13 +167,13 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 
 		sc := &rive.SolidColor{}
 		sc.ColorValue = s.stroke.color
-		sc.ParentId = strokeIdx
+		sc.ParentId = strokeRelIdx
 		*objects = append(*objects, sc)
 	}
 }
 
-func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, g *gradientConfig) {
-	gradIdx := uint64(len(*objects))
+func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64, g *gradientConfig) {
+	gradRelIdx := uint64(len(*objects)) - artboardOffset
 	lg := &rive.LinearGradient{}
 	lg.StartX = g.x1
 	lg.StartY = g.y1
@@ -186,7 +186,7 @@ func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, g *gra
 		gs := &rive.GradientStop{}
 		gs.ColorValue = stop.Color
 		gs.Position = stop.Position
-		gs.ParentId = gradIdx
+		gs.ParentId = gradRelIdx
 		*objects = append(*objects, gs)
 	}
 }
@@ -198,8 +198,8 @@ type NodeRef struct {
 	idx  uint64
 }
 
-func (n *NodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
-	n.idx = uint64(len(*objects))
+func (n *NodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
+	n.idx = uint64(len(*objects)) - artboardOffset
 	node := &rive.Node{}
 	node.Name = n.name
 	node.X = n.x
