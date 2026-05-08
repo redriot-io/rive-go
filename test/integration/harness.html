@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!--
+  Rive Integration Test Harness
+  Usage: harness.html?file=/path/to/file.riv[&duration=2000]
+
+  ?file     — path to .riv served from the same origin
+  ?duration — ms to play before sampling canvas (default 2000)
+
+  Result JSON written to #result when done:
+    { "loaded": bool, "error": string, "frames": int, "canvasBlank": bool }
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rive Integration Harness</title>
+  <style>
+    body { margin: 0; background: #222; }
+    #canvas { display: block; }
+    #status { color: #aaa; font: 13px monospace; padding: 4px 8px; }
+    #result { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="400"></canvas>
+  <div id="status">initializing</div>
+  <div id="result"></div>
+
+  <script src="https://unpkg.com/@rive-app/canvas@2"></script>
+  <script>
+  (function () {
+    var params   = new URLSearchParams(window.location.search);
+    var filePath = params.get('file') || '';
+    var duration = parseInt(params.get('duration') || '2000', 10);
+
+    var canvas   = document.getElementById('canvas');
+    var statusEl = document.getElementById('status');
+    var resultEl = document.getElementById('result');
+
+    var frameCount = 0;
+    var settled    = false;
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+    function finish(result) {
+      if (settled) return;
+      settled = true;
+      resultEl.textContent = JSON.stringify(result);
+    }
+
+    function isCanvasBlank() {
+      try {
+        var ctx  = canvas.getContext('2d');
+        var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        // Blank = every pixel has alpha === 0
+        for (var i = 3; i < data.length; i += 4) {
+          if (data[i] !== 0) return false;
+        }
+        return true;
+      } catch (e) {
+        return true; // can't read → treat as blank
+      }
+    }
+
+    if (!filePath) {
+      finish({ loaded: false, error: 'no ?file= param', frames: 0, canvasBlank: true });
+      return;
+    }
+
+    setStatus('loading: ' + filePath);
+
+    setTimeout(function () {
+      if (!settled) {
+        finish({ loaded: false, error: 'init timeout', frames: 0, canvasBlank: true });
+      }
+    }, duration + 5000); // hard watchdog
+
+    try {
+      var r = new rive.Rive({
+        src: filePath,
+        canvas: canvas,
+        autoplay: true,
+        onLoad: function () {
+          setStatus('playing');
+          r.resizeDrawingSurfaceToCanvas();
+          setTimeout(function () {
+            var blank = isCanvasBlank();
+            finish({ loaded: true, error: '', frames: frameCount, canvasBlank: blank });
+          }, duration);
+        },
+        onLoadError: function (e) {
+          var msg = (e && e.message) ? e.message
+                  : (typeof e === 'string') ? e
+                  : JSON.stringify(e);
+          setStatus('error: ' + msg);
+          finish({ loaded: false, error: msg, frames: 0, canvasBlank: true });
+        },
+        onAdvance: function () {
+          frameCount++;
+        },
+      });
+    } catch (e) {
+      finish({ loaded: false, error: 'exception: ' + (e.message || String(e)), frames: 0, canvasBlank: true });
+    }
+  })();
+  </script>
+</body>
+</html>
