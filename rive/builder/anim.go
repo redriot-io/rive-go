@@ -133,6 +133,10 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 	la.Duration = a.duration
 	la.Speed = a.speed
 	la.LoopValue = uint64(a.loop)
+	// Sentinel values suppress emission — Go zero (0) would be encoded as a
+	// 0-frame work area, causing the runtime to compute 0-duration playback.
+	la.WorkStart = ^uint64(0)
+	la.WorkEnd = ^uint64(0)
 	*objects = append(*objects, la)
 
 	// Group keyframes: outer key = (objectId), inner key = propKey
@@ -198,12 +202,14 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 					f.Frame = kf.frame
 					f.Value = kf.color
 					f.InterpolationType = it
+					f.InterpolatorId = ^uint64(0) // sentinel: no cubic interpolator object
 					*objects = append(*objects, f)
 				} else {
 					f := &rive.KeyFrameDouble{}
 					f.Frame = kf.frame
 					f.Value = kf.value
 					f.InterpolationType = it
+					f.InterpolatorId = ^uint64(0) // sentinel: no cubic interpolator object
 					*objects = append(*objects, f)
 				}
 			}

@@ -22,6 +22,7 @@ func main() {
 		name string
 		fn   func() ([]byte, error)
 	}{
+		{"minimal_static.riv", generateMinimalStatic},
 		{"fade_rect.riv", generateFadeRect},
 		{"bounce_ball.riv", generateBounceBall},
 		{"color_cycle.riv", generateColorCycle},

@@ -53,3 +53,35 @@ All tests pass: go test ./...
   ok  github.com/redriot-io/rive-go/cmd/rivegen
   ok  github.com/redriot-io/rive-go/internal/encoding
   ok  github.com/redriot-io/rive-go/rive
+
+---
+task: T-364
+commit: d1b0b95
+date: 2026-05-08
+status: COMPLETE
+
+## Root cause
+`anim.go` emit() had: `if a.speed != 1.0 { la.Speed = a.speed }`.
+When speed is the default (1.0), la.Speed stayed at Go zero (0.0).
+Serializer condition `if o.Speed != 1` then saw 0.0 != 1 → true → encoded Speed=0.0.
+Rive WASM runtime read Speed=0 and froze all animations.
+
+## Fix
+Removed guard. Now: `la.Speed = a.speed` always.
+Default animConfig.speed=1.0, so serializer correctly skips encoding.
+
+## Verification
+- All unit tests pass (GOTMPDIR=/app/workspace/tmp go test ./...)
+- Examples regenerated: 3 animation .rivs dropped the erroneous Speed=0 property
+- rivtool inspect confirms Speed absent from encoded props (runtime uses default 1.0)
+- Fps and Duration defaults (60, 60) already correct — no change needed
+
+## Coverage from defaults-map.json
+All other non-zero defaults are handled:
+- Shape/Rect/Ellipse/Node: Opacity, ScaleX/Y, OriginX/Y (0.5), BlendModeValue — builder/shape.go ✓
+- Fill/Stroke: IsVisible, BlendModeValue — builder/shape.go ✓
+- Stroke.Thickness: serializer guard `if != 1` — gen_shapes.go ✓
+- Rectangle.LinkCornerRadius: serializer guard `if !` — gen_shapes.go ✓
+- Artboard: Opacity, ScaleX/Y, BlendModeValue, FractionalWidth/Height, sentinel IDs — builder/builder.go ✓
+- Animation.Fps (60) and Duration (60): always assigned from animConfig defaults ✓
+- Animation.Speed (1.0): THIS FIX ✓
