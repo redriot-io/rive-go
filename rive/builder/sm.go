@@ -1,0 +1,334 @@
+package builder
+
+import (
+	"fmt"
+
+	"github.com/redriot-io/rive-go/rive"
+)
+
+// inputKind enumerates state machine input types.
+type inputKind uint8
+
+const (
+	inputBool    inputKind = iota
+	inputNumber  inputKind = iota
+	inputTrigger inputKind = iota
+)
+
+// InputRef is a handle to a state machine input, used in transition conditions.
+type InputRef struct {
+	kind inputKind
+	name string
+	idx  uint64 // global emission index, set during emit()
+}
+
+// CompareOp is the comparison operator for number conditions.
+type CompareOp uint8
+
+const (
+	Equal              CompareOp = 0
+	NotEqual           CompareOp = 1
+	LessThan           CompareOp = 2
+	GreaterThan        CompareOp = 3
+	LessThanOrEqual    CompareOp = 4
+	GreaterThanOrEqual CompareOp = 5
+)
+
+// Condition is a predicate on a state machine transition.
+type Condition interface {
+	makeConditionObject(inputIdx uint64) rive.Object
+	inputRef() *InputRef
+}
+
+// BoolCond fires when the named input equals value.
+type BoolCond struct {
+	ref   *InputRef
+	value bool
+}
+
+func (c BoolCond) inputRef() *InputRef { return c.ref }
+func (c BoolCond) makeConditionObject(inputIdx uint64) rive.Object {
+	obj := &rive.TransitionBoolCondition{}
+	obj.InputId = inputIdx
+	if c.value {
+		obj.OpValue = 1 // "equal to true"
+	}
+	return obj
+}
+
+// TriggerCond fires when the trigger input is activated.
+type TriggerCond struct{ ref *InputRef }
+
+func (c TriggerCond) inputRef() *InputRef { return c.ref }
+func (c TriggerCond) makeConditionObject(inputIdx uint64) rive.Object {
+	obj := &rive.TransitionTriggerCondition{}
+	obj.InputId = inputIdx
+	return obj
+}
+
+// NumberCond fires when the number input satisfies the comparison.
+type NumberCond struct {
+	ref   *InputRef
+	op    CompareOp
+	value float64
+}
+
+func (c NumberCond) inputRef() *InputRef { return c.ref }
+func (c NumberCond) makeConditionObject(inputIdx uint64) rive.Object {
+	obj := &rive.TransitionNumberCondition{}
+	obj.InputId = inputIdx
+	obj.OpValue = uint64(c.op)
+	obj.Value = c.value
+	return obj
+}
+
+// BoolCondition returns a condition that fires when input == value.
+func BoolCondition(input *InputRef, value bool) Condition {
+	return BoolCond{ref: input, value: value}
+}
+
+// TriggerCondition returns a condition that fires when the trigger fires.
+func TriggerCondition(input *InputRef) Condition {
+	return TriggerCond{ref: input}
+}
+
+// NumberCondition returns a condition based on a number comparison.
+func NumberCondition(input *InputRef, op CompareOp, value float64) Condition {
+	return NumberCond{ref: input, op: op, value: value}
+}
+
+// StateOption configures a state.
+type StateOption func(*stateConfig)
+
+type stateConfig struct {
+	animName string
+}
+
+// WithAnimation links this state to a named animation.
+func WithAnimation(animName string) StateOption {
+	return func(c *stateConfig) { c.animName = animName }
+}
+
+// StateRef is a handle to a state in a layer.
+type StateRef struct {
+	name     string
+	animName string
+	idx      uint64 // global emission index, set during emit
+}
+
+type transitionEntry struct {
+	to         *StateRef
+	conditions []Condition
+}
+
+type stateEntry struct {
+	ref         *StateRef
+	transitions []*transitionEntry
+}
+
+// LayerBuilder builds a single state machine layer.
+type LayerBuilder struct {
+	name   string
+	states []*stateEntry
+	// anyTransitions are transitions from AnyState
+	anyTransitions []*transitionEntry
+}
+
+// State adds a named state, optionally linked to an animation.
+func (l *LayerBuilder) State(name string, opts ...StateOption) *StateRef {
+	cfg := &stateConfig{}
+	for _, o := range opts {
+		o(cfg)
+	}
+	ref := &StateRef{name: name, animName: cfg.animName}
+	l.states = append(l.states, &stateEntry{ref: ref})
+	return ref
+}
+
+// Transition adds a transition between two user states.
+// from must be a StateRef returned by this layer's State() method.
+func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *LayerBuilder {
+	for _, se := range l.states {
+		if se.ref == from {
+			se.transitions = append(se.transitions, &transitionEntry{to: to, conditions: conditions})
+			return l
+		}
+	}
+	// Not found — silently ignore (validated at Build time if needed)
+	return l
+}
+
+// StateMachineBuilder builds a state machine and all its sub-objects.
+type StateMachineBuilder struct {
+	name   string
+	inputs []*InputRef
+	layers []*LayerBuilder
+}
+
+// BoolInput adds a boolean input.
+func (sm *StateMachineBuilder) BoolInput(name string) *InputRef {
+	ref := &InputRef{kind: inputBool, name: name}
+	sm.inputs = append(sm.inputs, ref)
+	return ref
+}
+
+// NumberInput adds a number input.
+func (sm *StateMachineBuilder) NumberInput(name string) *InputRef {
+	ref := &InputRef{kind: inputNumber, name: name}
+	sm.inputs = append(sm.inputs, ref)
+	return ref
+}
+
+// TriggerInput adds a trigger input.
+func (sm *StateMachineBuilder) TriggerInput(name string) *InputRef {
+	ref := &InputRef{kind: inputTrigger, name: name}
+	sm.inputs = append(sm.inputs, ref)
+	return ref
+}
+
+// Layer adds a layer to the state machine.
+func (sm *StateMachineBuilder) Layer(name string) *LayerBuilder {
+	lb := &LayerBuilder{name: name}
+	sm.layers = append(sm.layers, lb)
+	return lb
+}
+
+// preComputeStateIndices walks the state machine structure and assigns a global
+// emission index to each StateRef.  It does NOT emit any objects — it only
+// counts how many objects each element produces so we can set stateToId on
+// transitions before they are emitted.
+//
+// base is the global index that the StateMachine object itself will occupy.
+func (sm *StateMachineBuilder) preComputeStateIndices(base uint64) {
+	idx := base
+	idx++ // StateMachine itself
+
+	// Inputs
+	for _, inp := range sm.inputs {
+		inp.idx = idx
+		idx++
+	}
+
+	for _, layer := range sm.layers {
+		idx++ // StateMachineLayer
+
+		// AnyState (auto-injected, no user transitions)
+		idx++ // AnyState
+
+		// EntryState
+		idx++ // EntryState
+		if len(layer.states) > 0 {
+			idx++ // auto entry → first state transition
+		}
+
+		// User states + their transitions + conditions
+		for _, se := range layer.states {
+			se.ref.idx = idx
+			idx++ // state object
+			for _, te := range se.transitions {
+				idx++ // StateTransition
+				idx += uint64(len(te.conditions))
+			}
+		}
+
+		// ExitState (no transitions from it in builder)
+		idx++ // ExitState
+	}
+}
+
+// emit writes all state machine objects into the slice.
+// anims provides the lookup table for animationId resolution.
+func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBuilder) error {
+	base := uint64(len(*objects))
+	sm.preComputeStateIndices(base)
+
+	// Map from animation name → emission index
+	animByName := make(map[string]uint64, len(anims))
+	for _, a := range anims {
+		animByName[a.name] = a.idx
+	}
+
+	// Map from InputRef → emission index (populated during input emission below)
+	// (already stored in InputRef.idx by preComputeStateIndices; no separate map needed)
+
+	// --- StateMachine ---
+	smObj := &rive.StateMachine{}
+	smObj.Name = sm.name
+	*objects = append(*objects, smObj)
+
+	// --- Inputs ---
+	for _, inp := range sm.inputs {
+		var obj rive.Object
+		switch inp.kind {
+		case inputBool:
+			o := &rive.StateMachineBool{}
+			o.Name = inp.name
+			obj = o
+		case inputNumber:
+			o := &rive.StateMachineNumber{}
+			o.Name = inp.name
+			obj = o
+		case inputTrigger:
+			o := &rive.StateMachineTrigger{}
+			o.Name = inp.name
+			obj = o
+		}
+		*objects = append(*objects, obj)
+	}
+
+	// --- Layers ---
+	for _, layer := range sm.layers {
+		layerObj := &rive.StateMachineLayer{}
+		layerObj.Name = layer.name
+		*objects = append(*objects, layerObj)
+
+		// AnyState sentinel (no transitions in this builder)
+		*objects = append(*objects, &rive.AnyState{})
+
+		// EntryState + auto transition to first user state
+		*objects = append(*objects, &rive.EntryState{})
+		if len(layer.states) > 0 {
+			entryTrans := &rive.StateTransition{}
+			entryTrans.StateToId = layer.states[0].ref.idx
+			*objects = append(*objects, entryTrans)
+		}
+
+		// User states with their transitions (interleaved)
+		for _, se := range layer.states {
+			var stateObj rive.Object
+			if se.ref.animName != "" {
+				animIdx, ok := animByName[se.ref.animName]
+				if !ok {
+					return fmt.Errorf("builder: state %q references unknown animation %q", se.ref.name, se.ref.animName)
+				}
+				as := &rive.AnimationState{}
+				as.AnimationId = animIdx
+				stateObj = as
+			} else {
+				as := &rive.AnimationState{}
+				as.AnimationId = ^uint64(0) // missing sentinel; Properties() will omit
+				stateObj = as
+			}
+			*objects = append(*objects, stateObj)
+
+			// Transitions from this state
+			for _, te := range se.transitions {
+				trans := &rive.StateTransition{}
+				trans.StateToId = te.to.idx
+				*objects = append(*objects, trans)
+
+				// Conditions under this transition
+				for _, cond := range te.conditions {
+					inp := cond.inputRef()
+					condObj := cond.makeConditionObject(inp.idx)
+					*objects = append(*objects, condObj)
+				}
+			}
+		}
+
+		// ExitState sentinel
+		*objects = append(*objects, &rive.ExitState{})
+	}
+
+	return nil
+}
