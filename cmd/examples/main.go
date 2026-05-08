@@ -120,14 +120,13 @@ func generateColorCycle() ([]byte, error) {
 		Name("colorRect")
 
 	ab.Animation("colorCycle",
-		builder.WithDuration(90),
+		builder.WithDuration(60),
 		builder.WithFPS(30),
-		builder.WithLoop(builder.Loop),
+		builder.WithLoop(builder.PingPong),
 	).
 		KeyframeColor(rect, builder.PropColorValue, 0, 0xFFFF0000, builder.Linear()).  // red
 		KeyframeColor(rect, builder.PropColorValue, 30, 0xFF0000FF, builder.Linear()). // blue
-		KeyframeColor(rect, builder.PropColorValue, 60, 0xFF00FF00, builder.Linear()). // green
-		KeyframeColor(rect, builder.PropColorValue, 90, 0xFFFF0000, builder.Linear())  // red (loop)
+		KeyframeColor(rect, builder.PropColorValue, 60, 0xFF00FF00, builder.Linear())  // green
 
 	return b.Bytes()
 }
@@ -158,7 +157,7 @@ func generateGradientEllipse() ([]byte, error) {
 	ab := b.Artboard("GradientEllipse", 400, 400)
 
 	ab.Ellipse(200, 200, 150, 150).
-		FillGradient(50, 200, 350, 200,
+		FillGradient(-75, 0, 75, 0,
 			builder.GradientStop{Position: 0.0, Color: 0xFFFF6B6B},
 			builder.GradientStop{Position: 0.5, Color: 0xFFFFD93D},
 			builder.GradientStop{Position: 1.0, Color: 0xFF6BCB77},

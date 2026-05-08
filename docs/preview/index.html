@@ -13,6 +13,10 @@
     Fixed fe297bb: fade_rect now uses KeyFrameColor on SolidColor.colorValue (alpha 0→255→0).
   - Each card previously had no explicit animation name → autoplay picked arbitrarily.
     Fixed (current): per-card animations/stateMachines arrays passed to Rive constructor.
+  - color_cycle had a hard snap at loop boundary (forward loop + duplicate endpoint keyframe).
+    Fixed: changed to PingPong loop with 3 keyframes (red→blue→green) and duration=60.
+  - gradient_ellipse appeared flat (artboard-space gradient coords; runtime expected shape-local).
+    Fixed: FillGradient coords changed from (50,200,350,200) to (-75,0,75,0) — shape-local.
 -->
 <html lang="en">
 <head>
@@ -248,8 +252,8 @@ const demos = [
   {
     file: "examples/color_cycle.riv",
     title: "Color Cycle",
-    desc: "Four KeyFrameColor frames cycle a rectangle fill: red → blue → green → red over 3 seconds (fps=30, 90 frames). Linear interpolation, looping.",
-    tags: ["animation", "color keyframes", "loop"],
+    desc: "Three KeyFrameColor frames on a ping-pong loop: red → blue → green → blue → red… over 2 seconds (fps=30, 60 frames). Linear interpolation, no hard loop-boundary snap.",
+    tags: ["animation", "color keyframes", "ping-pong"],
     animations: ["colorCycle"],
   },
   {

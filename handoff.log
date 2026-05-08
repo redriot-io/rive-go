@@ -268,3 +268,63 @@ This also corrects color_cycle.riv which was discretely jumping instead of inter
   after interpTypeCode fix
 
 ### Tests: all pass (go test ./... clean)
+
+---
+T-372_CODE_COMPLETE — commit 8aabc9a
+
+## Investigation: color_cycle.riv
+
+File was already correct after T-371:
+- loopValue=1 (Loop), fps=30, duration=90
+- 4 KeyFrameColor at frames 0/30/60/90, all interpolationType=1 (linear)
+- Colors: red(0xFFFF0000) → blue(0xFF0000FF) → green(0xFF00FF00) → red
+No .riv file changes needed.
+
+The reported "sputter" was the pre-T-371 hold interpolation — after T-371, the colors
+interpolate smoothly. If user still saw it post-T-371, this was a browser cache issue.
+
+## Investigation: bounce_ball.riv
+
+loopValue=2 (PingPong), cubic interpolation via CubicEaseInterpolator. No issues.
+
+## Investigation: reference.riv
+
+First artboard has "Timeline 1" LinearAnimation with loopValue=0 (oneshot). State Machine 1
+runs the animation once. After completion, the SM holds on the last frame. This is the
+expected behavior for the official test file.
+
+## Changes
+
+1. docs/preview/index.html:
+   - Per-card animations[] / stateMachines[] arrays in demos config
+   - Rive constructor now receives explicit animation/SM name
+   - r.play(names) called in onLoad after resize (correct DPI on first frame)
+   - color_cycle desc: fixed color order (red→blue→green, not red→green→blue)
+   - reference card: notes it plays once via SM then holds
+   - Header: "Eight demo scenes" (was Seven, fade_rect_opacity added in T-371)
+
+2. test/validate/validate_test.go:
+   - TestValidate_FadeRectOpacity: regression test for interpTypeCode fix
+   - genFadeRectOpacity generator + AllExamples table entry
+
+---
+[T-373] PROJ_RIVE-GO_CODE_FIX_VISUAL_BUGS — 2026-05-08
+
+Bug 1 — color_cycle loop snap
+Root cause: forward Loop mode with a duplicate endpoint keyframe at frame 90 means the
+runtime plays [0, 90), reaching ~97% red at frame 89.999 before snapping to exact red at
+frame 0. Even though the snap is red→red (tiny delta), it was perceptible.
+Fix: changed to PingPong loop (LoopType=2), removed duplicate endpoint keyframe (frame 90),
+reduced duration to 60. Animation now goes red→blue→green→blue→red… with smooth reversal.
+
+Bug 2 — gradient_ellipse flat circle (no visible gradient)
+Root cause: FillGradient coordinates (50, 200, 350, 200) were in artboard space. The Rive
+web runtime interprets LinearGradient start/end in shape-local space (origin at shape
+center). With the shape centered at (200,200), the artboard coords were (−150,0)→(150,0)
+relative to shape — which happened to span the ellipse, but the y-value 200 was 200 units
+below the shape center in local space, placing the gradient axis far outside the shape and
+producing a near-uniform color.
+Fix: changed to shape-local coords (-75, 0, 75, 0) — horizontal gradient spanning the
+ellipse radius (±75) in local space.
+
+All tests pass (go test ./...). Files regenerated, preview page descriptions updated.
