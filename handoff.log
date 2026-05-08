@@ -156,3 +156,42 @@ FINDINGS from ground-truth comparison (rivdiff vs ball_test.riv):
 ALL TESTS PASS (19 builder tests + all rive package tests).
 
 rive-rs-cli: Could not install (no Rust/cargo in container). Used existing Rive runtime fixtures (ball_test.riv etc.) as ground truth reference. No Rust build environment available — documented as known constraint.
+
+---
+[T-368] PROJ_RIVE-GO_CODE_FIX_PARENTID_INDEXING — 2026-05-08
+
+ROOT CAUSE CONFIRMED:
+  builder/shape.go stored global object indices as parentId, but the Rive
+  runtime expects artboard-relative indices (artboard=0, child1=1, etc.).
+  Example: Shape at global[2] with artboard at global[1] emitted parentId=1,
+  which the runtime read as "parent = artboard-relative[1] = Shape itself" → loop.
+
+FORMULA: artboard_relative = global_index − artboard_global_index
+
+CHANGES (commit 619126a):
+  - builder.go: pass artboardOffset to childEmitter interface; direct children
+    receive parentIdx=0 (artboard is relative 0)
+  - shape.go: all idx computations subtract artboardOffset; fixes parentId on
+    shapes, paths, fills, paints, gradients
+  - anim.go: CubicEaseInterpolator index made artboard-relative (InterpolatorId);
+    KeyedObject.ObjectId fixed automatically (shapeIdx now artboard-relative)
+  - builder_test.go: assertions updated to artboard-relative expectations
+  - All docs/preview/examples/*.riv regenerated
+
+VERIFICATION:
+  - minimal_static.riv: Rectangle parentId=0501 ✓, Fill parentId=0501 ✓,
+    SolidColor parentId=0503 ✓
+  - fade_rect.riv: KeyedObject.ObjectId=1 (Shape at artboard-relative 1) ✓
+  - All 19 builder tests + all rive round-trip tests pass
+
+NOTE on parentId=0 (Artboard root):
+  gen_root.go suppresses emission when ParentId==0. The Rive runtime treats
+  missing parentId as default (artboard root), so suppressing 0 is correct
+  and equivalent to emitting 05 00. Reference files explicitly emit 05 00
+  but both forms are valid.
+
+ALSO NOTEWORTHY — T-367 is a spec error (raised blocker):
+  T-367 claims ToC packing uses 4x too many uint32s. Empirical decode of
+  ball_test.riv proves the current 4-keys/uint32 algorithm is correct.
+  The task's "fix" (16-keys/uint32) would produce files unreadable by our
+  own reader.go. Awaiting Silas direction on T-367.

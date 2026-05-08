@@ -180,6 +180,7 @@ func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, artboa
 	lg.EndX = g.x2
 	lg.EndY = g.y2
 	lg.ParentId = parentIdx
+	lg.Opacity = 1.0 // runtime default; zero value would emit key#46=0 → invisible gradient
 	*objects = append(*objects, lg)
 
 	for _, stop := range g.stops {

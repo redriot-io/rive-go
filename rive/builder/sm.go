@@ -193,63 +193,32 @@ func (sm *StateMachineBuilder) Layer(name string) *LayerBuilder {
 	return lb
 }
 
-// preComputeStateIndices walks the state machine structure and assigns a global
-// emission index to each StateRef.  It does NOT emit any objects — it only
-// counts how many objects each element produces so we can set stateToId on
-// transitions before they are emitted.
-//
-// base is the global index that the StateMachine object itself will occupy.
-func (sm *StateMachineBuilder) preComputeStateIndices(base uint64) {
-	idx := base
-	idx++ // StateMachine itself
-
-	// Inputs
-	for _, inp := range sm.inputs {
-		inp.idx = idx
-		idx++
+// preComputeStateIndices assigns local 0-based indices to inputs and states.
+// Inputs are numbered 0,1,2,… within the SM's input list.
+// States are numbered 0,1,2,… within each layer's user-state list.
+// These match what the Rive runtime expects for InputId and StateToId references.
+func (sm *StateMachineBuilder) preComputeStateIndices() {
+	for i, inp := range sm.inputs {
+		inp.idx = uint64(i)
 	}
-
 	for _, layer := range sm.layers {
-		idx++ // StateMachineLayer
-
-		// AnyState (auto-injected, no user transitions)
-		idx++ // AnyState
-
-		// EntryState
-		idx++ // EntryState
-		if len(layer.states) > 0 {
-			idx++ // auto entry → first state transition
+		for i, se := range layer.states {
+			se.ref.idx = uint64(i)
 		}
-
-		// User states + their transitions + conditions
-		for _, se := range layer.states {
-			se.ref.idx = idx
-			idx++ // state object
-			for _, te := range se.transitions {
-				idx++ // StateTransition
-				idx += uint64(len(te.conditions))
-			}
-		}
-
-		// ExitState (no transitions from it in builder)
-		idx++ // ExitState
 	}
 }
 
 // emit writes all state machine objects into the slice.
 // anims provides the lookup table for animationId resolution.
 func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBuilder) error {
-	base := uint64(len(*objects))
-	sm.preComputeStateIndices(base)
+	sm.preComputeStateIndices()
 
-	// Map from animation name → emission index
+	// Map from animation name → 0-based position in animation list.
+	// The Rive runtime's AnimationState.AnimationId is the 0-based animation index.
 	animByName := make(map[string]uint64, len(anims))
-	for _, a := range anims {
-		animByName[a.name] = a.idx
+	for i, a := range anims {
+		animByName[a.name] = uint64(i)
 	}
-
-	// Map from InputRef → emission index (populated during input emission below)
-	// (already stored in InputRef.idx by preComputeStateIndices; no separate map needed)
 
 	// --- StateMachine ---
 	smObj := &rive.StateMachine{}
@@ -288,8 +257,7 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 		// EntryState + auto transition to first user state
 		*objects = append(*objects, &rive.EntryState{})
 		if len(layer.states) > 0 {
-			entryTrans := &rive.StateTransition{}
-			entryTrans.StateToId = layer.states[0].ref.idx
+			entryTrans := newStateTransition(layer.states[0].ref.idx)
 			*objects = append(*objects, entryTrans)
 		}
 
@@ -302,20 +270,20 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 					return fmt.Errorf("builder: state %q references unknown animation %q", se.ref.name, se.ref.animName)
 				}
 				as := &rive.AnimationState{}
+				as.Speed = 1.0 // runtime default; zero value would emit Speed=0
 				as.AnimationId = animIdx
 				stateObj = as
 			} else {
 				as := &rive.AnimationState{}
-				as.AnimationId = ^uint64(0) // missing sentinel; Properties() will omit
+				as.Speed = 1.0 // runtime default; zero value would emit Speed=0
+				as.AnimationId = ^uint64(0) // sentinel: suppress emission
 				stateObj = as
 			}
 			*objects = append(*objects, stateObj)
 
 			// Transitions from this state
 			for _, te := range se.transitions {
-				trans := &rive.StateTransition{}
-				trans.StateToId = te.to.idx
-				*objects = append(*objects, trans)
+				*objects = append(*objects, newStateTransition(te.to.idx))
 
 				// Conditions under this transition
 				for _, cond := range te.conditions {
@@ -331,4 +299,15 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 	}
 
 	return nil
+}
+
+// newStateTransition constructs a StateTransition with the runtime-default
+// values that the generated Properties() method would otherwise emit as zeros.
+func newStateTransition(stateToId uint64) *rive.StateTransition {
+	t := &rive.StateTransition{}
+	t.StateToId = stateToId
+	t.InterpolationType = 1       // runtime default (suppress emission)
+	t.InterpolatorId = ^uint64(0) // sentinel (suppress emission)
+	t.RandomWeight = 1            // runtime default (suppress emission)
+	return t
 }
