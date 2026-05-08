@@ -131,9 +131,7 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 	la.Name = a.name
 	la.Fps = a.fps
 	la.Duration = a.duration
-	if a.speed != 1.0 {
-		la.Speed = a.speed
-	}
+	la.Speed = a.speed
 	la.LoopValue = uint64(a.loop)
 	*objects = append(*objects, la)
 

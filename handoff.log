@@ -1,0 +1,55 @@
+
+---
+[2026-05-08] PROJ_RIVE-GO_CODE_V1B_COMPLETE — Phase 1B: rivegen code generator
+
+Commit: e03db6e
+
+What was built:
+- internal/schema/defs/: 350 JSON type definitions from rive-runtime @ e031209510932a392451786322400afbffd94823
+- internal/schema/RIVE_COMMIT: pinned commit hash
+- cmd/rivegen/main.go: generator (stdlib only, go/format for gofmt)
+  Loads all defs, resolves inheritance, groups by subdirectory
+- rive/core.go: Object interface, Property struct, PropertyType enum, boolToUint64 helper
+- rive/gen_*.go: 13 category files + gen_registry.go + gen_properties.go
+  350 types total: 287 concrete (in Registry), 63 abstract
+  Each type: struct with rive struct tags, TypeKey() (concrete only), Properties() (all)
+- Makefile: generate / test / build targets
+- Tests: 14 tests (8 in rive/, 6 in cmd/rivegen/)
+
+Key design decisions:
+- Properties() generated for ALL types (not just those with own runtime props) so
+  that abstract root types with no parent return nil instead of missing from method set.
+- boolToUint64 in core.go to avoid re-declaration across generated files.
+- PropKey<N> = N constants (not name-based): 107 property names appear with multiple
+  key.int values, making name-based constants ambiguous.
+- passthrough:true excluded from Properties() (computed, not serialized).
+- runtime:false excluded entirely from struct + Properties().
+- callback type skipped (no serializable state).
+- 'double' type: float64 in struct, PropertyTypeFloat (wire as float32 per binary spec).
+- Id type: uint64 via typeRuntime override (all runtime Id props have typeRuntime='uint').
+- List<Id>: []byte (encoded blob, same as Bytes).
+
+Tests pass: go test ./... — all 3 packages OK
+
+---
+[T-356_CODE_V1_COMPLETE] 2026-05-08
+
+Phase 2 complete — .riv writer, reader, round-trip tests. Pushed to main (cc53f10).
+
+Deliverables:
+- rive/writer.go: WriteBytes/WriteFile — RIVE fingerprint + LEB128 header + ToC bit-pack + object stream
+- rive/reader.go: ReadBytes/ReadFile — GenericObject graph; ToC + globalPropTypes fallback
+- rive/gen_prop_type_table.go: 576 known keys + 2 alternates (xArtboard=9, yArtboard=10)
+- rive/riv_io_test.go: full suite — 5 golden fixtures, error cases, ToC, round-trips, io.Reader/Writer
+
+Fixes applied during test run:
+1. Fixture path in test was ../../test/fixtures → corrected to ../test/fixtures
+2. Test assumed LinearAnimation.Name maps to key=4; it maps to key=55 (Animation.Name).
+   Component.Name (key=4) is correct — moved string test to Node.Name.
+3. globalPropTypes missing alternate keys 9 (xArtboard) and 10 (yArtboard) — both float.
+   Added PropKey.Alternates to JSON schema struct and updated generatePropTypeTable to collect them.
+
+All tests pass: go test ./...
+  ok  github.com/redriot-io/rive-go/cmd/rivegen
+  ok  github.com/redriot-io/rive-go/internal/encoding
+  ok  github.com/redriot-io/rive-go/rive
