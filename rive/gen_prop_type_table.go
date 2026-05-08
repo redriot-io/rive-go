@@ -816,3 +816,10 @@ var globalPropTypes = map[uint32]PropertyType{
 	1011: 0, // traversalKind
 	1012: 1, // displayName
 }
+
+// LookupGlobalPropType returns the wire type for a property key from the
+// compiled-in global table. Returns false if the key is not known.
+func LookupGlobalPropType(key uint32) (PropertyType, bool) {
+	t, ok := globalPropTypes[key]
+	return t, ok
+}

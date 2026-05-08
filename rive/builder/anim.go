@@ -122,11 +122,40 @@ func (a *AnimationBuilder) KeyframeColor(target *ShapeRef, propKey uint32, frame
 	return a
 }
 
+// cubicKey is used to deduplicate CubicEaseInterpolator objects.
+type cubicKey struct{ x1, y1, x2, y2 float64 }
+
 // emit writes the LinearAnimation object graph into the slice.
 // Must be called after all ShapeRef.emitObjects() so that ShapeRef indices are set.
 func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
-	a.idx = uint64(len(*objects))
+	// Collect unique cubic Bezier curves used by this animation's keyframes.
+	// Emit a CubicEaseInterpolator object for each unique curve BEFORE the
+	// LinearAnimation so that the global object indices are stable.
+	type curveEntry struct {
+		key cubicKey
+		idx uint64
+	}
+	curveMap := map[cubicKey]uint64{}
+	var curveOrder []cubicKey
 
+	for _, kf := range a.kfs {
+		if ci, ok := kf.interp.(CubicInterp); ok {
+			ck := cubicKey{ci.X1, ci.Y1, ci.X2, ci.Y2}
+			if _, seen := curveMap[ck]; !seen {
+				curveMap[ck] = uint64(len(*objects))
+				curveOrder = append(curveOrder, ck)
+				ce := &rive.CubicEaseInterpolator{}
+				ce.X1 = ci.X1
+				ce.Y1 = ci.Y1
+				ce.X2 = ci.X2
+				ce.Y2 = ci.Y2
+				*objects = append(*objects, ce)
+			}
+		}
+	}
+
+	// LinearAnimation follows the interpolator objects.
+	a.idx = uint64(len(*objects))
 	la := &rive.LinearAnimation{}
 	la.Name = a.name
 	la.Fps = a.fps
@@ -139,7 +168,7 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 	la.WorkEnd = ^uint64(0)
 	*objects = append(*objects, la)
 
-	// Group keyframes: outer key = (objectId), inner key = propKey
+	// Group keyframes by target object and property key.
 	type tpKey struct {
 		objIdx  uint64
 		propKey uint32
@@ -168,8 +197,7 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 		groupMap[k].kfs = append(groupMap[k].kfs, kf)
 	}
 
-	// Collect unique object indices (preserving first-seen order)
-	type objKey struct{ objIdx uint64 }
+	// Collect unique object indices (preserving first-seen order).
 	objMap := map[uint64][]tpKey{}
 	var objOrder []uint64
 	seenObj := map[uint64]bool{}
@@ -192,24 +220,34 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object) error {
 			kprop.PropertyKey = uint64(g.propKey)
 			*objects = append(*objects, kprop)
 
-			// Sort frames by frame number before emitting
+			// Sort frames by frame number before emitting.
 			sort.Slice(g.kfs, func(i, j int) bool { return g.kfs[i].frame < g.kfs[j].frame })
 
 			for _, kf := range g.kfs {
 				it := kf.interp.interpTypeCode()
+
+				// Resolve interpolator ID for cubic easing.
+				interpID := ^uint64(0) // sentinel = not emitted (linear/hold)
+				if ci, ok := kf.interp.(CubicInterp); ok {
+					ck := cubicKey{ci.X1, ci.Y1, ci.X2, ci.Y2}
+					if idx, found := curveMap[ck]; found {
+						interpID = idx
+					}
+				}
+
 				if kf.isColor {
 					f := &rive.KeyFrameColor{}
 					f.Frame = kf.frame
 					f.Value = kf.color
 					f.InterpolationType = it
-					f.InterpolatorId = ^uint64(0) // sentinel: no cubic interpolator object
+					f.InterpolatorId = interpID
 					*objects = append(*objects, f)
 				} else {
 					f := &rive.KeyFrameDouble{}
 					f.Frame = kf.frame
 					f.Value = kf.value
 					f.InterpolationType = it
-					f.InterpolatorId = ^uint64(0) // sentinel: no cubic interpolator object
+					f.InterpolatorId = interpID
 					*objects = append(*objects, f)
 				}
 			}

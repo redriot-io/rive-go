@@ -85,3 +85,74 @@ All other non-zero defaults are handled:
 - Artboard: Opacity, ScaleX/Y, BlendModeValue, FractionalWidth/Height, sentinel IDs — builder/builder.go ✓
 - Animation.Fps (60) and Duration (60): always assigned from animConfig defaults ✓
 - Animation.Speed (1.0): THIS FIX ✓
+
+---
+task: T-365
+commit: 51a634e
+date: 2026-05-08
+status: COMPLETE
+
+## Root causes found (3 sentinel bugs in anim.go)
+
+### Bug 1 & 2: WorkStart=0, WorkEnd=0 encoded in every animation
+- Emission condition: `if o.WorkStart != ^uint64(0) { encode }`
+- Go zero value (0) triggers emission because 0 != 0xFFFF...
+- WorkEnd=0 → runtime computes 0-frame work area
+- In advance(): `while (time >= workEnd/fps)` with workEnd=0 → perpetual loop
+- Fix: `la.WorkStart = ^uint64(0)`, `la.WorkEnd = ^uint64(0)` before append
+
+### Bug 3: InterpolatorId=0 encoded on every keyframe
+- Same sentinel pattern: `if o.InterpolatorId != ^uint64(0) { encode }`
+- 0 → references Backboard (object 0) as a cubic interpolator → undefined behavior
+- Fix: `f.InterpolatorId = ^uint64(0)` for both KeyFrameDouble and KeyFrameColor
+
+## Binary impact
+- fade_rect.riv: 159→144 bytes (-9.4%)
+- bounce_ball.riv: 168→153 bytes
+- color_cycle.riv: 200→185 bytes
+
+## Deliverables
+- 3 sentinel bug fixes in rive/builder/anim.go
+- minimal_static.riv: simplest renderable file (no animation, 96 bytes)
+- docs/ENCODING_NOTES.md: ToC packing, sentinel table, hierarchy rules
+
+## ToC analysis
+Format confirmed: 4 keys per uint32 (not 16), only bits 0-7 used per word.
+ToC type entries for known properties are redundant but harmless.
+Keys 60, 61, 69 removed from ToC after sentinel fixes.
+
+## Remaining known issue
+Cubic easing (bounce_ball.riv) sets InterpolationType=2 but has no
+CubicInterpolator object in the file. The x1,y1,x2,y2 Bezier params
+are never emitted. Runtime will use linear or default cubic fallback.
+Tracked as future task.
+
+[T-366] 2026-05-08 — Ground-truth comparison + CubicInterpolator fix
+
+WORK DONE:
+1. cmd/rivdiff/main.go — new tool: annotated decoder + structural diff for .riv files
+   - Decodes header, ToC (keys + packed types), object stream
+   - Prints annotated hex with type names and property names
+   - Two-file mode: shows structural diff line-by-line
+   - Uses rive.LookupGlobalPropType for type resolution (full 576-key coverage)
+
+2. rive/gen_prop_type_table.go — added LookupGlobalPropType() exported function
+
+3. rive/builder/anim.go — fix: emit CubicEaseInterpolator objects
+   - Before T-366: InterpolationType=2 with InterpolatorId=sentinel
+     Runtime reads default InterpolatorId=0 → Backboard → undefined behavior
+   - After T-366: emit CubicEaseInterpolator before LinearAnimation,
+     set InterpolatorId to that object's index
+   - Deduplicates curves: same Bezier curve → shared interpolator object
+   - bounce_ball.riv: 153→164 bytes (CubicEaseInterpolator added, InterpolatorId set)
+
+4. .gitignore — added /gen_examples and /rivdiff build artifacts
+
+FINDINGS from ground-truth comparison (rivdiff vs ball_test.riv):
+- Our ToC contains ALL known property keys; reference only contains UNKNOWN keys
+- This is a structural difference but not breaking (runtime checks global table for known keys)
+- bounce_ball.riv structure verified correct: Backboard → Artboard → Shape → Ellipse → Fill → SolidColor → CubicEaseInterpolator → LinearAnimation → KeyedObject → KeyedProperty → KeyFrameDouble × 2
+
+ALL TESTS PASS (19 builder tests + all rive package tests).
+
+rive-rs-cli: Could not install (no Rust/cargo in container). Used existing Rive runtime fixtures (ball_test.riv etc.) as ground truth reference. No Rust build environment available — documented as known constraint.
