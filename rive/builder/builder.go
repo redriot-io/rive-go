@@ -121,7 +121,17 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	a.Name = ab.name
 	a.Width = ab.width
 	a.Height = ab.height
-	a.ParentId = 0 // Backboard is always index 0
+	a.ParentId = 0
+	// Runtime defaults — Go zero-values differ from Rive runtime defaults
+	a.Opacity = 1.0
+	a.ScaleX = 1.0
+	a.ScaleY = 1.0
+	a.BlendModeValue = 3
+	a.FractionalWidth = 1.0
+	a.FractionalHeight = 1.0
+	a.StyleId = ^uint64(0)
+	a.DefaultStateMachineId = ^uint64(0)
+	a.ViewModelId = ^uint64(0)
 	*objects = append(*objects, a)
 
 	// Emit children (shapes, nodes) depth-first

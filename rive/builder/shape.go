@@ -97,9 +97,10 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 	shape.ParentId = parentIdx
 	shape.X = s.x
 	shape.Y = s.y
-	shape.Opacity = 1.0 // explicit default; Properties() skips if == 1.0
+	shape.Opacity = 1.0
 	shape.ScaleX = 1.0
 	shape.ScaleY = 1.0
+	shape.BlendModeValue = 3
 	if s.opacitySet {
 		shape.Opacity = s.opacity
 	}
@@ -113,14 +114,17 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		r.Width = s.param1
 		r.Height = s.param2
 		r.ParentId = s.shapeIdx
+		r.Opacity = 1.0
 		r.ScaleX = 1.0
 		r.ScaleY = 1.0
+		r.LinkCornerRadius = true
 		*objects = append(*objects, r)
 	case shapeEllipse:
 		e := &rive.Ellipse{}
 		e.Width = s.param1
 		e.Height = s.param2
 		e.ParentId = s.shapeIdx
+		e.Opacity = 1.0
 		e.ScaleX = 1.0
 		e.ScaleY = 1.0
 		*objects = append(*objects, e)
