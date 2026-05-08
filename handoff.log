@@ -195,3 +195,38 @@ ALSO NOTEWORTHY — T-367 is a spec error (raised blocker):
   ball_test.riv proves the current 4-keys/uint32 algorithm is correct.
   The task's "fix" (16-keys/uint32) would produce files unreadable by our
   own reader.go. Awaiting Silas direction on T-367.
+
+---
+[T-369] PROJ_RIVE-GO_CODE_FIX_DEMO_BUGS — 2026-05-08
+
+THREE BUGS FIXED (commit b11ee5f):
+
+1. gradient_ellipse (shape.go emitGradient):
+   LinearGradient.Opacity zero-value is 0.0 in Go. Writer emits when != 1.0
+   (runtime default=1.0). Result: key#46=0 → gradient invisible.
+   Fix: lg.Opacity = 1.0 → not emitted → runtime uses default 1.0.
+
+2. toggle_button (sm.go preComputeStateIndices + emit):
+   a) StateToId used global object indices (e.g. 12, 15) instead of
+      0-based user-state list indices (0=Idle, 1=Active).
+      Fix: preComputeStateIndices() now assigns se.ref.idx = uint64(i).
+   b) InputId used global object index (e.g. 7) instead of 0-based
+      input list index (0=first input "active").
+      Fix: inp.idx = uint64(i) in preComputeStateIndices().
+   c) AnimationId used a.idx (global) instead of 0-based animation index.
+      Fix: animByName[a.name] = uint64(i) in for-loop.
+   d) StateTransition left InterpolationType=0 (runtime default=1, causes emission),
+      InterpolatorId=0 (should be sentinel), RandomWeight=0 (runtime default=1).
+      Fix: newStateTransition() helper sets correct defaults.
+   e) AnimationState.Speed=0 (runtime default=1.0, causes emission as frozen).
+      Fix: as.Speed = 1.0 in emit().
+
+3. fade_rect: structurally correct after T-368 parentId fix. No additional changes needed.
+
+VERIFICATION:
+  - gradient_ellipse.riv: no key#46 in output (opacity suppressed = visible) ✓
+  - toggle_button.riv: StateToId=0/1, InputId=0, no spurious keys ✓
+  - All 19 builder tests + rive round-trip tests pass
+
+NOTE on fade_rect: task said "blank" but it was already fixed structurally by
+T-368 (parentId=1 global → parentId=0 artboard-relative, not emitted).

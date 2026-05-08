@@ -23,12 +23,14 @@ type Interpolation interface {
 // LinearInterp is a linear (constant-velocity) interpolation.
 type LinearInterp struct{}
 
-func (LinearInterp) interpTypeCode() uint64 { return 0 }
+// interpTypeCode: Rive spec defines 0=hold, 1=linear, 2=cubic.
+// The generated InterpolatingKeyFrame.Properties() suppresses emission when value==0 (hold is default).
+func (LinearInterp) interpTypeCode() uint64 { return 1 }
 
 // HoldInterp is a discrete/hold interpolation (no blending).
 type HoldInterp struct{}
 
-func (HoldInterp) interpTypeCode() uint64 { return 1 }
+func (HoldInterp) interpTypeCode() uint64 { return 0 }
 
 // CubicInterp is a cubic Bezier interpolation defined by two control points.
 type CubicInterp struct{ X1, Y1, X2, Y2 float64 }

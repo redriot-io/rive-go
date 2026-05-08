@@ -1,4 +1,4 @@
-.PHONY: generate test build test-integration
+.PHONY: generate test build test-integration validate
 
 generate:
 	go run ./cmd/rivegen -defs=internal/schema/defs -out=rive
@@ -17,3 +17,8 @@ build:
 # Subsequent runs are fully offline once ~/.cache/rod/ is populated.
 test-integration:
 	GOTMPDIR=/app/workspace/tmp go test -tags=integration -v -timeout 180s ./test/integration/...
+
+# validate: generate all example .riv files then run structural validation.
+validate:
+	go run ./cmd/examples/
+	GOTMPDIR=/app/workspace/tmp go test -v -timeout 60s ./test/validate/...

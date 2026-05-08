@@ -270,17 +270,27 @@ func cmdValidate(path string) bool {
 	report(true, fmt.Sprintf("%d objects parsed", len(f.Objects)))
 	report(true, fmt.Sprintf("%d total properties", totalProps))
 
-	// Validate parentId references
+	// Validate parentId references (artboard-relative resolution)
 	orphans := 0
 	badRefs := 0
+	artboardOffset := -1
 	for i, o := range f.Objects {
+		if o.TypeKey() == 1 { // Artboard
+			artboardOffset = i
+		}
 		for _, p := range o.Properties() {
 			if p.Key == 5 { // parentId
-				pid := int(p.Value.(uint64))
-				if pid < 0 || pid >= len(f.Objects) {
+				rel := int(p.Value.(uint64))
+				if artboardOffset < 0 {
 					badRefs++
-					fmt.Printf("  ✗ Object[%d] parentId=%d out of range\n", i, pid)
-				} else if pid == i {
+					fmt.Printf("  ✗ Object[%d] has parentId=%d but no artboard seen yet\n", i, rel)
+					continue
+				}
+				global := artboardOffset + rel
+				if global < 0 || global >= len(f.Objects) {
+					badRefs++
+					fmt.Printf("  ✗ Object[%d] parentId=%d → global=%d out of range\n", i, rel, global)
+				} else if global == i {
 					orphans++
 					fmt.Printf("  ✗ Object[%d] parentId points to itself\n", i)
 				}
@@ -290,12 +300,87 @@ func cmdValidate(path string) bool {
 	report(badRefs == 0, fmt.Sprintf("All parentId references valid (%d objects with parentId)", countParentIds(f.Objects)))
 	report(orphans == 0, "No self-referencing objects")
 
+	// Validate shapes have path and paint children (per-artboard)
+	shapeChecks := validateShapeStructure(f.Objects)
+	report(shapeChecks == 0, "Shape structure valid (paths + paints present)")
+
+	// Validate KeyedObject.objectId references
+	badObjIds := 0
+	for i, o := range f.Objects {
+		if o.TypeKey() != 25 { // KeyedObject
+			continue
+		}
+		for _, p := range o.Properties() {
+			if p.Key == 51 { // objectId
+				oid := int(p.Value.(uint64))
+				if oid < 0 || oid >= len(f.Objects) {
+					badObjIds++
+					fmt.Printf("  ✗ Object[%d] KeyedObject.objectId=%d out of range\n", i, oid)
+				}
+			}
+		}
+	}
+	report(badObjIds == 0, "All KeyedObject.objectId references valid")
+
 	if errors > 0 {
 		fmt.Printf("Result: INVALID (%d error(s))\n", errors)
 		return false
 	}
 	fmt.Println("Result: VALID")
 	return true
+}
+
+// validateShapeStructure returns the count of artboards with shape-but-no-path or shape-but-no-paint.
+func validateShapeStructure(objects []rive.Object) int {
+	// Find artboard ranges
+	type abRange struct{ start, end int }
+	var ranges []abRange
+	for i, o := range objects {
+		if o.TypeKey() == 1 {
+			ranges = append(ranges, abRange{start: i})
+		}
+	}
+	for i := range ranges {
+		if i+1 < len(ranges) {
+			ranges[i].end = ranges[i+1].start
+		} else {
+			ranges[i].end = len(objects)
+		}
+	}
+
+	pathKeys := map[uint32]bool{7: true, 4: true, 8: true, 16: true} // Rect, Ellipse, Triangle, PointsPath
+	problems := 0
+	for _, ar := range ranges {
+		slice := objects[ar.start:ar.end]
+		nShapes := countObjects(slice, 3)
+		if nShapes == 0 {
+			continue
+		}
+		nPaths := 0
+		for pk := range pathKeys {
+			nPaths += countObjects(slice, pk)
+		}
+		nPaints := countObjects(slice, 20) + countObjects(slice, 24) // Fill + Stroke
+		if nPaths == 0 {
+			fmt.Printf("  ✗ Artboard[%d]: %d shape(s) but no path objects\n", ar.start, nShapes)
+			problems++
+		}
+		if nPaints == 0 {
+			fmt.Printf("  ✗ Artboard[%d]: %d shape(s) but no paint objects\n", ar.start, nShapes)
+			problems++
+		}
+	}
+	return problems
+}
+
+func countObjects(objects []rive.Object, typeKey uint32) int {
+	n := 0
+	for _, o := range objects {
+		if o.TypeKey() == typeKey {
+			n++
+		}
+	}
+	return n
 }
 
 func countParentIds(objects []rive.Object) int {

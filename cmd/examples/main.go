@@ -24,6 +24,7 @@ func main() {
 	}{
 		{"minimal_static.riv", generateMinimalStatic},
 		{"fade_rect.riv", generateFadeRect},
+		{"fade_rect_opacity.riv", generateFadeRectOpacity},
 		{"bounce_ball.riv", generateBounceBall},
 		{"color_cycle.riv", generateColorCycle},
 		{"toggle_button.riv", generateToggleButton},
@@ -45,22 +46,46 @@ func main() {
 	fmt.Println("Done.")
 }
 
-// 1. Red rectangle fades in over 30 frames, loops.
+// 1. Red rectangle fades in/out via color alpha (matches official Rive editor approach).
+// The alpha channel animates 0→255→0 over 60 frames at 60fps (1 second loop).
 func generateFadeRect() ([]byte, error) {
 	b := builder.New()
 	ab := b.Artboard("FadeRect", 500, 500)
 
 	rect := ab.Rectangle(150, 175, 200, 150).
-		Fill(0xFFCC3333).
+		Fill(0x00CC3333). // start transparent
 		Name("rect")
 
 	ab.Animation("fadeIn",
-		builder.WithDuration(30),
+		builder.WithDuration(60),
+		builder.WithFPS(60),
+		builder.WithLoop(builder.Loop),
+	).
+		KeyframeColor(rect, builder.PropColorValue, 0, 0x00CC3333, builder.Linear()).
+		KeyframeColor(rect, builder.PropColorValue, 30, 0xFFCC3333, builder.Linear()).
+		KeyframeColor(rect, builder.PropColorValue, 60, 0x00CC3333, builder.Linear())
+
+	return b.Bytes()
+}
+
+// 1b. Same fade but via shape opacity (0→1→0 over 60 frames). Works after
+// the interpTypeCode fix (Linear now correctly emits interpolationType=1).
+func generateFadeRectOpacity() ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("FadeRectOpacity", 500, 500)
+
+	rect := ab.Rectangle(150, 175, 200, 150).
+		Fill(0xFFCC3333).
+		Name("rect")
+
+	ab.Animation("fadeInOut",
+		builder.WithDuration(60),
 		builder.WithFPS(60),
 		builder.WithLoop(builder.Loop),
 	).
 		KeyframeFloat(rect, builder.PropOpacity, 0, 0.0, builder.Linear()).
-		KeyframeFloat(rect, builder.PropOpacity, 30, 1.0, builder.Linear())
+		KeyframeFloat(rect, builder.PropOpacity, 30, 1.0, builder.Linear()).
+		KeyframeFloat(rect, builder.PropOpacity, 60, 0.0, builder.Linear())
 
 	return b.Bytes()
 }
