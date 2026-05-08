@@ -342,6 +342,21 @@ func genColorCycle() ([]byte, error) {
 	return b.Bytes()
 }
 
+func genFadeRectOpacity() ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("FadeRectOpacity", 500, 500)
+	rect := ab.Rectangle(150, 175, 200, 150).Fill(0xFFCC3333).Name("rect")
+	ab.Animation("fadeInOut",
+		builder.WithDuration(60),
+		builder.WithFPS(60),
+		builder.WithLoop(builder.Loop),
+	).
+		KeyframeFloat(rect, builder.PropOpacity, 0, 0.0, builder.Linear()).
+		KeyframeFloat(rect, builder.PropOpacity, 30, 1.0, builder.Linear()).
+		KeyframeFloat(rect, builder.PropOpacity, 60, 0.0, builder.Linear())
+	return b.Bytes()
+}
+
 func genToggleButton() ([]byte, error) {
 	b := builder.New()
 	ab := b.Artboard("ToggleButton", 300, 120)
@@ -444,6 +459,31 @@ func TestValidate_ToggleButton(t *testing.T) {
 	}
 }
 
+func TestValidate_FadeRectOpacity(t *testing.T) {
+	f := buildAndRead(t, genFadeRectOpacity)
+	checkAll(t, f)
+	if countTK(f.Objects, tkLinearAnimation) != 1 {
+		t.Error("expected 1 LinearAnimation")
+	}
+	// Verify opacity keyframes use linear interpolation (interpTypeCode fix test)
+	kfdObjs := 0
+	for i, o := range f.Objects {
+		if o.TypeKey() != tkKeyFrameDouble {
+			continue
+		}
+		kfdObjs++
+		it, ok := propUint(o, 68) // interpolationType
+		if !ok {
+			t.Errorf("object[%d] KeyFrameDouble: missing interpolationType (hold interp bug?)", i)
+		} else if it != 1 {
+			t.Errorf("object[%d] KeyFrameDouble: interpolationType=%d want 1 (linear)", i, it)
+		}
+	}
+	if kfdObjs != 3 {
+		t.Errorf("expected 3 KeyFrameDouble (frames 0/30/60), got %d", kfdObjs)
+	}
+}
+
 func TestValidate_GradientEllipse(t *testing.T) {
 	f := buildAndRead(t, genGradientEllipse)
 	checkAll(t, f)
@@ -479,6 +519,7 @@ func TestValidate_AllExamples(t *testing.T) {
 	}{
 		{"minimal_static", genMinimalStatic},
 		{"fade_rect", genFadeRect},
+		{"fade_rect_opacity", genFadeRectOpacity},
 		{"bounce_ball", genBounceBall},
 		{"color_cycle", genColorCycle},
 		{"toggle_button", genToggleButton},

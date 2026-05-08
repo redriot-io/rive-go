@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <!--
-  KNOWN ISSUES (fixed in ea5054c → current):
+  KNOWN ISSUES (fixed):
   - ShapePaint.IsVisible defaults to true; Go zero-value (false) caused fills to be emitted
-    as invisible. Fixed: builder now sets fill.IsVisible = true, fill.BlendModeValue = 127.
+    as invisible. Fixed ea5054c: builder sets fill.IsVisible = true, fill.BlendModeValue = 127.
   - ParametricPath.OriginX/Y defaults to 0.5; Go zero-value caused anchor at top-left.
-    Fixed: builder now sets OriginX = OriginY = 0.5 on Rectangle/Ellipse.
+    Fixed ea5054c: builder sets OriginX = OriginY = 0.5 on Rectangle/Ellipse.
   - Page architecture: 6 simultaneous Rive/WASM instances → "Page Unresponsive" popup.
-    Fixed: sequential loading queue with 5-second timeout per file.
+    Fixed: sequential loading queue with timeout per file.
+  - LinearInterp.interpTypeCode returned 0 (hold); animations used hold instead of linear.
+    Fixed fe297bb: LinearInterp → 1, HoldInterp → 0.  color_cycle was jumping not blending.
+  - fade_rect used opacity keyframes (shape.opacity); opacity at 0 held by hold interp → 0px.
+    Fixed fe297bb: fade_rect now uses KeyFrameColor on SolidColor.colorValue (alpha 0→255→0).
+  - Each card previously had no explicit animation name → autoplay picked arbitrarily.
+    Fixed (current): per-card animations/stateMachines arrays passed to Rive constructor.
 -->
 <html lang="en">
 <head>
@@ -189,7 +195,7 @@
 
 <header>
   <h1>rive<span>-go</span> · Live Previews</h1>
-  <p>Seven demo scenes — one official reference file, six generated entirely in Go.</p>
+  <p>Eight demo scenes — one official reference file, seven generated entirely in Go.</p>
   <div class="badge-row">
     <a href="https://github.com/redriot-io/rive-go" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-redriot--io%2Frive--go-6c63ff?logo=github&logoColor=white" alt="GitHub" />
@@ -218,51 +224,58 @@ const demos = [
   {
     file: "examples/reference.riv",
     title: "Reference (Official Rive File)",
-    desc: "ball_test.riv from rive-app/rive-runtime — used to verify the Rive WASM runtime works correctly independent of our generated files.",
-    tags: ["reference", "official"],
+    // ball_test.riv has a state machine on its first artboard. The animation
+    // "Timeline 1" is oneshot — it plays once then holds on the last frame.
+    desc: "ball_test.riv from rive-app/rive-runtime. Plays once via State Machine 1, then holds. Used to verify the Rive WASM runtime works independently of our generated files.",
+    tags: ["reference", "official", "oneshot"],
     tagClass: "ref",
+    stateMachines: ["State Machine 1"],
   },
   {
     file: "examples/fade_rect.riv",
     title: "Fade Rectangle",
-    desc: "A red rectangle that fades from invisible to fully opaque, driven by a looping LinearAnimation.",
-    tags: ["animation", "opacity"],
+    desc: "A red rectangle whose fill alpha animates 0 → 255 → 0 via KeyFrameColor on SolidColor.colorValue. Loops every 1 second.",
+    tags: ["animation", "color alpha", "loop"],
+    animations: ["fadeIn"],
   },
   {
     file: "examples/bounce_ball.riv",
     title: "Bounce Ball",
-    desc: "A circle that bounces on the Y-axis using a cubic ease-in-out keyframe pair on a ping-pong loop.",
+    desc: "A circle bounces on the Y-axis using cubic ease-in/out keyframes on a ping-pong loop. CubicEaseInterpolator (typeKey 28) is emitted automatically.",
     tags: ["animation", "cubic easing", "ping-pong"],
+    animations: ["bounce"],
   },
   {
     file: "examples/color_cycle.riv",
     title: "Color Cycle",
-    desc: "Three color keyframes on a SolidColor cycle the fill of a rectangle through red → green → blue.",
-    tags: ["animation", "color keyframes"],
+    desc: "Four KeyFrameColor frames cycle a rectangle fill: red → blue → green → red over 3 seconds (fps=30, 90 frames). Linear interpolation, looping.",
+    tags: ["animation", "color keyframes", "loop"],
+    animations: ["colorCycle"],
   },
   {
     file: "examples/toggle_button.riv",
     title: "Toggle Button",
-    desc: "A shape connected to a StateMachine with a Boolean input. Transitions drive Off ↔ On states.",
+    desc: "A shape driven by a StateMachine with a Boolean input \"active\". Transitions connect Idle ↔ Active states.",
     tags: ["state machine", "boolean input"],
     tagClass: "red",
+    stateMachines: ["ButtonSM"],
   },
   {
     file: "examples/gradient_ellipse.riv",
     title: "Gradient Ellipse",
-    desc: "A static ellipse with a two-stop LinearGradient fill — shows gradient paint construction.",
+    desc: "A static ellipse with a 3-stop LinearGradient fill (red → yellow → green). Tests gradient paint construction.",
     tags: ["gradient", "static"],
   },
   {
     file: "examples/multi_shape.riv",
     title: "Multi-Shape",
-    desc: "Three shapes (two rects + ellipse) arranged on one artboard, each with its own solid-color fill.",
-    tags: ["shapes", "layout"],
+    desc: "Three shapes on one artboard: red rectangle, blue circle (ellipse), green rectangle with stroke. No animation.",
+    tags: ["shapes", "layout", "static"],
   },
 ];
 
 // Build card DOM elements first (no Rive yet)
-const cards = demos.map(({ file, title, desc, tags, tagClass }) => {
+const cards = demos.map(({ file, title, desc, tags, tagClass, animations, stateMachines }) => {
   const card = document.createElement('div');
   card.className = 'card';
 
@@ -316,13 +329,13 @@ const cards = demos.map(({ file, title, desc, tags, tagClass }) => {
   card.appendChild(body);
   document.getElementById('grid').appendChild(card);
 
-  return { file, canvas, dot, loadingMsg, errMsg };
+  return { file, canvas, dot, loadingMsg, errMsg, animations, stateMachines };
 });
 
 // Sequential loading queue
 let queue = Promise.resolve();
 
-cards.forEach(({ file, canvas, dot, loadingMsg, errMsg }) => {
+cards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachines }) => {
   queue = queue.then(() => new Promise(resolve => {
     dot.classList.add('loading');
     loadingMsg.textContent = 'loading…';
@@ -349,20 +362,41 @@ cards.forEach(({ file, canvas, dot, loadingMsg, errMsg }) => {
       settle(false, `Timed out after ${LOAD_TIMEOUT_MS / 1000}s`);
     }, LOAD_TIMEOUT_MS);
 
+    // Build constructor options. Pass explicit animation or state machine names
+    // when known so the runtime plays the right thing even if autoplay picks wrong.
+    const riveOpts = {
+      src: file,
+      canvas,
+      autoplay: true,
+      onLoad: () => {
+        r.resizeDrawingSurfaceToCanvas();
+        // Explicitly start playback after resize so the first frame is at the
+        // correct DPI. Falls back gracefully if the name is not found.
+        try {
+          if (stateMachines && stateMachines.length) {
+            r.play(stateMachines);
+          } else if (animations && animations.length) {
+            r.play(animations);
+          } else {
+            r.play();
+          }
+        } catch (_) { /* runtime will play default */ }
+        settle(true);
+      },
+      onLoadError: (e) => {
+        const msg = (e && e.message) ? e.message : String(e);
+        settle(false, `Load error: ${msg}`);
+      },
+    };
+    if (stateMachines && stateMachines.length) {
+      riveOpts.stateMachines = stateMachines;
+    } else if (animations && animations.length) {
+      riveOpts.animations = animations;
+    }
+
+    let r;
     try {
-      const r = new rive.Rive({
-        src: file,
-        canvas,
-        autoplay: true,
-        onLoad: () => {
-          r.resizeDrawingSurfaceToCanvas();
-          settle(true);
-        },
-        onLoadError: (e) => {
-          const msg = (e && e.message) ? e.message : String(e);
-          settle(false, `Load error: ${msg}`);
-        },
-      });
+      r = new rive.Rive(riveOpts);
     } catch (e) {
       settle(false, `Exception: ${e.message || e}`);
     }

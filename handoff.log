@@ -230,3 +230,41 @@ VERIFICATION:
 
 NOTE on fade_rect: task said "blank" but it was already fixed structurally by
 T-368 (parentId=1 global → parentId=0 artboard-relative, not emitted).
+
+---
+T-370_CODE_COMPLETE + T-371_CODE_COMPLETE — commit fe297bb
+
+## T-370: Structural Validation Test Suite
+
+### Deliverables
+- `test/validate/validate_test.go` — 17 test functions, no build tag (runs in `go test ./...`)
+  - Per-example structural checks: unknown type keys, ToC type match, parentId in range,
+    no circular parents, artboard is root, animation objectIds valid, shape has path+paint,
+    paint has color source
+  - Golden tests: TestGolden_FadeRectOfficial (validates 296-byte official export),
+    TestGolden_FadeRectBuilder (validates builder output matches official pattern)
+- `test/testdata/golden/fade_rect_official.riv` — 296-byte official Rive editor export
+- `Makefile`: `make validate` target (runs examples generator + structural tests)
+- `cmd/rivtool/main.go`: enhanced `validate` subcommand with:
+  - Artboard-relative parentId resolution
+  - Shape structure check (path + paint objects per artboard)
+  - KeyedObject.objectId range check
+
+## T-371: Debug fade_rect + Golden Test
+
+### Root Cause
+`LinearInterp.interpTypeCode()` returned 0 — which the Rive spec defines as "hold".
+`gen_animation.go` suppresses emission when `InterpolationType==0` (hold is default).
+Result: keyframes silently treated as hold → opacity stayed at 0.0 → 0 pixels rendered.
+
+### Fix
+Swapped interpTypeCode values: LinearInterp=1, HoldInterp=0 (matches Rive spec).
+This also corrects color_cycle.riv which was discretely jumping instead of interpolating.
+
+### New Examples
+- `fade_rect.riv`: color-alpha approach (KeyFrameColor on SolidColor.colorValue, alpha 0→255→0)
+  matching official Rive editor export structure
+- `fade_rect_opacity.riv`: shape opacity approach (KeyFrameDouble on PropOpacity), now works
+  after interpTypeCode fix
+
+### Tests: all pass (go test ./... clean)
