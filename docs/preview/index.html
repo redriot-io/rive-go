@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!--
+  KNOWN ISSUES (fixed in ea5054c → current):
+  - ShapePaint.IsVisible defaults to true; Go zero-value (false) caused fills to be emitted
+    as invisible. Fixed: builder now sets fill.IsVisible = true, fill.BlendModeValue = 127.
+  - ParametricPath.OriginX/Y defaults to 0.5; Go zero-value caused anchor at top-left.
+    Fixed: builder now sets OriginX = OriginY = 0.5 on Rectangle/Ellipse.
+  - Page architecture: 6 simultaneous Rive/WASM instances → "Page Unresponsive" popup.
+    Fixed: sequential loading queue with 5-second timeout per file.
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -85,9 +94,28 @@
       justify-content: center;
       height: 220px;
       position: relative;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     canvas { max-width: 100%; max-height: 100%; }
+
+    .loading-msg {
+      color: var(--muted);
+      font-size: 0.8rem;
+      position: absolute;
+      bottom: 8px;
+      left: 0; right: 0;
+      text-align: center;
+    }
+
+    .error-msg {
+      color: #e05a5a;
+      font-size: 0.75rem;
+      padding: 0.5rem 1rem;
+      text-align: center;
+      display: none;
+    }
 
     .card-body {
       padding: 1rem 1.25rem 1.25rem;
@@ -123,6 +151,12 @@
       border: 1px solid rgba(108, 99, 255, 0.3);
     }
 
+    .tag.ref {
+      background: rgba(76, 175, 136, 0.15);
+      color: #4caf88;
+      border-color: rgba(76, 175, 136, 0.3);
+    }
+
     .tag.red {
       background: rgba(255, 101, 132, 0.12);
       color: var(--accent2);
@@ -135,7 +169,9 @@
       background: var(--muted);
       position: absolute;
       top: 10px; right: 12px;
+      transition: background 0.3s;
     }
+    .status-dot.loading { background: #f0c040; }
     .status-dot.ok { background: #4caf88; }
     .status-dot.err { background: #e05a5a; }
 
@@ -153,16 +189,13 @@
 
 <header>
   <h1>rive<span>-go</span> · Live Previews</h1>
-  <p>Six demo scenes generated entirely in Go — no editor, no manual authoring.</p>
+  <p>Seven demo scenes — one official reference file, six generated entirely in Go.</p>
   <div class="badge-row">
     <a href="https://github.com/redriot-io/rive-go" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-redriot--io%2Frive--go-6c63ff?logo=github&logoColor=white" alt="GitHub" />
     </a>
     <a href="https://pkg.go.dev/github.com/redriot-io/rive-go" target="_blank">
       <img src="https://pkg.go.dev/badge/github.com/redriot-io/rive-go.svg" alt="Go Reference" />
-    </a>
-    <a href="https://github.com/redriot-io/rive-go/actions" target="_blank">
-      <img src="https://img.shields.io/github/actions/workflow/status/redriot-io/rive-go/ci.yml?label=CI&logo=githubactions&logoColor=white" alt="CI" />
     </a>
   </div>
 </header>
@@ -176,7 +209,19 @@
 
 <script src="https://unpkg.com/@rive-app/canvas@2"></script>
 <script>
+// Sequential loader — never instantiate more than one Rive at a time.
+// This prevents the browser from spinning up multiple WASM instances in
+// parallel, which caused "Page Unresponsive" popups on the previous version.
+const LOAD_TIMEOUT_MS = 8000;
+
 const demos = [
+  {
+    file: "examples/reference.riv",
+    title: "Reference (Official Rive File)",
+    desc: "ball_test.riv from rive-app/rive-runtime — used to verify the Rive WASM runtime works correctly independent of our generated files.",
+    tags: ["reference", "official"],
+    tagClass: "ref",
+  },
   {
     file: "examples/fade_rect.riv",
     title: "Fade Rectangle",
@@ -216,9 +261,8 @@ const demos = [
   },
 ];
 
-const grid = document.getElementById('grid');
-
-demos.forEach(({ file, title, desc, tags, tagClass }) => {
+// Build card DOM elements first (no Rive yet)
+const cards = demos.map(({ file, title, desc, tags, tagClass }) => {
   const card = document.createElement('div');
   card.className = 'card';
 
@@ -232,8 +276,16 @@ demos.forEach(({ file, title, desc, tags, tagClass }) => {
   const dot = document.createElement('div');
   dot.className = 'status-dot';
 
+  const loadingMsg = document.createElement('div');
+  loadingMsg.className = 'loading-msg';
+  loadingMsg.textContent = 'queued…';
+
   wrap.appendChild(canvas);
   wrap.appendChild(dot);
+  wrap.appendChild(loadingMsg);
+
+  const errMsg = document.createElement('div');
+  errMsg.className = 'error-msg';
 
   const body = document.createElement('div');
   body.className = 'card-body';
@@ -260,27 +312,61 @@ demos.forEach(({ file, title, desc, tags, tagClass }) => {
   body.appendChild(tagRow);
 
   card.appendChild(wrap);
+  card.appendChild(errMsg);
   card.appendChild(body);
-  grid.appendChild(card);
+  document.getElementById('grid').appendChild(card);
 
-  try {
-    const r = new rive.Rive({
-      src: file,
-      canvas,
-      autoplay: true,
-      onLoad: () => {
+  return { file, canvas, dot, loadingMsg, errMsg };
+});
+
+// Sequential loading queue
+let queue = Promise.resolve();
+
+cards.forEach(({ file, canvas, dot, loadingMsg, errMsg }) => {
+  queue = queue.then(() => new Promise(resolve => {
+    dot.classList.add('loading');
+    loadingMsg.textContent = 'loading…';
+
+    let settled = false;
+    const settle = (ok, message) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      dot.classList.remove('loading');
+      loadingMsg.remove();
+      if (ok) {
         dot.classList.add('ok');
-        r.resizeDrawingSurfaceToCanvas();
-      },
-      onLoadError: (e) => {
+      } else {
         dot.classList.add('err');
-        console.error(file, e);
-      },
-    });
-  } catch (e) {
-    dot.classList.add('err');
-    console.error(file, e);
-  }
+        errMsg.textContent = message || 'Failed to load';
+        errMsg.style.display = 'block';
+      }
+      // Small gap between loads to let the browser breathe
+      setTimeout(resolve, 200);
+    };
+
+    const timer = setTimeout(() => {
+      settle(false, `Timed out after ${LOAD_TIMEOUT_MS / 1000}s`);
+    }, LOAD_TIMEOUT_MS);
+
+    try {
+      const r = new rive.Rive({
+        src: file,
+        canvas,
+        autoplay: true,
+        onLoad: () => {
+          r.resizeDrawingSurfaceToCanvas();
+          settle(true);
+        },
+        onLoadError: (e) => {
+          const msg = (e && e.message) ? e.message : String(e);
+          settle(false, `Load error: ${msg}`);
+        },
+      });
+    } catch (e) {
+      settle(false, `Exception: ${e.message || e}`);
+    }
+  }));
 });
 </script>
 </body>

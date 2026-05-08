@@ -117,6 +117,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		r.Opacity = 1.0
 		r.ScaleX = 1.0
 		r.ScaleY = 1.0
+		r.OriginX = 0.5
+		r.OriginY = 0.5
 		r.LinkCornerRadius = true
 		*objects = append(*objects, r)
 	case shapeEllipse:
@@ -127,6 +129,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		e.Opacity = 1.0
 		e.ScaleX = 1.0
 		e.ScaleY = 1.0
+		e.OriginX = 0.5
+		e.OriginY = 0.5
 		*objects = append(*objects, e)
 	}
 
@@ -135,6 +139,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		fillIdx := uint64(len(*objects))
 		fill := &rive.Fill{}
 		fill.ParentId = s.shapeIdx
+		fill.IsVisible = true
+		fill.BlendModeValue = 127
 		*objects = append(*objects, fill)
 
 		if s.fill.gradient != nil {
@@ -155,6 +161,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64) {
 		st := &rive.Stroke{}
 		st.Thickness = s.stroke.thickness
 		st.ParentId = s.shapeIdx
+		st.IsVisible = true
+		st.BlendModeValue = 127
 		*objects = append(*objects, st)
 
 		sc := &rive.SolidColor{}
