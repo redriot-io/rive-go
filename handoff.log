@@ -372,3 +372,35 @@ Example JSON scenes:
 
 Tests: 26 unit tests + 12 CLI integration tests. All pass.
 Note: /tmp is noexec; CLI tests build binary to /app/workspace/tmp/.
+
+---
+## T-379/T-380/T-381 — FromJSON E2E Validation (2026-05-09)
+**Commit:** 0512d79
+
+### Changes
+- `rive/builder/shape.go`: Added `CornerRadius(r float64) *ShapeRef` — emits `CornerRadiusTL` on Rectangle (LinkCornerRadius=true means all corners linked)
+- `rive/fromjson/fromjson.go`: Added `corner_radius` JSON field to `Child` struct; applied in `addChild` for rectangle shapes
+- `docs/preview/fromjson/*.json`: 4 scene files (spinning_square, loading_dots, gradient_morph, color_fade)
+- `docs/preview/fromjson_*.riv`: Compiled via `rivtool create` — all 4 generated without error
+- `docs/preview/index.html`: Added "FromJSON Pipeline" section with 4 new cards
+
+### Notes
+- `examples` at repo root is a compiled binary (3.4MB) — JSON scenes placed in `docs/preview/fromjson/` instead
+- `gradient_morph.json` uses `linear_gradient` (not radial) — radial is a v1.0 limitation; substitution documented in commit message
+- `/tmp` is noexec in this container — binaries always built to `/app/workspace/tmp/`
+- All tests pass: `go test ./...` green across all packages
+
+[T-385] ANALYSIS — Autumn Leaves type key investigation (commit aca8de9)
+
+DIAGNOSIS: The task description's typeKey=28 hypothesis was a misidentification.
+At offset 0x1A0 in the binary:
+  1c 00 = CubicEaseInterpolator (typeKey=28), no props (ease-in-out defaults)
+  1f 37 07 "falling" = LinearAnimation (typeKey=31) name="falling" dur=360 loop=1
+
+Binary confirmed correct via exhaustive analysis:
+- LinearAnimation typeKey=31 ✓, objectIds 7/11/15/19/23 ✓, 16 tracks ✓, 99 objects ✓
+
+ADDED:
+- TestFromJSON_AutumnLeavesStructure (unit test, validates binary object counts)
+- fromjson/* to integration test (Chromium harness catches blank-canvas regressions)
+- All tests green; pushed aca8de9
