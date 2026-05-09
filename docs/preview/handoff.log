@@ -1,0 +1,104 @@
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+T-395: Binary Diff — Rive Editor reference vs goriv autumn_leaves.riv
+Date: 2026-05-09
+Tool: cmd/rivdiff/main.go (already committed at 8329084)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+REFERENCE FILE: tmp/reference_autumn.riv (1626 bytes, 133 objects, fileID=2274415)
+OUR FILE:       docs/preview/fromjson_autumn.riv (1073 bytes, 97 objects, fileID=0)
+
+────────────────────────────────────────────────────────────────
+DIFF SUMMARY BY CATEGORY
+────────────────────────────────────────────────────────────────
+
+[BY DESIGN — not bugs]
+1. PointsPath(16)+CubicPathVertex(35) vs Ellipse(4)
+   Reference uses real leaf silhouettes built from cubic bezier paths.
+   We use parametric Ellipses. Functionally equivalent for the renderer.
+
+2. Forward parentId references in reference (SolidColor.parentId points to
+   a Fill that appears later in the stream). Our file uses strict topological
+   order (parent always appears before children). Both are valid per spec.
+
+3. Leaf initial positions: reference starts leaves ABOVE artboard (Y<0)
+   so they fall INTO view. Our file starts leaves within artboard (Y=20-260).
+
+4. fileID=0 vs fileID=2274415. Our builder emits fileID=0 (no GUID). The
+   reference was saved by the Rive Editor with a generated GUID. No rendering
+   effect.
+
+5. Extra LayoutComponentStyle (typeKey=420) in reference. Layout-only metadata
+   from the Rive Editor, no visual effect.
+
+6. Reference has 6 Fill objects (5 per leaf + 1 for the Artboard itself with
+   SolidColor 0xFF282828 dark background). Our file uses a sky Rectangle shape
+   for the background instead.
+
+[POTENTIALLY SIGNIFICANT]
+7. FillRule: reference emits key#40=2 (even-odd) on ALL Fills. Our file does
+   not emit FillRule (defaults to 0, non-zero winding). For convex parametric
+   shapes (Ellipse, Rectangle), this makes no visual difference — both rules
+   produce identical fill for non-self-intersecting paths.
+
+────────────────────────────────────────────────────────────────
+ROOT CAUSE HYPOTHESIS (after 8 tasks, still unconfirmed)
+────────────────────────────────────────────────────────────────
+
+Static analysis shows the binary is structurally CORRECT:
+  - parentIds: all verified correct via manual trace + rivdiff
+  - animation targets: all KeyedObject.objectIds match leaf Shape art-rel indices
+  - Fill/SolidColor chains: all parented correctly
+
+The ONLY structural difference between autumn_leaves (broken) and working
+ellipse demos (dots, easing, color_fade, ellipse_test) is:
+  autumn_leaves has a FULL-ARTBOARD BACKGROUND RECTANGLE as its FIRST child
+  before the leaf Ellipses.
+
+Hypothesis: The Rive @rive-app/canvas v2 runtime renders artboard children
+in REVERSE of stream order (first-added child = rendered LAST = on top).
+This would cause sky (first child, art-rel 1) to render on TOP of all leaves
+(art-rel 5, 9, 13, 17, 21), making them invisible.
+
+Evidence FOR this hypothesis:
+  - All broken shapes (leaves) come AFTER sky in the object stream
+  - Sky (only visible shape) comes FIRST in the stream
+  - All working demos have only ONE type of shape, so Z-order doesn't manifest
+  - dots/easing have ellipses at non-overlapping positions — Z-order irrelevant
+
+Evidence AGAINST:
+  - Standard 2D scene graph renders first=bottom, last=top
+  - Rive Editor's own reference file has all leaf Shapes first (before Fills),
+    which would also be "on bottom" if order is normal, yet the reference works
+
+NOTE: The reference's success doesn't help resolve this because it has NO
+sky rectangle — all shapes in the reference are leaves, so Z-order doesn't matter.
+
+────────────────────────────────────────────────────────────────
+EXPERIMENTS CREATED (T-395)
+────────────────────────────────────────────────────────────────
+
+1. fromjson_mixed_bg_test.riv (from fromjson/mixed_bg_test.json):
+   Grey 200×200 rectangle + red 80×80 ellipse on top. Static, no animation.
+   → If red ellipse is INVISIBLE: confirms draw-order reversal hypothesis
+   → If red ellipse is VISIBLE: draw order is standard; bug is elsewhere
+
+2. fromjson_autumn_sky_last.riv (from fromjson/autumn_sky_last.json):
+   Identical to autumn_leaves but sky rectangle listed LAST in children.
+   Stream order: leaf1-5 (art-rel 1,5,9,13,17) then sky (art-rel 21).
+   → If leaves are now VISIBLE: draw order is reversed (first=top), sky
+     renders first/bottom, leaves visible. Fix confirmed.
+   → If EVERYTHING is now sky-colored: sky renders last/top, standard order,
+     and some other bug is responsible.
+
+Both cards added to index.html preview page.
+
+────────────────────────────────────────────────────────────────
+NEXT ACTION
+────────────────────────────────────────────────────────────────
+Push to GitHub Pages and check the two new test cards in the browser.
+The mixed_bg_test result will definitively confirm or refute the Z-order
+reversal hypothesis. If confirmed, the fix is to always emit background
+shapes LAST in the fromjson children list, or add an explicit Z-sort step
+in the ArtboardBuilder.
+

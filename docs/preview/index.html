@@ -474,6 +474,19 @@ const fromjsonDemos = [
     desc: "Minimal test: single 120×120 red ellipse centered on a 200×200 artboard, no animation. Confirms ellipse (typeKey 4) encoding and parentId resolution are correct.",
     tags: ["fromjson", "ellipse", "static", "regression"],
   },
+  {
+    file: "fromjson_mixed_bg_test.riv",
+    title: "Mixed BG Test — Rectangle + Ellipse (T-395)",
+    desc: "Isolates Z-order: grey 200×200 rectangle background with red 80×80 ellipse on top. If ellipse is NOT visible, draw order is reversed in the Rive runtime (first child = top).",
+    tags: ["fromjson", "regression", "z-order", "static"],
+  },
+  {
+    file: "fromjson_autumn_sky_last.riv",
+    title: "Autumn Leaves — Sky LAST (T-395 draw-order fix)",
+    desc: "Same as Autumn Leaves but sky rectangle placed LAST in children list. If leaves are now visible, the Rive runtime renders first-child-on-top (reversed Z-order).",
+    tags: ["fromjson", "regression", "z-order", "loop"],
+    animations: ["falling"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines }) => {
