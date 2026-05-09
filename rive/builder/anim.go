@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"math"
 	"sort"
 
 	"github.com/redriot-io/rive-go/rive"
@@ -112,6 +113,11 @@ func (a *AnimationBuilder) KeyframeFloat(target *ShapeRef, propKey uint32, frame
 	}
 	a.kfs = append(a.kfs, animKF{target: target, propKey: propKey, frame: frame, value: value, interp: i})
 	return a
+}
+
+// KeyframeRotation adds a rotation keyframe, accepting degrees (converted to radians internally).
+func (a *AnimationBuilder) KeyframeRotation(target *ShapeRef, frame uint64, degrees float64, interp ...Interpolation) *AnimationBuilder {
+	return a.KeyframeFloat(target, PropRotation, frame, degrees*math.Pi/180.0, interp...)
 }
 
 // KeyframeColor adds a color keyframe.

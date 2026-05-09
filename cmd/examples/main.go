@@ -30,6 +30,7 @@ func main() {
 		{"toggle_button.riv", generateToggleButton},
 		{"gradient_ellipse.riv", generateGradientEllipse},
 		{"multi_shape.riv", generateMultiShape},
+		{"spinning_square.riv", generateSpinningSquare},
 	}
 
 	for _, s := range steps {
@@ -184,6 +185,32 @@ func generateMultiShape() ([]byte, error) {
 		Fill(0xFF2ECC71).
 		Stroke(4.0, 0xFF27AE60).
 		Name("greenRect")
+
+	return b.Bytes()
+}
+
+// 9. Square that spins 360° per second and pulses scale 0.8→1.2→0.8 (ping-pong).
+func generateSpinningSquare() ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("SpinningSquare", 400, 400)
+
+	sq := ab.Rectangle(200, 200, 120, 120).
+		Fill(0xFF6C63FF).
+		Name("square")
+
+	ab.Animation("spin",
+		builder.WithDuration(60),
+		builder.WithFPS(60),
+		builder.WithLoop(builder.Loop),
+	).
+		KeyframeRotation(sq, 0, 0, builder.Linear()).
+		KeyframeRotation(sq, 60, 360, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 0, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 30, 1.2, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 60, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 0, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 30, 1.2, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 60, 0.8, builder.Linear())
 
 	return b.Bytes()
 }

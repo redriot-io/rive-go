@@ -1,6 +1,10 @@
 package builder
 
-import "github.com/redriot-io/rive-go/rive"
+import (
+	"math"
+
+	"github.com/redriot-io/rive-go/rive"
+)
 
 type shapeKind uint8
 
@@ -38,8 +42,13 @@ type ShapeRef struct {
 	x, y         float64
 	param1, param2 float64 // width/height or radiusX/radiusY
 
-	opacitySet bool
-	opacity    float64
+	opacitySet  bool
+	opacity     float64
+	rotationSet bool
+	rotationDeg float64 // stored in degrees, converted to radians on emit
+	scaleSet    bool
+	scaleX      float64
+	scaleY      float64
 
 	fill   *fillConfig
 	stroke *strokeConfig
@@ -81,6 +90,22 @@ func (s *ShapeRef) Opacity(v float64) *ShapeRef {
 	return s
 }
 
+// Rotation sets the shape's initial rotation in degrees (clockwise).
+// The value is converted to radians when emitting the Rive binary.
+func (s *ShapeRef) Rotation(degrees float64) *ShapeRef {
+	s.rotationSet = true
+	s.rotationDeg = degrees
+	return s
+}
+
+// Scale sets the shape's initial X and Y scale factors.
+func (s *ShapeRef) Scale(sx, sy float64) *ShapeRef {
+	s.scaleSet = true
+	s.scaleX = sx
+	s.scaleY = sy
+	return s
+}
+
 // Name sets a name for the shape (useful for animation targeting and debugging).
 func (s *ShapeRef) Name(n string) *ShapeRef {
 	s.name = n
@@ -103,6 +128,13 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 	shape.BlendModeValue = 3
 	if s.opacitySet {
 		shape.Opacity = s.opacity
+	}
+	if s.rotationSet {
+		shape.Rotation = s.rotationDeg * math.Pi / 180.0
+	}
+	if s.scaleSet {
+		shape.ScaleX = s.scaleX
+		shape.ScaleY = s.scaleY
 	}
 	*objects = append(*objects, shape)
 

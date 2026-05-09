@@ -17,6 +17,9 @@
     Fixed: changed to PingPong loop with 3 keyframes (red→blue→green) and duration=60.
   - gradient_ellipse appeared flat (artboard-space gradient coords; runtime expected shape-local).
     Fixed: FillGradient coords changed from (50,200,350,200) to (-75,0,75,0) — shape-local.
+  - No rotation/scale support in builder (T-374).
+    Added: ShapeRef.Rotation(deg)/Scale(sx,sy) set initial transform; AnimationBuilder.
+    KeyframeRotation(target,frame,deg) + PropScaleX/Y keyframes; spinning_square example.
 -->
 <html lang="en">
 <head>
@@ -275,6 +278,13 @@ const demos = [
     title: "Multi-Shape",
     desc: "Three shapes on one artboard: red rectangle, blue circle (ellipse), green rectangle with stroke. No animation.",
     tags: ["shapes", "layout", "static"],
+  },
+  {
+    file: "examples/spinning_square.riv",
+    title: "Spinning Square",
+    desc: "A purple square animates rotation 0→360° (1 full spin per second at 60fps) while simultaneously pulsing scale 0.8→1.2→0.8. Demonstrates KeyframeRotation + PropScaleX/Y in a single animation.",
+    tags: ["animation", "rotation", "scale", "loop"],
+    animations: ["spin"],
   },
 ];
 

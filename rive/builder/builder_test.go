@@ -1,6 +1,7 @@
 package builder_test
 
 import (
+	"math"
 	"testing"
 
 	"github.com/redriot-io/rive-go/rive"
@@ -501,6 +502,162 @@ func TestBuilder_OutputLoadsInReader(t *testing.T) {
 	data := mustBuild(t, b)
 	if _, err := rive.ReadBytes(data); err != nil {
 		t.Fatalf("ReadBytes after complex build: %v", err)
+	}
+}
+
+// ── Rotation / Scale tests ────────────────────────────────────────────────────
+
+func TestBuilder_Rotation(t *testing.T) {
+	b := builder.New()
+	ab := b.Artboard("Main", 400, 400)
+	ab.Rectangle(200, 200, 100, 100).Fill(0xFFFF0000).Rotation(90)
+
+	data := mustBuild(t, b)
+	f := mustReadBytes(t, data)
+
+	// Shape is objects[2]; rotation is property key 15
+	shapeProps := propsByKey(f.Objects[2].Properties())
+	v, ok := shapeProps[15]
+	if !ok {
+		t.Fatal("shape.Rotation (key 15) not emitted")
+	}
+	// 90 degrees == π/2 radians. The binary format stores float32, so allow float32 precision loss.
+	const wantRad = math.Pi / 2
+	if got, ok2 := v.Value.(float64); !ok2 || math.Abs(got-wantRad) > 1e-6 {
+		t.Errorf("shape.Rotation = %v, want %.10f (π/2)", v.Value, wantRad)
+	}
+}
+
+func TestBuilder_Scale(t *testing.T) {
+	b := builder.New()
+	ab := b.Artboard("Main", 400, 400)
+	ab.Rectangle(200, 200, 100, 100).Fill(0xFFFF0000).Scale(0.5, 2.0)
+
+	data := mustBuild(t, b)
+	f := mustReadBytes(t, data)
+
+	shapeProps := propsByKey(f.Objects[2].Properties())
+
+	sx, ok := shapeProps[16]
+	if !ok {
+		t.Fatal("shape.ScaleX (key 16) not emitted")
+	}
+	if got, ok2 := sx.Value.(float64); !ok2 || got != 0.5 {
+		t.Errorf("shape.ScaleX = %v, want 0.5", sx.Value)
+	}
+
+	sy, ok := shapeProps[17]
+	if !ok {
+		t.Fatal("shape.ScaleY (key 17) not emitted")
+	}
+	if got, ok2 := sy.Value.(float64); !ok2 || got != 2.0 {
+		t.Errorf("shape.ScaleY = %v, want 2.0", sy.Value)
+	}
+}
+
+func TestBuilder_RotationAnimation(t *testing.T) {
+	b := builder.New()
+	ab := b.Artboard("Main", 400, 400)
+	sq := ab.Rectangle(200, 200, 100, 100).Fill(0xFFFF0000)
+	ab.Animation("spin", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.Loop)).
+		KeyframeRotation(sq, 0, 0, builder.Linear()).
+		KeyframeRotation(sq, 60, 360, builder.Linear())
+
+	data := mustBuild(t, b)
+	f := mustReadBytes(t, data)
+
+	// 1 KeyedObject (shape), 1 KeyedProperty (rotation key 15), 2 KeyFrameDouble
+	if n := countType(f.Objects, 25); n != 1 {
+		t.Errorf("want 1 KeyedObject, got %d", n)
+	}
+	kpList := collectType(f.Objects, 26)
+	if len(kpList) != 1 {
+		t.Fatalf("want 1 KeyedProperty, got %d", len(kpList))
+	}
+	// KeyedProperty.PropertyKey is rive property key 53
+	kpProps := propsByKey(kpList[0].Properties())
+	if v, ok := kpProps[53]; !ok || v.Value.(uint64) != 15 {
+		t.Errorf("KeyedProperty.propertyKey = %v, want 15 (rotation)", kpProps[53].Value)
+	}
+	if n := countType(f.Objects, 30); n != 2 {
+		t.Errorf("want 2 KeyFrameDouble, got %d", n)
+	}
+
+	// Second keyframe value should be 360° in radians = 2π (float32 precision loss in round-trip)
+	kfs := collectType(f.Objects, 30)
+	lastKFProps := propsByKey(kfs[1].Properties())
+	if v, ok := lastKFProps[70]; !ok {
+		t.Error("KeyFrameDouble.value (key 70) missing on second keyframe")
+	} else if got, ok2 := v.Value.(float64); !ok2 || math.Abs(got-2*math.Pi) > 1e-5 {
+		t.Errorf("keyframe value = %v, want 2π (360° in radians)", v.Value)
+	}
+}
+
+func TestBuilder_ScaleAnimation(t *testing.T) {
+	b := builder.New()
+	ab := b.Artboard("Main", 400, 400)
+	sq := ab.Rectangle(200, 200, 100, 100).Fill(0xFFFF0000)
+	ab.Animation("pulse", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
+		KeyframeFloat(sq, builder.PropScaleX, 0, 0.5, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 60, 1.5, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 0, 0.5, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 60, 1.5, builder.Linear())
+
+	data := mustBuild(t, b)
+	f := mustReadBytes(t, data)
+
+	// 1 KeyedObject, 2 KeyedProperties (scaleX key 16, scaleY key 17), 4 KeyFrameDouble
+	if n := countType(f.Objects, 25); n != 1 {
+		t.Errorf("want 1 KeyedObject, got %d", n)
+	}
+	if n := countType(f.Objects, 26); n != 2 {
+		t.Errorf("want 2 KeyedProperties (scaleX, scaleY), got %d", n)
+	}
+	if n := countType(f.Objects, 30); n != 4 {
+		t.Errorf("want 4 KeyFrameDouble, got %d", n)
+	}
+
+	// Verify property keys 16 and 17 are present
+	kpList := collectType(f.Objects, 26)
+	keysSeen := map[uint64]bool{}
+	for _, kp := range kpList {
+		props := propsByKey(kp.Properties())
+		if v, ok := props[53]; ok { // KeyedProperty.PropertyKey is rive key 53
+			keysSeen[v.Value.(uint64)] = true
+		}
+	}
+	if !keysSeen[16] {
+		t.Error("KeyedProperty for PropScaleX (key 16) not found")
+	}
+	if !keysSeen[17] {
+		t.Error("KeyedProperty for PropScaleY (key 17) not found")
+	}
+}
+
+func TestBuilder_SpinningSquare_RoundTrip(t *testing.T) {
+	b := builder.New()
+	ab := b.Artboard("SpinningSquare", 400, 400)
+	sq := ab.Rectangle(200, 200, 120, 120).
+		Fill(0xFF6C63FF).
+		Scale(0.8, 0.8).
+		Name("square")
+	ab.Animation("spin",
+		builder.WithDuration(60),
+		builder.WithFPS(60),
+		builder.WithLoop(builder.Loop),
+	).
+		KeyframeRotation(sq, 0, 0, builder.Linear()).
+		KeyframeRotation(sq, 60, 360, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 0, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 30, 1.2, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleX, 60, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 0, 0.8, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 30, 1.2, builder.Linear()).
+		KeyframeFloat(sq, builder.PropScaleY, 60, 0.8, builder.Linear())
+
+	data := mustBuild(t, b)
+	if _, err := rive.ReadBytes(data); err != nil {
+		t.Fatalf("round-trip ReadBytes: %v", err)
 	}
 }
 
