@@ -10,15 +10,7 @@
         "name": "sky",
         "x": 200, "y": 200,
         "width": 400, "height": 400,
-        "fill": {
-          "type": "linear_gradient",
-          "start": [0, -200],
-          "end":   [0,  200],
-          "stops": [
-            { "position": 0.0, "color": "#FF87CEEB" },
-            { "position": 1.0, "color": "#FFFFECD2" }
-          ]
-        }
+        "fill": "#FF87CEEB"
       },
       {
         "type": "ellipse",
@@ -26,7 +18,7 @@
         "x": 80, "y": 20,
         "width": 18, "height": 28,
         "rotation": 15,
-        "fill": "#FFCC3300"
+        "fill": "#FFC84C2F"
       },
       {
         "type": "ellipse",
@@ -34,7 +26,7 @@
         "x": 200, "y": 140,
         "width": 14, "height": 22,
         "rotation": -10,
-        "fill": "#FFDD6600"
+        "fill": "#FFE8A838"
       },
       {
         "type": "ellipse",
@@ -42,7 +34,7 @@
         "x": 300, "y": 260,
         "width": 16, "height": 26,
         "rotation": 25,
-        "fill": "#FF882200"
+        "fill": "#FFD4722A"
       },
       {
         "type": "ellipse",
@@ -50,7 +42,7 @@
         "x": 360, "y": 60,
         "width": 12, "height": 20,
         "rotation": -20,
-        "fill": "#FFEE4400"
+        "fill": "#FF8B4513"
       },
       {
         "type": "ellipse",
@@ -58,8 +50,7 @@
         "x": 140, "y": 190,
         "width": 24, "height": 36,
         "rotation": 5,
-        "fill": "#FFBB4400",
-        "opacity": 0.9
+        "fill": "#FFA0522D"
       }
     ],
     "animations": [
