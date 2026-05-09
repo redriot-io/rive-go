@@ -468,6 +468,12 @@ const fromjsonDemos = [
     tagClass: "ref",
     animations: ["falling"],
   },
+  {
+    file: "fromjson_ellipse_test.riv",
+    title: "Ellipse Regression Test (FromJSON)",
+    desc: "Minimal test: single 120×120 red ellipse centered on a 200×200 artboard, no animation. Confirms ellipse (typeKey 4) encoding and parentId resolution are correct.",
+    tags: ["fromjson", "ellipse", "static", "regression"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines }) => {

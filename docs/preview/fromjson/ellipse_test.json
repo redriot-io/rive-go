@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "EllipseTest",
+    "width": 200,
+    "height": 200,
+    "children": [
+      {
+        "type": "ellipse",
+        "name": "big_dot",
+        "x": 100,
+        "y": 100,
+        "width": 120,
+        "height": 120,
+        "fill": "#FF0000"
+      }
+    ]
+  }
+}
