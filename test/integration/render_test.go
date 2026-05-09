@@ -86,6 +86,22 @@ func TestRiveIntegration(t *testing.T) {
 		})
 	}
 
+	// FromJSON-generated files (fromjson pipeline validation)
+	for _, name := range []string{
+		"fromjson_spin.riv",
+		"fromjson_dots.riv",
+		"fromjson_gradient.riv",
+		"fromjson_color.riv",
+		"fromjson_easing.riv",
+		"fromjson_autumn.riv",
+	} {
+		cases = append(cases, testCase{
+			name:       "fromjson/" + name,
+			urlPath:    "/docs/preview/" + name,
+			wantLoaded: true,
+		})
+	}
+
 	const animDurationMs = 2500
 
 	// 5. Run each test case

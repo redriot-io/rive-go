@@ -605,3 +605,79 @@ func contains(s, sub string) bool {
 			return false
 		}())
 }
+
+// TestFromJSON_AutumnLeavesStructure verifies the autumn_leaves LLM-showcase scene
+// generates a binary with the correct animation structure:
+// - 1 LinearAnimation (typeKey=31) with name="falling", dur=360, loop=1
+// - 1 CubicEaseInterpolator (typeKey=28) for ease-in-out keyframes
+// - 5 KeyedObject (typeKey=25) referencing leaf shapes at objectIds 7,11,15,19,23
+// - 16 KeyedProperty tracks total
+func TestFromJSON_AutumnLeavesStructure(t *testing.T) {
+	const scene = `{
+  "version": 1,
+  "artboard": {
+    "name": "AutumnLeaves", "width": 400, "height": 400,
+    "children": [
+      {"type":"rectangle","name":"sky","x":200,"y":200,"width":400,"height":400,
+       "fill":{"type":"linear_gradient","start":[0,-200],"end":[0,200],
+         "stops":[{"position":0.0,"color":"#FF87CEEB"},{"position":1.0,"color":"#FFFFECD2"}]}},
+      {"type":"ellipse","name":"leaf1","x":80,"y":20,"width":18,"height":28,"rotation":15,"fill":"#FFCC3300"},
+      {"type":"ellipse","name":"leaf2","x":200,"y":140,"width":14,"height":22,"rotation":-10,"fill":"#FFDD6600"},
+      {"type":"ellipse","name":"leaf3","x":300,"y":260,"width":16,"height":26,"rotation":25,"fill":"#FF882200"},
+      {"type":"ellipse","name":"leaf4","x":360,"y":60,"width":12,"height":20,"rotation":-20,"fill":"#FFEE4400"},
+      {"type":"ellipse","name":"leaf5","x":140,"y":190,"width":24,"height":36,"rotation":5,"opacity":0.9,"fill":"#FFBB4400"}
+    ],
+    "animations": [{"name":"falling","duration":6.0,"fps":60,"loop":"loop","tracks":[
+      {"target":"leaf1.y","keyframes":[{"time":0.0,"value":20,"easing":"linear"},{"time":4.0,"value":430,"easing":"linear"}]},
+      {"target":"leaf1.x","keyframes":[{"time":0.0,"value":80,"easing":"ease-in-out"},{"time":1.3,"value":110,"easing":"ease-in-out"},{"time":2.6,"value":65,"easing":"ease-in-out"},{"time":4.0,"value":95,"easing":"ease-in-out"}]},
+      {"target":"leaf1.rotation","keyframes":[{"time":0.0,"value":15,"easing":"ease-in-out"},{"time":2.0,"value":-30,"easing":"ease-in-out"},{"time":4.0,"value":45,"easing":"ease-in-out"}]},
+      {"target":"leaf2.y","keyframes":[{"time":0.0,"value":140,"easing":"linear"},{"time":5.0,"value":430,"easing":"linear"}]},
+      {"target":"leaf2.x","keyframes":[{"time":0.0,"value":200,"easing":"ease-in-out"},{"time":1.6,"value":170,"easing":"ease-in-out"},{"time":3.3,"value":220,"easing":"ease-in-out"},{"time":5.0,"value":185,"easing":"ease-in-out"}]},
+      {"target":"leaf2.rotation","keyframes":[{"time":0.0,"value":-10,"easing":"ease-in-out"},{"time":2.5,"value":35,"easing":"ease-in-out"},{"time":5.0,"value":-15,"easing":"ease-in-out"}]},
+      {"target":"leaf3.y","keyframes":[{"time":0.0,"value":260,"easing":"linear"},{"time":3.5,"value":430,"easing":"linear"}]},
+      {"target":"leaf3.x","keyframes":[{"time":0.0,"value":300,"easing":"ease-in-out"},{"time":1.1,"value":270,"easing":"ease-in-out"},{"time":2.3,"value":320,"easing":"ease-in-out"},{"time":3.5,"value":285,"easing":"ease-in-out"}]},
+      {"target":"leaf3.rotation","keyframes":[{"time":0.0,"value":25,"easing":"ease-in-out"},{"time":1.7,"value":-20,"easing":"ease-in-out"},{"time":3.5,"value":40,"easing":"ease-in-out"}]},
+      {"target":"leaf4.y","keyframes":[{"time":0.0,"value":60,"easing":"linear"},{"time":4.5,"value":430,"easing":"linear"}]},
+      {"target":"leaf4.x","keyframes":[{"time":0.0,"value":360,"easing":"ease-in-out"},{"time":1.5,"value":330,"easing":"ease-in-out"},{"time":3.0,"value":375,"easing":"ease-in-out"},{"time":4.5,"value":340,"easing":"ease-in-out"}]},
+      {"target":"leaf4.rotation","keyframes":[{"time":0.0,"value":-20,"easing":"ease-in-out"},{"time":2.2,"value":25,"easing":"ease-in-out"},{"time":4.5,"value":-30,"easing":"ease-in-out"}]},
+      {"target":"leaf5.y","keyframes":[{"time":0.0,"value":190,"easing":"linear"},{"time":5.5,"value":430,"easing":"linear"}]},
+      {"target":"leaf5.x","keyframes":[{"time":0.0,"value":140,"easing":"ease-in-out"},{"time":1.8,"value":175,"easing":"ease-in-out"},{"time":3.6,"value":115,"easing":"ease-in-out"},{"time":5.5,"value":160,"easing":"ease-in-out"}]},
+      {"target":"leaf5.rotation","keyframes":[{"time":0.0,"value":5,"easing":"ease-in-out"},{"time":2.7,"value":-40,"easing":"ease-in-out"},{"time":5.5,"value":20,"easing":"ease-in-out"}]},
+      {"target":"leaf5.scaleX","keyframes":[{"time":0.0,"value":1,"easing":"ease-in-out"},{"time":2.7,"value":1.15,"easing":"ease-in-out"},{"time":5.5,"value":0.95,"easing":"ease-in-out"}]}
+    ]}]
+  }
+}`
+
+	data := mustFromJSON(t, scene)
+	f, err := rive.ReadBytes(data)
+	if err != nil {
+		t.Fatalf("ReadBytes: %v", err)
+	}
+
+	// Count object type keys.
+	typeCounts := map[uint32]int{}
+	for _, obj := range f.Objects {
+		typeCounts[obj.TypeKey()]++
+	}
+
+	// 1 LinearAnimation (typeKey=31)
+	if got := typeCounts[31]; got != 1 {
+		t.Errorf("LinearAnimation count: got %d, want 1", got)
+	}
+	// 1 CubicEaseInterpolator (typeKey=28) — ease-in-out uses default params, still emitted as an object
+	if got := typeCounts[28]; got != 1 {
+		t.Errorf("CubicEaseInterpolator count: got %d, want 1", got)
+	}
+	// 5 KeyedObjects (typeKey=25), one per leaf
+	if got := typeCounts[25]; got != 5 {
+		t.Errorf("KeyedObject count: got %d, want 5 (one per leaf)", got)
+	}
+	// 16 KeyedProperties (typeKey=26)
+	if got := typeCounts[26]; got != 16 {
+		t.Errorf("KeyedProperty count: got %d, want 16 (3×5 leaves + 1 leaf5.scaleX)", got)
+	}
+	// 99 total objects
+	if got := len(f.Objects); got != 99 {
+		t.Errorf("total objects: got %d, want 99", got)
+	}
+}
