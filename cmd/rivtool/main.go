@@ -1,20 +1,26 @@
-// rivtool inspects and validates Rive (.riv) files.
+// rivtool inspects, validates, and creates Rive (.riv) files.
 //
 // Usage:
 //
-//	rivtool inspect <file.riv>   — dump object tree with properties
-//	rivtool validate <file.riv>  — check well-formedness
-//	rivtool generate             — regenerate docs/preview/examples/
+//	rivtool inspect <file.riv>                — dump object tree with properties
+//	rivtool validate <file.riv>               — check well-formedness of a .riv
+//	rivtool validate --schema <scene.json>    — validate a JSON scene file
+//	rivtool create --from <scene.json>        — build .riv from JSON (stdout)
+//	rivtool create --from <scene.json> --output <out.riv>
+//	rivtool create --from -                   — read JSON from stdin
+//	rivtool generate                          — regenerate docs/preview/examples/
 package main
 
 import (
 	"encoding/binary"
 	"fmt"
+	"io"
 	"math"
 	"os"
 	"strings"
 
 	"github.com/redriot-io/rive-go/rive"
+	"github.com/redriot-io/rive-go/rive/fromjson"
 )
 
 func main() {
@@ -34,10 +40,21 @@ func main() {
 			fmt.Fprintln(os.Stderr, "validate requires a file argument")
 			os.Exit(1)
 		}
+		// validate --schema <file.json> — JSON scene validation
+		if os.Args[2] == "--schema" {
+			if len(os.Args) < 4 {
+				fmt.Fprintln(os.Stderr, "validate --schema requires a JSON file argument")
+				os.Exit(1)
+			}
+			cmdValidateSchema(os.Args[3])
+			return
+		}
 		ok := cmdValidate(os.Args[2])
 		if !ok {
 			os.Exit(1)
 		}
+	case "create":
+		cmdCreate(os.Args[2:])
 	case "generate":
 		cmdGenerate()
 	default:
@@ -48,12 +65,132 @@ func main() {
 }
 
 func usage() {
-	fmt.Println(`rivtool — rive-go inspector and validator
+	fmt.Println(`rivtool — rive-go inspector, validator, and creator
 
 Commands:
-  inspect  <file.riv>   dump object tree (typeKey, properties)
-  validate <file.riv>   check well-formedness
-  generate              regenerate docs/preview/examples/`)
+  inspect  <file.riv>                    dump object tree (typeKey, properties)
+  validate <file.riv>                    check well-formedness of a .riv file
+  validate --schema <scene.json>         validate a JSON scene file (no build)
+  create   --from <scene.json>           build .riv from JSON scene, write to stdout
+  create   --from <scene.json> --output <out.riv>
+  create   --from -                      read JSON from stdin
+  generate                               regenerate docs/preview/examples/
+
+JSON Scene format (version 1):
+  {
+    "version": 1,
+    "artboard": {
+      "name": "Main", "width": 400, "height": 400,
+      "children": [
+        { "type": "rectangle", "name": "box", "x": 200, "y": 200,
+          "width": 100, "height": 100, "fill": "#FF0000" }
+      ],
+      "animations": [...],
+      "state_machines": [...]
+    }
+  }`)
+}
+
+// ── create ────────────────────────────────────────────────────────────────────
+
+// cmdCreate implements: rivtool create --from <file|--> [--output <out.riv>]
+func cmdCreate(args []string) {
+	var fromPath, outputPath string
+
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--from", "-f":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "create: --from requires a file path or -")
+				os.Exit(1)
+			}
+			i++
+			fromPath = args[i]
+		case "--output", "-o":
+			if i+1 >= len(args) {
+				fmt.Fprintln(os.Stderr, "create: --output requires a file path")
+				os.Exit(1)
+			}
+			i++
+			outputPath = args[i]
+		default:
+			fmt.Fprintf(os.Stderr, "create: unknown flag %q\n", args[i])
+			fmt.Fprintln(os.Stderr, "Usage: rivtool create --from <scene.json> [--output <out.riv>]")
+			os.Exit(1)
+		}
+	}
+
+	if fromPath == "" {
+		fmt.Fprintln(os.Stderr, "create: --from is required")
+		fmt.Fprintln(os.Stderr, "Usage: rivtool create --from <scene.json> [--output <out.riv>]")
+		os.Exit(1)
+	}
+
+	// Read input
+	var data []byte
+	var err error
+	if fromPath == "-" {
+		data, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "create: read stdin: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		data, err = os.ReadFile(fromPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "create: read %s: %v\n", fromPath, err)
+			os.Exit(1)
+		}
+	}
+
+	// Parse and build
+	b, err := fromjson.FromJSON(data)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "create: parse error: %v\n", err)
+		os.Exit(1)
+	}
+	rivBytes, err := b.Bytes()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "create: build error: %v\n", err)
+		os.Exit(1)
+	}
+
+	// Write output
+	if outputPath == "" {
+		if _, err := os.Stdout.Write(rivBytes); err != nil {
+			fmt.Fprintf(os.Stderr, "create: write stdout: %v\n", err)
+			os.Exit(1)
+		}
+	} else {
+		if err := os.WriteFile(outputPath, rivBytes, 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "create: write %s: %v\n", outputPath, err)
+			os.Exit(1)
+		}
+		fmt.Fprintf(os.Stderr, "✓ wrote %s (%d bytes)\n", outputPath, len(rivBytes))
+	}
+}
+
+// cmdValidateSchema validates a JSON scene file without building a .riv.
+func cmdValidateSchema(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "✗ Cannot read file: %v\n", err)
+		fmt.Println("Result: INVALID (1 error)")
+		os.Exit(1)
+	}
+
+	errs := fromjson.ValidateJSON(data)
+	if len(errs) == 0 {
+		fmt.Println("✓ JSON schema valid")
+		fmt.Println("Result: VALID")
+		return
+	}
+
+	for _, e := range errs {
+		fmt.Printf("✗ %v\n", e)
+	}
+	fmt.Printf("Result: INVALID (%d error(s))\n", len(errs))
+	os.Exit(1)
 }
 
 // ── inspect ───────────────────────────────────────────────────────────────────

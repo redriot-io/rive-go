@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Animated",
+    "width": 400,
+    "height": 400,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "square",
+        "x": 200,
+        "y": 200,
+        "width": 120,
+        "height": 120,
+        "fill": "#E74C3C"
+      }
+    ],
+    "animations": [
+      {
+        "name": "spin",
+        "duration": 1.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "square.rotation",
+            "keyframes": [
+              { "time": 0.0, "value": 0,   "easing": "linear" },
+              { "time": 1.0, "value": 360 }
+            ]
+          },
+          {
+            "target": "square.scaleX",
+            "keyframes": [
+              { "time": 0.0,  "value": 0.8, "easing": "ease-in-out" },
+              { "time": 0.5,  "value": 1.2 },
+              { "time": 1.0,  "value": 0.8 }
+            ]
+          },
+          {
+            "target": "square.scaleY",
+            "keyframes": [
+              { "time": 0.0,  "value": 0.8, "easing": "ease-in-out" },
+              { "time": 0.5,  "value": 1.2 },
+              { "time": 1.0,  "value": 0.8 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

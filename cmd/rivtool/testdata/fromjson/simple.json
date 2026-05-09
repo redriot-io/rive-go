@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Simple",
+    "width": 400,
+    "height": 400,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "box",
+        "x": 200,
+        "y": 200,
+        "width": 120,
+        "height": 120,
+        "fill": "#6C63FF"
+      }
+    ]
+  }
+}

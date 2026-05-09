@@ -344,3 +344,31 @@ New example: spinning_square.riv (220 bytes) -- 360 spin + scale pulse 0.8->1.2-
 
 Tests added: TestBuilder_Rotation, TestBuilder_Scale, TestBuilder_RotationAnimation,
 TestBuilder_ScaleAnimation, TestBuilder_SpinningSquare_RoundTrip. All pass.
+
+---
+[T-377+T-378] PROJ_RIVE-GO_CODE_V1_COMPLETE -- 2026-05-09
+
+Implemented rive/fromjson package + rivtool create subcommand.
+
+fromjson package (rive/fromjson/fromjson.go):
+- FromJSON(data []byte) (*builder.Builder, error)
+- FromJSONFile(path string) (*builder.Builder, error)
+- ValidateJSON(data []byte) []error
+- Supports: rectangle/ellipse shapes, solid+gradient fills, stroke
+- Supports: float+color keyframe animations, easing (linear/hold/ease-*/cubic)
+- Supports: state machines with bool/number/trigger inputs + transitions
+- Dot-path targets: x, y, rotation(deg->rad), scaleX, scaleY, opacity, fill.color
+
+CLI additions (cmd/rivtool/main.go):
+- rivtool create --from <scene.json> [--output <out.riv>]
+- rivtool create --from - (stdin)
+- rivtool validate --schema <scene.json>
+
+Example JSON scenes:
+- cmd/rivtool/testdata/fromjson/simple.json
+- cmd/rivtool/testdata/fromjson/animated.json (rotation+scale animation)
+- cmd/rivtool/testdata/fromjson/state_machine.json (toggle button SM)
+- cmd/rivtool/testdata/fromjson/invalid.json (for error testing)
+
+Tests: 26 unit tests + 12 CLI integration tests. All pass.
+Note: /tmp is noexec; CLI tests build binary to /app/workspace/tmp/.

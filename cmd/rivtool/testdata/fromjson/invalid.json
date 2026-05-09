@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "artboard": {
+    "width": -100,
+    "children": [
+      { "type": "unknown_shape", "name": "x", "x": 0, "y": 0 }
+    ]
+  }
+}
