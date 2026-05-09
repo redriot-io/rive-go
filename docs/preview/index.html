@@ -453,6 +453,14 @@ const fromjsonDemos = [
     tags: ["fromjson", "color", "loop"],
     animations: ["fade"],
   },
+  {
+    file: "fromjson_autumn.riv",
+    title: "✦ Autumn Leaves (LLM → JSON → rivtool)",
+    desc: "AI-generated scene: 5 leaves fall at staggered speeds with drift and rotation. 16 animation tracks, gradient sky background. JSON written by Claude, compiled to .riv via rivtool create.",
+    tags: ["llm-generated", "fromjson", "16 tracks", "loop"],
+    tagClass: "ref",
+    animations: ["falling"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines }) => {

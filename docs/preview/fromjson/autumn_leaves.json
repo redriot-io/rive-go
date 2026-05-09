@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "AutumnLeaves",
+    "width": 400,
+    "height": 400,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "sky",
+        "x": 200, "y": 200,
+        "width": 400, "height": 400,
+        "fill": {
+          "type": "linear_gradient",
+          "start": [0, -200],
+          "end":   [0,  200],
+          "stops": [
+            { "position": 0.0, "color": "#FF87CEEB" },
+            { "position": 1.0, "color": "#FFFFECD2" }
+          ]
+        }
+      },
+      {
+        "type": "ellipse",
+        "name": "leaf1",
+        "x": 80, "y": -20,
+        "width": 18, "height": 28,
+        "rotation": 15,
+        "fill": "#FFCC3300"
+      },
+      {
+        "type": "ellipse",
+        "name": "leaf2",
+        "x": 180, "y": -40,
+        "width": 14, "height": 22,
+        "rotation": -10,
+        "fill": "#FFDD6600"
+      },
+      {
+        "type": "ellipse",
+        "name": "leaf3",
+        "x": 290, "y": -60,
+        "width": 16, "height": 26,
+        "rotation": 25,
+        "fill": "#FF882200"
+      },
+      {
+        "type": "ellipse",
+        "name": "leaf4",
+        "x": 350, "y": -30,
+        "width": 12, "height": 20,
+        "rotation": -20,
+        "fill": "#FFEE4400"
+      },
+      {
+        "type": "ellipse",
+        "name": "leaf5",
+        "x": 150, "y": -80,
+        "width": 24, "height": 36,
+        "rotation": 5,
+        "fill": "#FFBB4400",
+        "opacity": 0.9
+      }
+    ],
+    "animations": [
+      {
+        "name": "falling",
+        "duration": 6.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "leaf1.y",
+            "keyframes": [
+              { "time": 0.0, "value": -20, "easing": "linear" },
+              { "time": 4.5, "value": 420,  "easing": "linear" }
+            ]
+          },
+          {
+            "target": "leaf1.x",
+            "keyframes": [
+              { "time": 0.0, "value": 80,  "easing": "ease-in-out" },
+              { "time": 1.5, "value": 110, "easing": "ease-in-out" },
+              { "time": 3.0, "value": 65,  "easing": "ease-in-out" },
+              { "time": 4.5, "value": 95,  "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf1.rotation",
+            "keyframes": [
+              { "time": 0.0,  "value": 15,  "easing": "ease-in-out" },
+              { "time": 2.25, "value": -30, "easing": "ease-in-out" },
+              { "time": 4.5,  "value": 45,  "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf2.y",
+            "keyframes": [
+              { "time": 0.5, "value": -40, "easing": "linear" },
+              { "time": 5.5, "value": 420, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "leaf2.x",
+            "keyframes": [
+              { "time": 0.5, "value": 180, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 150, "easing": "ease-in-out" },
+              { "time": 3.5, "value": 200, "easing": "ease-in-out" },
+              { "time": 5.5, "value": 160, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf2.rotation",
+            "keyframes": [
+              { "time": 0.5, "value": -10, "easing": "ease-in-out" },
+              { "time": 3.0, "value": 35,  "easing": "ease-in-out" },
+              { "time": 5.5, "value": -15, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf3.y",
+            "keyframes": [
+              { "time": 1.0, "value": -60, "easing": "linear" },
+              { "time": 5.0, "value": 420, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "leaf3.x",
+            "keyframes": [
+              { "time": 1.0, "value": 290, "easing": "ease-in-out" },
+              { "time": 2.5, "value": 260, "easing": "ease-in-out" },
+              { "time": 4.0, "value": 310, "easing": "ease-in-out" },
+              { "time": 5.0, "value": 275, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf3.rotation",
+            "keyframes": [
+              { "time": 1.0, "value": 25,  "easing": "ease-in-out" },
+              { "time": 3.0, "value": -20, "easing": "ease-in-out" },
+              { "time": 5.0, "value": 40,  "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf4.y",
+            "keyframes": [
+              { "time": 0.2, "value": -30, "easing": "linear" },
+              { "time": 3.8, "value": 420, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "leaf4.x",
+            "keyframes": [
+              { "time": 0.2, "value": 350, "easing": "ease-in-out" },
+              { "time": 1.5, "value": 320, "easing": "ease-in-out" },
+              { "time": 3.0, "value": 370, "easing": "ease-in-out" },
+              { "time": 3.8, "value": 335, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf4.rotation",
+            "keyframes": [
+              { "time": 0.2, "value": -20, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 25,  "easing": "ease-in-out" },
+              { "time": 3.8, "value": -30, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf5.y",
+            "keyframes": [
+              { "time": 0.8, "value": -80, "easing": "linear" },
+              { "time": 6.0, "value": 420, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "leaf5.x",
+            "keyframes": [
+              { "time": 0.8, "value": 150, "easing": "ease-in-out" },
+              { "time": 2.5, "value": 190, "easing": "ease-in-out" },
+              { "time": 4.2, "value": 120, "easing": "ease-in-out" },
+              { "time": 6.0, "value": 170, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf5.rotation",
+            "keyframes": [
+              { "time": 0.8, "value": 5,   "easing": "ease-in-out" },
+              { "time": 3.4, "value": -40, "easing": "ease-in-out" },
+              { "time": 6.0, "value": 20,  "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "leaf5.scaleX",
+            "keyframes": [
+              { "time": 0.8, "value": 1.0,  "easing": "ease-in-out" },
+              { "time": 3.4, "value": 1.15, "easing": "ease-in-out" },
+              { "time": 6.0, "value": 0.95, "easing": "ease-in-out" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
