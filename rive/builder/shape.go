@@ -42,13 +42,15 @@ type ShapeRef struct {
 	x, y         float64
 	param1, param2 float64 // width/height or radiusX/radiusY
 
-	opacitySet  bool
-	opacity     float64
-	rotationSet bool
-	rotationDeg float64 // stored in degrees, converted to radians on emit
-	scaleSet    bool
-	scaleX      float64
-	scaleY      float64
+	opacitySet       bool
+	opacity          float64
+	rotationSet      bool
+	rotationDeg      float64 // stored in degrees, converted to radians on emit
+	scaleSet         bool
+	scaleX           float64
+	scaleY           float64
+	cornerRadiusSet  bool
+	cornerRadius     float64
 
 	fill   *fillConfig
 	stroke *strokeConfig
@@ -106,6 +108,13 @@ func (s *ShapeRef) Scale(sx, sy float64) *ShapeRef {
 	return s
 }
 
+// CornerRadius sets the corner radius for rectangle shapes.
+func (s *ShapeRef) CornerRadius(r float64) *ShapeRef {
+	s.cornerRadiusSet = true
+	s.cornerRadius = r
+	return s
+}
+
 // Name sets a name for the shape (useful for animation targeting and debugging).
 func (s *ShapeRef) Name(n string) *ShapeRef {
 	s.name = n
@@ -152,6 +161,9 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 		r.OriginX = 0.5
 		r.OriginY = 0.5
 		r.LinkCornerRadius = true
+		if s.cornerRadiusSet {
+			r.CornerRadiusTL = s.cornerRadius
+		}
 		*objects = append(*objects, r)
 	case shapeEllipse:
 		e := &rive.Ellipse{}

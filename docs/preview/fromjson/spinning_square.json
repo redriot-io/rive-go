@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "SpinningSquare",
+    "width": 200,
+    "height": 200,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "sq",
+        "x": 100,
+        "y": 100,
+        "width": 80,
+        "height": 80,
+        "corner_radius": 12,
+        "fill": "#6C63FF"
+      }
+    ],
+    "animations": [
+      {
+        "name": "spin",
+        "duration": 2.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "sq.rotation",
+            "keyframes": [
+              { "time": 0.0, "value": 0,   "easing": "linear" },
+              { "time": 2.0, "value": 360, "easing": "linear" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

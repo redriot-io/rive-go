@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "GradientMorph",
+    "width": 300,
+    "height": 160,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "bar",
+        "x": 150,
+        "y": 80,
+        "width": 240,
+        "height": 80,
+        "corner_radius": 8,
+        "fill": {
+          "type": "linear_gradient",
+          "start": [-120, 0],
+          "end":   [120, 0],
+          "stops": [
+            { "position": 0.0, "color": "#FF6584" },
+            { "position": 0.5, "color": "#6C63FF" },
+            { "position": 1.0, "color": "#43D9AD" }
+          ]
+        }
+      }
+    ],
+    "animations": [
+      {
+        "name": "morph",
+        "duration": 2.0,
+        "fps": 60,
+        "loop": "pingpong",
+        "tracks": [
+          {
+            "target": "bar.scaleX",
+            "keyframes": [
+              { "time": 0.0, "value": 1.0,  "easing": "ease-in-out" },
+              { "time": 2.0, "value": 0.4,  "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "bar.scaleY",
+            "keyframes": [
+              { "time": 0.0, "value": 1.0,  "easing": "ease-in-out" },
+              { "time": 2.0, "value": 2.2,  "easing": "ease-in-out" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

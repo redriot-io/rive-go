@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "ColorFade",
+    "width": 200,
+    "height": 200,
+    "children": [
+      {
+        "type": "ellipse",
+        "name": "orb",
+        "x": 100,
+        "y": 100,
+        "width": 120,
+        "height": 120,
+        "fill": "#FF6584"
+      }
+    ],
+    "animations": [
+      {
+        "name": "fade",
+        "duration": 3.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "orb.fill.color",
+            "keyframes": [
+              { "time": 0.0,  "value": "#FF6584", "easing": "linear" },
+              { "time": 1.0,  "value": "#6C63FF", "easing": "linear" },
+              { "time": 2.0,  "value": "#43D9AD", "easing": "linear" },
+              { "time": 3.0,  "value": "#FF6584", "easing": "linear" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

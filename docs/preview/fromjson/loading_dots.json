@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "LoadingDots",
+    "width": 200,
+    "height": 120,
+    "children": [
+      {
+        "type": "ellipse",
+        "name": "dot1",
+        "x": 60,
+        "y": 60,
+        "width": 24,
+        "height": 24,
+        "fill": "#FF6584"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot2",
+        "x": 100,
+        "y": 60,
+        "width": 24,
+        "height": 24,
+        "fill": "#6C63FF"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot3",
+        "x": 140,
+        "y": 60,
+        "width": 24,
+        "height": 24,
+        "fill": "#43D9AD"
+      }
+    ],
+    "animations": [
+      {
+        "name": "bounce",
+        "duration": 1.2,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "dot1.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 60,  "easing": "ease-in-out" },
+              { "time": 0.2,  "value": 36,  "easing": "ease-in-out" },
+              { "time": 0.4,  "value": 60,  "easing": "linear" },
+              { "time": 1.2,  "value": 60,  "easing": "linear" }
+            ]
+          },
+          {
+            "target": "dot2.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 60,  "easing": "linear" },
+              { "time": 0.2,  "value": 60,  "easing": "ease-in-out" },
+              { "time": 0.4,  "value": 36,  "easing": "ease-in-out" },
+              { "time": 0.6,  "value": 60,  "easing": "linear" },
+              { "time": 1.2,  "value": 60,  "easing": "linear" }
+            ]
+          },
+          {
+            "target": "dot3.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 60,  "easing": "linear" },
+              { "time": 0.4,  "value": 60,  "easing": "ease-in-out" },
+              { "time": 0.6,  "value": 36,  "easing": "ease-in-out" },
+              { "time": 0.8,  "value": 60,  "easing": "linear" },
+              { "time": 1.2,  "value": 60,  "easing": "linear" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

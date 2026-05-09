@@ -42,10 +42,11 @@ type Child struct {
 	Y        float64         `json:"y"`
 	Width    float64         `json:"width"`
 	Height   float64         `json:"height"`
-	Rotation float64         `json:"rotation,omitempty"` // degrees
-	ScaleX   float64         `json:"scaleX,omitempty"`
-	ScaleY   float64         `json:"scaleY,omitempty"`
-	Opacity  float64         `json:"opacity,omitempty"`
+	Rotation     float64         `json:"rotation,omitempty"` // degrees
+	ScaleX       float64         `json:"scaleX,omitempty"`
+	ScaleY       float64         `json:"scaleY,omitempty"`
+	Opacity      float64         `json:"opacity,omitempty"`
+	CornerRadius float64         `json:"corner_radius,omitempty"` // rectangles only
 	Fill     json.RawMessage `json:"fill,omitempty"`
 	Stroke   *StrokeDef      `json:"stroke,omitempty"`
 }
@@ -461,6 +462,9 @@ func addChild(artboard *builder.ArtboardBuilder, child *Child) (*builder.ShapeRe
 	}
 	if child.Opacity > 0 && child.Opacity < 1.0 {
 		ref.Opacity(child.Opacity)
+	}
+	if child.CornerRadius > 0 && strings.ToLower(child.Type) == "rectangle" {
+		ref.CornerRadius(child.CornerRadius)
 	}
 
 	if len(child.Fill) > 0 {
