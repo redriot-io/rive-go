@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "EasingDemo",
+    "width": 400,
+    "height": 300,
+    "children": [
+      { "type": "ellipse", "name": "linear_dot",   "x": 40, "y": 50,  "width": 20, "height": 20, "fill": "#FFFF3333" },
+      { "type": "ellipse", "name": "ease_in_dot",  "x": 40, "y": 110, "width": 20, "height": 20, "fill": "#FFFF8800" },
+      { "type": "ellipse", "name": "ease_out_dot", "x": 40, "y": 170, "width": 20, "height": 20, "fill": "#FF00CC44" },
+      { "type": "ellipse", "name": "ease_io_dot",  "x": 40, "y": 230, "width": 20, "height": 20, "fill": "#FF0066FF" },
+      { "type": "ellipse", "name": "custom_dot",   "x": 40, "y": 280, "width": 20, "height": 20, "fill": "#FF9900FF" }
+    ],
+    "animations": [
+      {
+        "name": "race",
+        "duration": 2.0,
+        "fps": 60,
+        "loop": "pingpong",
+        "tracks": [
+          {
+            "target": "linear_dot.x",
+            "keyframes": [
+              { "time": 0.0, "value": 40,  "easing": "linear" },
+              { "time": 2.0, "value": 360, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "ease_in_dot.x",
+            "keyframes": [
+              { "time": 0.0, "value": 40,  "easing": "ease-in" },
+              { "time": 2.0, "value": 360, "easing": "ease-in" }
+            ]
+          },
+          {
+            "target": "ease_out_dot.x",
+            "keyframes": [
+              { "time": 0.0, "value": 40,  "easing": "ease-out" },
+              { "time": 2.0, "value": 360, "easing": "ease-out" }
+            ]
+          },
+          {
+            "target": "ease_io_dot.x",
+            "keyframes": [
+              { "time": 0.0, "value": 40,  "easing": "ease-in-out" },
+              { "time": 2.0, "value": 360, "easing": "ease-in-out" }
+            ]
+          },
+          {
+            "target": "custom_dot.x",
+            "keyframes": [
+              { "time": 0.0, "value": 40,  "easing": { "x1": 0.68, "y1": -0.55, "x2": 0.27, "y2": 1.55 } },
+              { "time": 2.0, "value": 360, "easing": { "x1": 0.68, "y1": -0.55, "x2": 0.27, "y2": 1.55 } }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

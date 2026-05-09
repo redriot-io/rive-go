@@ -1,8 +1,8 @@
 // Package fromjson converts a JSON scene description into a rive-go Builder.
 //
 // JSON format version 1 supports artboards with rectangle/ellipse shapes,
-// solid-color and linear-gradient fills, stroke, float/color animations,
-// and state machines with bool/number/trigger inputs.
+// solid-color, linear-gradient, and radial-gradient fills, stroke,
+// float/color animations, and state machines with bool/number/trigger inputs.
 package fromjson
 
 import (
@@ -59,12 +59,16 @@ type StrokeDef struct {
 
 // fillObj is the object form of a fill.
 type fillObj struct {
-	Type    string          `json:"type"` // "solid" | "linear_gradient"
-	Color   string          `json:"color,omitempty"`
-	Opacity float64         `json:"opacity,omitempty"`
-	Start   [2]float64      `json:"start,omitempty"`
-	End     [2]float64      `json:"end,omitempty"`
-	Stops   []gradientStop  `json:"stops,omitempty"`
+	Type    string         `json:"type"` // "solid" | "linear_gradient" | "radial_gradient"
+	Color   string         `json:"color,omitempty"`
+	Opacity float64        `json:"opacity,omitempty"`
+	// linear_gradient fields
+	Start   [2]float64     `json:"start,omitempty"`
+	End     [2]float64     `json:"end,omitempty"`
+	// radial_gradient fields (shape-local pixel coords)
+	Center  [2]float64     `json:"center,omitempty"`
+	Radius  float64        `json:"radius,omitempty"`
+	Stops   []gradientStop `json:"stops,omitempty"`
 }
 
 type gradientStop struct {
@@ -528,8 +532,27 @@ func applyFill(ref *builder.ShapeRef, raw json.RawMessage) error {
 		}
 		ref.FillGradient(fill.Start[0], fill.Start[1], fill.End[0], fill.End[1], stops...)
 
+	case "radial_gradient":
+		if len(fill.Stops) < 2 {
+			return &ParseError{Field: "fill.stops", Message: "radial_gradient requires at least 2 stops"}
+		}
+		if fill.Radius <= 0 {
+			return &ParseError{Field: "fill.radius", Message: "radial_gradient requires a positive radius"}
+		}
+		stops := make([]builder.GradientStop, len(fill.Stops))
+		for i, s := range fill.Stops {
+			color, err := parseColor(s.Color)
+			if err != nil {
+				return &ParseError{Field: fmt.Sprintf("fill.stops[%d].color", i), Message: err.Error()}
+			}
+			stops[i] = builder.GradientStop{Position: s.Position, Color: color}
+		}
+		// center + (radius, 0) as edge point — distance from center to edge = radius
+		cx, cy := fill.Center[0], fill.Center[1]
+		ref.FillRadialGradient(cx, cy, cx+fill.Radius, cy, stops...)
+
 	default:
-		return &ParseError{Field: "fill.type", Message: fmt.Sprintf("unknown fill type %q (solid|linear_gradient)", fill.Type)}
+		return &ParseError{Field: "fill.type", Message: fmt.Sprintf("unknown fill type %q (solid|linear_gradient|radial_gradient)", fill.Type)}
 	}
 	return nil
 }

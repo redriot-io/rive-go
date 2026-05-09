@@ -14,13 +14,13 @@
         "height": 80,
         "corner_radius": 8,
         "fill": {
-          "type": "linear_gradient",
-          "start": [-120, 0],
-          "end":   [120, 0],
+          "type": "radial_gradient",
+          "center": [0, 0],
+          "radius": 140,
           "stops": [
-            { "position": 0.0, "color": "#FF6584" },
-            { "position": 0.5, "color": "#6C63FF" },
-            { "position": 1.0, "color": "#43D9AD" }
+            { "position": 0.0, "color": "#FFFFD700" },
+            { "position": 0.5, "color": "#FFFF6584" },
+            { "position": 1.0, "color": "#FF6C63FF" }
           ]
         }
       }

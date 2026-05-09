@@ -442,8 +442,8 @@ const fromjsonDemos = [
   {
     file: "fromjson_gradient.riv",
     title: "Gradient Morph (FromJSON)",
-    desc: "Rounded rectangle with 3-stop LinearGradient that stretches/shrinks on pingpong. Generated from gradient_morph.json.",
-    tags: ["fromjson", "gradient", "pingpong"],
+    desc: "Rounded rectangle with 3-stop RadialGradient (gold → pink → purple) morphing scaleX/Y on pingpong. Tests radial_gradient fill type.",
+    tags: ["fromjson", "radial gradient", "pingpong"],
     animations: ["morph"],
   },
   {
@@ -452,6 +452,13 @@ const fromjsonDemos = [
     desc: "Ellipse cycling through pink → purple → teal via fill color keyframes. Generated from color_fade.json.",
     tags: ["fromjson", "color", "loop"],
     animations: ["fade"],
+  },
+  {
+    file: "fromjson_easing.riv",
+    title: "Easing Comparison (FromJSON)",
+    desc: "5 dots race across the canvas on pingpong: linear (red), ease-in (orange), ease-out (green), ease-in-out (blue), custom cubic (purple). Validates all 5 easing presets visually.",
+    tags: ["fromjson", "easing", "cubic", "pingpong"],
+    animations: ["race"],
   },
   {
     file: "fromjson_autumn.riv",

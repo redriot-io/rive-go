@@ -27,6 +27,7 @@ type fillConfig struct {
 type gradientConfig struct {
 	x1, y1, x2, y2 float64
 	stops           []GradientStop
+	radial          bool
 }
 
 type strokeConfig struct {
@@ -76,6 +77,14 @@ func (s *ShapeRef) Fill(color uint32) *ShapeRef {
 // FillGradient sets a linear gradient fill.
 func (s *ShapeRef) FillGradient(x1, y1, x2, y2 float64, stops ...GradientStop) *ShapeRef {
 	s.fill = &fillConfig{gradient: &gradientConfig{x1: x1, y1: y1, x2: x2, y2: y2, stops: stops}}
+	return s
+}
+
+// FillRadialGradient sets a radial gradient fill.
+// cx, cy is the center in shape-local space; ex, ey is a point on the edge
+// (distance from center to edge = radius).
+func (s *ShapeRef) FillRadialGradient(cx, cy, ex, ey float64, stops ...GradientStop) *ShapeRef {
+	s.fill = &fillConfig{gradient: &gradientConfig{x1: cx, y1: cy, x2: ex, y2: ey, stops: stops, radial: true}}
 	return s
 }
 
@@ -218,14 +227,27 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 
 func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64, g *gradientConfig) {
 	gradRelIdx := uint64(len(*objects)) - artboardOffset
-	lg := &rive.LinearGradient{}
-	lg.StartX = g.x1
-	lg.StartY = g.y1
-	lg.EndX = g.x2
-	lg.EndY = g.y2
-	lg.ParentId = parentIdx
-	lg.Opacity = 1.0 // runtime default; zero value would emit key#46=0 → invisible gradient
-	*objects = append(*objects, lg)
+	var grad rive.Object
+	if g.radial {
+		rg := &rive.RadialGradient{}
+		rg.StartX = g.x1
+		rg.StartY = g.y1
+		rg.EndX = g.x2
+		rg.EndY = g.y2
+		rg.ParentId = parentIdx
+		rg.Opacity = 1.0
+		grad = rg
+	} else {
+		lg := &rive.LinearGradient{}
+		lg.StartX = g.x1
+		lg.StartY = g.y1
+		lg.EndX = g.x2
+		lg.EndY = g.y2
+		lg.ParentId = parentIdx
+		lg.Opacity = 1.0 // runtime default; zero value would emit key#46=0 → invisible gradient
+		grad = lg
+	}
+	*objects = append(*objects, grad)
 
 	for _, stop := range g.stops {
 		gs := &rive.GradientStop{}
