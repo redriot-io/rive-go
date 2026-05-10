@@ -303,9 +303,10 @@ const demos = [
   {
     file: "examples/speed_blend.riv",
     title: "\u26a1 Speed Blend (BlendState1D)",
-    desc: "BlendState1D: speed=0 → tiny bounce (60\u2192100px); speed=1 → full sweep (60\u2192360px); speed=0.5 (shown) → medium range (60\u2192230px). The 50/50 blend is visually obvious as the midpoint between two extremes. Phase 3B demo.",
-    tags: ["state-machine", "blend", "animation"],
+    desc: "Move mouse left → tiny bounce (speed=0, 60→100 px). Move right → full sweep (speed=1, 60→360 px). Pointer X drives the BlendState1D numeric input live via stateMachineInputs API. Phase 3B interactive demo.",
+    tags: ["state-machine", "blend", "interactive", "pointer"],
     stateMachines: ["SpeedSM"],
+    inputDriver: { inputName: "speed", smName: "SpeedSM" },
   },
   {
     file: "examples/multi_layer.riv",
@@ -377,7 +378,7 @@ const cards = demos.map(({ file, title, desc, tags, tagClass, animations, stateM
 // Sequential loading queue
 let queue = Promise.resolve();
 
-cards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachines }) => {
+cards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachines, inputDriver }) => {
   queue = queue.then(() => new Promise(resolve => {
     dot.classList.add('loading');
     loadingMsg.textContent = 'loading…';
@@ -423,6 +424,21 @@ cards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachine
             r.play();
           }
         } catch (_) { /* runtime will play default */ }
+        if (inputDriver) {
+          try {
+            const smInputs = r.stateMachineInputs(inputDriver.smName);
+            if (smInputs) {
+              const inp = smInputs.find(i => i.name === inputDriver.inputName);
+              if (inp) {
+                canvas.addEventListener('pointermove', ev => {
+                  const rect = canvas.getBoundingClientRect();
+                  inp.value = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+                });
+                canvas.style.cursor = 'ew-resize';
+              }
+            }
+          } catch (_) {}
+        }
         settle(true);
       },
       onLoadError: (e) => {
