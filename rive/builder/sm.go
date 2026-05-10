@@ -313,6 +313,7 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 		obj := &rive.StateMachineListenerSingle{}
 		obj.TargetId = lc.target.shapeIdx
 		obj.ListenerTypeValue = uint64(lc.lt)
+		obj.EventId = ^uint64(0) // suppress: pointer listener, not a Rive Event listener
 		*objects = append(*objects, obj)
 
 		// Emit action objects immediately after their parent listener.
