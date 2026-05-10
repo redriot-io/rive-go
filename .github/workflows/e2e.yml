@@ -40,12 +40,30 @@ jobs:
         working-directory: tests/e2e
         run: npx playwright install --with-deps chromium
 
+      # ── static server (managed outside Playwright for reliability) ────────────
+      - name: Start static server
+        working-directory: tests/e2e
+        run: |
+          node server.js &
+          echo "SERVER_PID=$!" >> $GITHUB_ENV
+          # Wait up to 20s for the server to respond
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:5173/ && echo "Server ready" && break
+            echo "Waiting ($i)..."
+            sleep 1
+          done
+
       # ── e2e tests ─────────────────────────────────────────────────────────────
       - name: Run Playwright tests
         working-directory: tests/e2e
         run: npx playwright test --reporter=github,list
         env:
           CI: true
+
+      # ── cleanup ───────────────────────────────────────────────────────────────
+      - name: Stop static server
+        if: always()
+        run: kill $SERVER_PID || true
 
       # ── artifacts ─────────────────────────────────────────────────────────────
       - name: Upload Playwright report
