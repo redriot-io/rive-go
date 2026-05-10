@@ -202,7 +202,7 @@
 
 <header>
   <h1>rive<span>-go</span> · Live Previews</h1>
-  <p>Eight hand-coded demo scenes + four generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
+  <p>Eight hand-coded demo scenes + six generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
   <div class="badge-row">
     <a href="https://github.com/redriot-io/rive-go" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-redriot--io%2Frive--go-6c63ff?logo=github&logoColor=white" alt="GitHub" />
@@ -217,7 +217,7 @@
 
 <div style="max-width:1100px;margin:3rem auto 1rem;padding:0 1rem">
   <h2 style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:0.4rem">FromJSON Pipeline <span style="font-size:0.85rem;font-weight:400;color:var(--muted)">(JSON → rivtool create → .riv)</span></h2>
-  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Four scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Six scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
 </div>
 <div class="grid" id="fromjson-grid"></div>
 
@@ -466,25 +466,6 @@ const fromjsonDemos = [
     desc: "AI-generated scene: 5 leaves fall at staggered speeds with drift and rotation. 16 animation tracks, gradient sky background. JSON written by Claude, compiled to .riv via rivtool create.",
     tags: ["llm-generated", "fromjson", "16 tracks", "loop"],
     tagClass: "ref",
-    animations: ["falling"],
-  },
-  {
-    file: "fromjson_ellipse_test.riv",
-    title: "Ellipse Regression Test (FromJSON)",
-    desc: "Minimal test: single 120×120 red ellipse centered on a 200×200 artboard, no animation. Confirms ellipse (typeKey 4) encoding and parentId resolution are correct.",
-    tags: ["fromjson", "ellipse", "static", "regression"],
-  },
-  {
-    file: "fromjson_mixed_bg_test.riv",
-    title: "Mixed BG Test — Rectangle + Ellipse (T-395)",
-    desc: "Isolates Z-order: grey 200×200 rectangle background with red 80×80 ellipse on top. If ellipse is NOT visible, draw order is reversed in the Rive runtime (first child = top).",
-    tags: ["fromjson", "regression", "z-order", "static"],
-  },
-  {
-    file: "fromjson_autumn_sky_last.riv",
-    title: "Autumn Leaves — Sky LAST (T-395 draw-order fix)",
-    desc: "Same as Autumn Leaves but sky rectangle placed LAST in children list. If leaves are now visible, the Rive runtime renders first-child-on-top (reversed Z-order).",
-    tags: ["fromjson", "regression", "z-order", "loop"],
     animations: ["falling"],
   },
 ];
