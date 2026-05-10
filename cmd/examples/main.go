@@ -126,9 +126,9 @@ func generateColorCycle() ([]byte, error) {
 		builder.WithFPS(30),
 		builder.WithLoop(builder.PingPong),
 	).
-		KeyframeColor(rect, builder.PropColorValue, 0, 0xFFFF0000, builder.Linear()).  // red
-		KeyframeColor(rect, builder.PropColorValue, 30, 0xFF0000FF, builder.Linear()). // blue
-		KeyframeColor(rect, builder.PropColorValue, 60, 0xFF00FF00, builder.Linear())  // green
+		KeyframeColor(rect, builder.PropColorValue, 0, 0xFFFF0000, builder.Linear()).  // red   (sum/px=510)
+		KeyframeColor(rect, builder.PropColorValue, 30, 0xFFFFFFFF, builder.Linear()). // white (sum/px=1020)
+		KeyframeColor(rect, builder.PropColorValue, 60, 0xFF000000, builder.Linear())  // black (sum/px=255)
 
 	return b.Bytes()
 }
