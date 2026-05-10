@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Card Shuffle",
+    "width": 400,
+    "height": 300,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "red_card",
+        "x": 120, "y": 150,
+        "width": 120, "height": 180,
+        "corner_radius": 12,
+        "fill": "#FFEF5350"
+      },
+      {
+        "type": "rectangle",
+        "name": "blue_card",
+        "x": 200, "y": 150,
+        "width": 120, "height": 180,
+        "corner_radius": 12,
+        "fill": "#FF42A5F5"
+      },
+      {
+        "type": "rectangle",
+        "name": "green_card",
+        "x": 280, "y": 150,
+        "width": 120, "height": 180,
+        "corner_radius": 12,
+        "fill": "#FF66BB6A"
+      }
+    ],
+    "animations": [
+      {
+        "name": "shuffle",
+        "duration": 4.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "red_card.x",
+            "keyframes": [
+              { "time": 0.0, "value": 120, "easing": "ease-in-out" },
+              { "time": 1.0, "value": 280, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 280, "easing": "ease-in-out" },
+              { "time": 3.0, "value": 120, "easing": "ease-in-out" },
+              { "time": 4.0, "value": 120 }
+            ]
+          },
+          {
+            "target": "green_card.x",
+            "keyframes": [
+              { "time": 0.0, "value": 280, "easing": "ease-in-out" },
+              { "time": 1.0, "value": 120, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 120, "easing": "ease-in-out" },
+              { "time": 3.0, "value": 280, "easing": "ease-in-out" },
+              { "time": 4.0, "value": 280 }
+            ]
+          }
+        ],
+        "draw_order_tracks": [
+          {
+            "shape": "red_card",
+            "keyframes": [
+              { "time": 0.0, "target": "blue_card", "placement": "below" },
+              { "time": 1.0, "target": "blue_card", "placement": "above" },
+              { "time": 2.0, "target": "blue_card", "placement": "above" },
+              { "time": 3.0, "target": "blue_card", "placement": "below" },
+              { "time": 4.0, "target": "blue_card", "placement": "below" }
+            ]
+          },
+          {
+            "shape": "green_card",
+            "keyframes": [
+              { "time": 0.0, "target": "blue_card", "placement": "above" },
+              { "time": 1.0, "target": "blue_card", "placement": "below" },
+              { "time": 2.0, "target": "blue_card", "placement": "below" },
+              { "time": 3.0, "target": "blue_card", "placement": "above" },
+              { "time": 4.0, "target": "blue_card", "placement": "above" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
