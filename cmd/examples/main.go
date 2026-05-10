@@ -31,6 +31,7 @@ func main() {
 		{"gradient_ellipse.riv", generateGradientEllipse},
 		{"multi_shape.riv", generateMultiShape},
 		{"spinning_square.riv", generateSpinningSquare},
+		{"interactive_button.riv", generateInteractiveButton},
 	}
 
 	for _, s := range steps {
@@ -185,6 +186,55 @@ func generateMultiShape() ([]byte, error) {
 		Fill(0xFF2ECC71).
 		Stroke(4.0, 0xFF27AE60).
 		Name("greenRect")
+
+	return b.Bytes()
+}
+
+// 10. Interactive button: hover + press states driven by listener bindings.
+func generateInteractiveButton() ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("Interactive Button", 300, 120)
+
+	btn := ab.Rectangle(150, 60, 260, 80).
+		Fill(0xFF1565C0).
+		CornerRadius(12).
+		Name("button")
+
+	// Single-frame hold animations for each visual state.
+	ab.Animation("idle_anim", builder.WithDuration(2), builder.WithFPS(60)).
+		KeyframeColor(btn, builder.PropColorValue, 0, 0xFF1565C0, builder.Linear())
+
+	ab.Animation("hover_anim", builder.WithDuration(2), builder.WithFPS(60)).
+		KeyframeColor(btn, builder.PropColorValue, 0, 0xFF42A5F5, builder.Linear())
+
+	ab.Animation("pressed_anim", builder.WithDuration(2), builder.WithFPS(60)).
+		KeyframeColor(btn, builder.PropColorValue, 0, 0xFF2ECC71, builder.Linear())
+
+	sm := ab.StateMachine("ButtonSM")
+	hovered := sm.BoolInput("hovered")
+	pressed := sm.BoolInput("pressed")
+
+	layer := sm.Layer("Main")
+	idle := layer.State("Idle", builder.WithAnimation("idle_anim"))
+	hover := layer.State("Hover", builder.WithAnimation("hover_anim"))
+	press := layer.State("Pressed", builder.WithAnimation("pressed_anim"))
+
+	layer.Transition(idle, hover, builder.BoolCondition(hovered, true))
+	layer.Transition(hover, idle, builder.BoolCondition(hovered, false))
+	layer.Transition(idle, press, builder.BoolCondition(pressed, true))
+	layer.Transition(hover, press, builder.BoolCondition(pressed, true))
+	layer.Transition(press, hover,
+		builder.BoolCondition(pressed, false),
+		builder.BoolCondition(hovered, true),
+	)
+	layer.Transition(press, idle, builder.BoolCondition(pressed, false))
+
+	sm.Listener(btn, builder.ListenerPointerEnter).SetBool(hovered, true)
+	sm.Listener(btn, builder.ListenerPointerExit).
+		SetBool(hovered, false).
+		SetBool(pressed, false)
+	sm.Listener(btn, builder.ListenerPointerDown).SetBool(pressed, true)
+	sm.Listener(btn, builder.ListenerPointerUp).SetBool(pressed, false)
 
 	return b.Bytes()
 }

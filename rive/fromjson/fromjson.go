@@ -123,9 +123,24 @@ type KeyframeDef struct {
 
 // SMDef describes a state machine.
 type SMDef struct {
-	Name   string    `json:"name"`
-	Inputs []SMInput `json:"inputs,omitempty"`
-	Layers []SMLayer `json:"layers"`
+	Name      string          `json:"name"`
+	Inputs    []SMInput       `json:"inputs,omitempty"`
+	Layers    []SMLayer       `json:"layers"`
+	Listeners []SMListenerDef `json:"listeners,omitempty"`
+}
+
+// SMListenerDef wires a pointer event on a named shape to one or more SM input actions.
+type SMListenerDef struct {
+	Target  string             `json:"target"`  // shape name
+	Event   string             `json:"event"`   // "pointer_down"|"pointer_up"|"pointer_enter"|"pointer_exit"|"pointer_move"|"click"
+	Actions []SMListenerAction `json:"actions"`
+}
+
+// SMListenerAction is one action executed when the listener fires.
+type SMListenerAction struct {
+	Type  string          `json:"type"`            // "set_bool"|"set_trigger"
+	Input string          `json:"input"`           // input name
+	Value json.RawMessage `json:"value,omitempty"` // required for set_bool: true or false
 }
 
 // SMInput is one state machine input.
@@ -523,6 +538,48 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 				lb.Transition(from, to, conditions...)
 			}
 		}
+
+		// Listeners
+		for li, ld := range sm.Listeners {
+			lf := fmt.Sprintf("state_machines[%q].listeners[%d]", sm.Name, li)
+			shapeRef, ok := nameMap[ld.Target]
+			if !ok {
+				return nil, &ParseError{
+					Field:   lf + ".target",
+					Message: fmt.Sprintf("no shape named %q", ld.Target),
+				}
+			}
+			et, err := parseListenerEvent(ld.Event)
+			if err != nil {
+				return nil, &ParseError{Field: lf + ".event", Message: err.Error()}
+			}
+			lr := smb.Listener(shapeRef, et)
+			for ai, act := range ld.Actions {
+				af := fmt.Sprintf("%s.actions[%d]", lf, ai)
+				inp, ok := inputMap[act.Input]
+				if !ok {
+					return nil, &ParseError{
+						Field:   af + ".input",
+						Message: fmt.Sprintf("unknown input %q", act.Input),
+					}
+				}
+				switch strings.ToLower(act.Type) {
+				case "set_bool":
+					var val bool
+					if err := json.Unmarshal(act.Value, &val); err != nil {
+						return nil, &ParseError{Field: af + ".value", Message: "must be true or false"}
+					}
+					lr.SetBool(inp, val)
+				case "set_trigger":
+					lr.SetTrigger(inp)
+				default:
+					return nil, &ParseError{
+						Field:   af + ".type",
+						Message: fmt.Sprintf("unknown action type %q (set_bool|set_trigger)", act.Type),
+					}
+				}
+			}
+		}
 	}
 
 	return b, nil
@@ -646,6 +703,26 @@ func applyFill(ref *builder.ShapeRef, raw json.RawMessage) error {
 		return &ParseError{Field: "fill.type", Message: fmt.Sprintf("unknown fill type %q (solid|linear_gradient|radial_gradient)", fill.Type)}
 	}
 	return nil
+}
+
+// parseListenerEvent maps a JSON event string to a builder.ListenerType.
+func parseListenerEvent(event string) (builder.ListenerType, error) {
+	switch strings.ToLower(event) {
+	case "pointer_down":
+		return builder.ListenerPointerDown, nil
+	case "pointer_up":
+		return builder.ListenerPointerUp, nil
+	case "pointer_enter":
+		return builder.ListenerPointerEnter, nil
+	case "pointer_exit":
+		return builder.ListenerPointerExit, nil
+	case "pointer_move":
+		return builder.ListenerPointerMove, nil
+	case "click":
+		return builder.ListenerClick, nil
+	default:
+		return 0, fmt.Errorf("unknown event %q (pointer_down|pointer_up|pointer_enter|pointer_exit|pointer_move|click)", event)
+	}
 }
 
 // resolveTarget maps a dot-path target string to the ShapeRef and property info.

@@ -292,6 +292,14 @@ const demos = [
     tags: ["animation", "rotation", "scale", "loop"],
     animations: ["spin"],
   },
+  {
+    file: "examples/interactive_button.riv",
+    title: "✦ Interactive Button",
+    desc: "Hover to lighten, press to turn green. A rounded rectangle driven by a StateMachine with PointerEnter/Exit (hovered bool) and PointerDown/Up (pressed bool) listeners. Tier 2 milestone: .riv built by goriv responds to mouse input.",
+    tags: ["state-machine", "listeners", "interactive"],
+    tagClass: "tag-blue",
+    stateMachines: ["ButtonSM"],
+  },
 ];
 
 // Build card DOM elements first (no Rive yet)
