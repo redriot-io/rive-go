@@ -117,13 +117,90 @@ type StateRef struct {
 }
 
 type transitionEntry struct {
-	to         *StateRef
-	conditions []Condition
+	to             *StateRef
+	conditions     []Condition
+	durationMs     int
+	exitTimeFrames int
 }
 
 type stateEntry struct {
 	ref         *StateRef
 	transitions []*transitionEntry
+}
+
+// TransitionRef is a handle to a single state machine transition.
+// Use When/WhenTrigger to add conditions (ANDed together) and Duration/ExitTime
+// to configure timing. Methods return the receiver for chaining.
+type TransitionRef struct {
+	entry *transitionEntry
+}
+
+// When returns a ConditionBuilder for a bool or number input.
+// Call IsTrue/IsFalse for bool inputs or Equals/GreaterThan/LessThan for number inputs.
+// Multiple When calls are ANDed.
+func (t *TransitionRef) When(input *InputRef) *ConditionBuilder {
+	return &ConditionBuilder{tr: t, input: input}
+}
+
+// WhenTrigger adds a trigger condition and returns t for further chaining.
+func (t *TransitionRef) WhenTrigger(input *InputRef) *TransitionRef {
+	t.entry.conditions = append(t.entry.conditions, TriggerCond{ref: input})
+	return t
+}
+
+// Duration sets the blend duration in milliseconds.
+func (t *TransitionRef) Duration(ms int) *TransitionRef {
+	t.entry.durationMs = ms
+	return t
+}
+
+// ExitTime sets the number of frames the source animation must complete before
+// the transition is allowed to fire.
+func (t *TransitionRef) ExitTime(frames int) *TransitionRef {
+	t.entry.exitTimeFrames = frames
+	return t
+}
+
+// ConditionBuilder completes a single condition started by TransitionRef.When.
+type ConditionBuilder struct {
+	tr    *TransitionRef
+	input *InputRef
+}
+
+// IsTrue adds a bool-is-true condition and returns the TransitionRef for chaining.
+func (c *ConditionBuilder) IsTrue() *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, BoolCond{ref: c.input, value: true})
+	return c.tr
+}
+
+// IsFalse adds a bool-is-false condition and returns the TransitionRef for chaining.
+func (c *ConditionBuilder) IsFalse() *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, BoolCond{ref: c.input, value: false})
+	return c.tr
+}
+
+// Equals adds a number-equals condition (op=0) and returns the TransitionRef.
+func (c *ConditionBuilder) Equals(v float64) *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, NumberCond{ref: c.input, op: Equal, value: v})
+	return c.tr
+}
+
+// NotEqualTo adds a number-not-equal condition (op=1) and returns the TransitionRef.
+func (c *ConditionBuilder) NotEqualTo(v float64) *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, NumberCond{ref: c.input, op: NotEqual, value: v})
+	return c.tr
+}
+
+// GreaterThan adds a number-greater-than condition (op=3) and returns the TransitionRef.
+func (c *ConditionBuilder) GreaterThan(v float64) *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, NumberCond{ref: c.input, op: GreaterThan, value: v})
+	return c.tr
+}
+
+// LessThan adds a number-less-than condition (op=2) and returns the TransitionRef.
+func (c *ConditionBuilder) LessThan(v float64) *TransitionRef {
+	c.tr.entry.conditions = append(c.tr.entry.conditions, NumberCond{ref: c.input, op: LessThan, value: v})
+	return c.tr
 }
 
 // LayerBuilder builds a single state machine layer.
@@ -145,17 +222,19 @@ func (l *LayerBuilder) State(name string, opts ...StateOption) *StateRef {
 	return ref
 }
 
-// Transition adds a transition between two user states.
+// Transition adds a transition from → to, optionally with initial conditions.
+// Returns a TransitionRef for fluent condition/timing configuration.
 // from must be a StateRef returned by this layer's State() method.
-func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *LayerBuilder {
+func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *TransitionRef {
+	te := &transitionEntry{to: to, conditions: conditions}
 	for _, se := range l.states {
 		if se.ref == from {
-			se.transitions = append(se.transitions, &transitionEntry{to: to, conditions: conditions})
-			return l
+			se.transitions = append(se.transitions, te)
+			return &TransitionRef{entry: te}
 		}
 	}
-	// Not found — silently ignore (validated at Build time if needed)
-	return l
+	// from not found — return orphan ref (ignored during emit)
+	return &TransitionRef{entry: te}
 }
 
 // StateMachineBuilder builds a state machine and all its sub-objects.
@@ -296,7 +375,14 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 
 			// Transitions from this state
 			for _, te := range se.transitions {
-				*objects = append(*objects, newStateTransition(te.to.idx))
+				t := newStateTransition(te.to.idx)
+				if te.durationMs > 0 {
+					t.Duration = uint64(te.durationMs)
+				}
+				if te.exitTimeFrames > 0 {
+					t.ExitTime = uint64(te.exitTimeFrames)
+				}
+				*objects = append(*objects, t)
 
 				// Conditions under this transition
 				for _, cond := range te.conditions {

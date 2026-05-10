@@ -219,15 +219,12 @@ func generateInteractiveButton() ([]byte, error) {
 	hover := layer.State("Hover", builder.WithAnimation("hover_anim"))
 	press := layer.State("Pressed", builder.WithAnimation("pressed_anim"))
 
-	layer.Transition(idle, hover, builder.BoolCondition(hovered, true))
-	layer.Transition(hover, idle, builder.BoolCondition(hovered, false))
-	layer.Transition(idle, press, builder.BoolCondition(pressed, true))
-	layer.Transition(hover, press, builder.BoolCondition(pressed, true))
-	layer.Transition(press, hover,
-		builder.BoolCondition(pressed, false),
-		builder.BoolCondition(hovered, true),
-	)
-	layer.Transition(press, idle, builder.BoolCondition(pressed, false))
+	layer.Transition(idle, hover).When(hovered).IsTrue()
+	layer.Transition(hover, idle).When(hovered).IsFalse()
+	layer.Transition(idle, press).When(pressed).IsTrue()
+	layer.Transition(hover, press).When(pressed).IsTrue()
+	layer.Transition(press, hover).When(pressed).IsFalse().When(hovered).IsTrue()
+	layer.Transition(press, idle).When(pressed).IsFalse()
 
 	sm.Listener(btn, builder.ListenerPointerEnter).SetBool(hovered, true)
 	sm.Listener(btn, builder.ListenerPointerExit).
