@@ -21,7 +21,7 @@ export default defineConfig({
     command: 'node server.js',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
-    timeout: 15_000,
+    timeout: 30_000,
   },
 
   projects: [
