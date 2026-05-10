@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<!--
+  Rive E2E Interactive Test Harness
+
+  Query params:
+    ?file=<path>    — path to .riv served from the same origin (required)
+    ?sm=<name>      — state machine name (required for interaction tests)
+
+  Exposes on window for Playwright evaluation:
+    isLoaded()      → bool
+    getError()      → string | null
+    getPixelSum()   → number  (sum of all RGBA channels; changes when visuals change)
+    pointerMove(x, y)  → manually forward pointer move (x/y in canvas pixels)
+    pointerDown(x, y)  → manually forward pointer down
+    pointerUp(x, y)    → manually forward pointer up
+
+  Also forwards DOM pointermove/pointerdown/pointerup from the canvas element,
+  so Playwright's page.mouse.move() etc. work directly.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rive Interactive Harness</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #333; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    #canvas { display: block; cursor: pointer; }
+    #status { position: fixed; top: 4px; left: 4px; color: #aaa; font: 11px monospace; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="400"></canvas>
+  <div id="status">initializing</div>
+
+  <script src="https://unpkg.com/@rive-app/canvas@2"></script>
+  <script>
+  (function () {
+    var params   = new URLSearchParams(window.location.search);
+    var filePath = params.get('file') || '';
+    var smName   = params.get('sm')   || '';
+
+    var canvas   = document.getElementById('canvas');
+    var statusEl = document.getElementById('status');
+    var r        = null;
+
+    window.__riveLoaded = false;
+    window.__riveError  = null;
+
+    // ── API exposed to Playwright ────────────────────────────────────────────
+    window.isLoaded    = function () { return window.__riveLoaded; };
+    window.getError    = function () { return window.__riveError;  };
+
+    window.getPixelSum = function () {
+      try {
+        var ctx  = canvas.getContext('2d');
+        var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        var sum  = 0;
+        for (var i = 0; i < data.length; i++) { sum += data[i]; }
+        return sum;
+      } catch (e) { return -1; }
+    };
+
+    // Direct JS calls (as an alternative to DOM pointer events)
+    window.pointerMove = function (x, y) {
+      if (r && r.reportPointerMoved) r.reportPointerMoved(x, y);
+    };
+    window.pointerDown = function (x, y) {
+      if (r && r.reportPointerDown) r.reportPointerDown(x, y);
+    };
+    window.pointerUp = function (x, y) {
+      if (r && r.reportPointerUp) r.reportPointerUp(x, y);
+    };
+
+    // ── DOM event forwarding ─────────────────────────────────────────────────
+    // Playwright's page.mouse.move() fires pointermove on the element under the
+    // cursor. We translate from CSS coords to canvas-buffer coords and forward.
+    function fwd(fn, e) {
+      if (!r || !r[fn]) return;
+      var rect = canvas.getBoundingClientRect();
+      var x = (e.clientX - rect.left) * (canvas.width  / rect.width);
+      var y = (e.clientY - rect.top)  * (canvas.height / rect.height);
+      r[fn](x, y);
+    }
+    canvas.addEventListener('pointermove', function (e) { fwd('reportPointerMoved', e); });
+    canvas.addEventListener('pointerdown', function (e) { fwd('reportPointerDown',  e); });
+    canvas.addEventListener('pointerup',   function (e) { fwd('reportPointerUp',    e); });
+
+    // ── Rive initialization ──────────────────────────────────────────────────
+    if (!filePath) {
+      window.__riveError = 'no ?file= param';
+      statusEl.textContent = 'error: no ?file= param';
+      return;
+    }
+
+    var opts = {
+      src: filePath,
+      canvas: canvas,
+      autoplay: true,
+      onLoad: function () {
+        r.resizeDrawingSurfaceToCanvas();
+        try {
+          if (smName) { r.play([smName]); }
+          else        { r.play(); }
+        } catch (_) {}
+        window.__riveLoaded = true;
+        statusEl.textContent = 'loaded: ' + filePath + (smName ? ' [' + smName + ']' : '');
+      },
+      onLoadError: function (e) {
+        window.__riveError = (e && e.message) ? e.message : String(e);
+        statusEl.textContent = 'error: ' + window.__riveError;
+      },
+    };
+
+    if (smName) { opts.stateMachines = [smName]; }
+
+    try {
+      r = new rive.Rive(opts);
+    } catch (e) {
+      window.__riveError = 'exception: ' + (e.message || String(e));
+      statusEl.textContent = window.__riveError;
+    }
+  })();
+  </script>
+</body>
+</html>

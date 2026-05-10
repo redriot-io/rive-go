@@ -1,0 +1,16 @@
+{
+  "name": "rive-go-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright e2e tests for rive-go — render, animation, and interaction validation",
+  "scripts": {
+    "test":             "playwright test",
+    "test:render":      "playwright test render.spec.ts",
+    "test:animation":   "playwright test animation.spec.ts",
+    "test:interactive": "playwright test interactive.spec.ts",
+    "serve":            "node server.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
+  }
+}

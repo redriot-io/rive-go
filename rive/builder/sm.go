@@ -213,6 +213,9 @@ func (sm *StateMachineBuilder) preComputeStateIndices() {
 	for _, layer := range sm.layers {
 		for i, se := range layer.states {
 			// +2: AnyState is emitted as child 0, EntryState as child 1.
+			// TODO(phase3): If ExitState (typeKey=64) is ever emitted as a third
+			// sentinel child before user states, this offset must become +3.
+			// Currently we emit: AnyState(0) + EntryState(1) = 2 sentinels.
 			se.ref.idx = uint64(i + 2)
 		}
 	}

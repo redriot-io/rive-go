@@ -1,0 +1,33 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: '.',
+  testMatch: ['*.spec.ts'],
+  timeout: 60_000,          // per-test timeout (CDN load + render time)
+  expect: { timeout: 30_000 },
+  fullyParallel: false,     // sequential: avoids 6-WASM-instance "page unresponsive" problem
+  workers: 1,
+  retries: 0,
+  reporter: process.env.CI ? [['github'], ['list']] : [['list']],
+
+  use: {
+    baseURL: 'http://localhost:5173',
+    headless: true,
+    bypassCSP: true,        // allow canvas.getImageData() cross-origin reads
+  },
+
+  // Start the repo-root static server before any test
+  webServer: {
+    command: 'node server.js',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 15_000,
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+});

@@ -1,0 +1,57 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    name: Playwright e2e (render + interaction)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── repo ─────────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Go (needed for rivtool / example generation) ──────────────────────────
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Build rivtool
+        run: go build ./cmd/rivtool/
+
+      # ── Node ─────────────────────────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm deps
+        working-directory: tests/e2e
+        run: npm install
+
+      # ── Playwright browsers ───────────────────────────────────────────────────
+      - name: Install Playwright browsers
+        working-directory: tests/e2e
+        run: npx playwright install --with-deps chromium
+
+      # ── e2e tests ─────────────────────────────────────────────────────────────
+      - name: Run Playwright tests
+        working-directory: tests/e2e
+        run: npx playwright test --reporter=github,list
+        env:
+          CI: true
+
+      # ── artifacts ─────────────────────────────────────────────────────────────
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+          retention-days: 14

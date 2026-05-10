@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<!--
+  Rive E2E Test Harness — render and animation tests
+
+  Query params:
+    ?file=<path>        — path to .riv served from the same origin (required)
+    ?sm=<name>          — state machine name (optional; enables SM autoplay)
+    ?anim=<name>        — animation name (optional)
+    ?duration=<ms>      — ms to wait before sampling canvas (default 1500)
+
+  On completion writes JSON to #result:
+    { "loaded": bool, "error": string, "frames": int, "canvasBlank": bool }
+
+  Also exposes window.getPixelSum() for Playwright animation-diff tests.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Rive E2E Harness</title>
+  <style>
+    body { margin: 0; background: #222; }
+    #canvas { display: block; }
+    #status { color: #aaa; font: 12px monospace; padding: 4px 8px; }
+    #result { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="400" height="400"></canvas>
+  <div id="status">initializing</div>
+  <div id="result"></div>
+
+  <script src="https://unpkg.com/@rive-app/canvas@2"></script>
+  <script>
+  (function () {
+    var params   = new URLSearchParams(window.location.search);
+    var filePath = params.get('file')     || '';
+    var smName   = params.get('sm')       || '';
+    var animName = params.get('anim')     || '';
+    var duration = parseInt(params.get('duration') || '1500', 10);
+
+    var canvas   = document.getElementById('canvas');
+    var statusEl = document.getElementById('status');
+    var resultEl = document.getElementById('result');
+
+    var frameCount = 0;
+    var settled    = false;
+
+    function setStatus(msg) { statusEl.textContent = msg; }
+
+    function finish(result) {
+      if (settled) return;
+      settled = true;
+      resultEl.textContent = JSON.stringify(result);
+    }
+
+    // Exposed for Playwright's page.evaluate() — returns sum of all pixel channels
+    window.getPixelSum = function () {
+      try {
+        var ctx  = canvas.getContext('2d');
+        var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        var sum  = 0;
+        for (var i = 0; i < data.length; i++) { sum += data[i]; }
+        return sum;
+      } catch (e) { return -1; }
+    };
+
+    function isCanvasBlank() {
+      try {
+        var ctx  = canvas.getContext('2d');
+        var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (var i = 3; i < data.length; i += 4) {
+          if (data[i] !== 0) return false;
+        }
+        return true;
+      } catch (e) { return true; }
+    }
+
+    if (!filePath) {
+      finish({ loaded: false, error: 'no ?file= param', frames: 0, canvasBlank: true });
+      return;
+    }
+
+    setStatus('loading: ' + filePath);
+
+    // Hard watchdog: fail if harness never settles
+    setTimeout(function () {
+      if (!settled) {
+        finish({ loaded: false, error: 'watchdog timeout', frames: 0, canvasBlank: true });
+      }
+    }, duration + 10000);
+
+    var opts = {
+      src: filePath,
+      canvas: canvas,
+      autoplay: true,
+      onLoad: function () {
+        r.resizeDrawingSurfaceToCanvas();
+        try {
+          if (smName)   { r.play([smName]);   }
+          else if (animName) { r.play([animName]); }
+          else          { r.play(); }
+        } catch (_) {}
+        setStatus('playing');
+        setTimeout(function () {
+          finish({ loaded: true, error: '', frames: frameCount, canvasBlank: isCanvasBlank() });
+        }, duration);
+      },
+      onLoadError: function (e) {
+        var msg = (e && e.message) ? e.message : (typeof e === 'string') ? e : JSON.stringify(e);
+        setStatus('error: ' + msg);
+        finish({ loaded: false, error: msg, frames: 0, canvasBlank: true });
+      },
+      onAdvance: function () { frameCount++; },
+    };
+
+    if (smName)   { opts.stateMachines = [smName]; }
+    else if (animName) { opts.animations = [animName]; }
+
+    var r;
+    try {
+      r = new rive.Rive(opts);
+    } catch (e) {
+      finish({ loaded: false, error: 'exception: ' + (e.message || String(e)), frames: 0, canvasBlank: true });
+    }
+  })();
+  </script>
+</body>
+</html>
