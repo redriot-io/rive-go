@@ -132,35 +132,44 @@ func (s *ShapeRef) Name(n string) *ShapeRef {
 	return s
 }
 
-// DrawAbove makes this shape render in front of target.
-// Must be called before Build(); the rule is emitted as a DrawRules/DrawTarget pair
-// in a post-pass after all shapes have been emitted.
+// DrawAbove makes this shape render in front of (above) target in the draw order.
+// Under the hood it creates a DrawRules object (typeKey=49) as a child of this shape
+// and a DrawTarget object (typeKey=48) as a child of the DrawRules, referencing
+// target with PlacementAbove. Both objects are emitted in a post-pass after all
+// shapes so that every artboard-relative index is resolved.
+// Returns s for chaining.
 func (s *ShapeRef) DrawAbove(target *ShapeRef) *ShapeRef {
 	s.drawRules = append(s.drawRules, drawRuleConfig{target: target, placement: PlacementAbove})
 	return s
 }
 
-// DrawBelow makes this shape render behind target.
+// DrawBelow makes this shape render behind (below) target in the draw order.
+// Creates the same DrawRules+DrawTarget pair as DrawAbove but with PlacementBelow.
+// Returns s for chaining.
 func (s *ShapeRef) DrawBelow(target *ShapeRef) *ShapeRef {
 	s.drawRules = append(s.drawRules, drawRuleConfig{target: target, placement: PlacementBelow})
 	return s
 }
 
-// emitDrawRules emits DrawTarget + DrawRules object pairs for each draw rule.
+// emitDrawRules emits DrawRules + DrawTarget object pairs for each draw rule.
+// DrawRules is emitted first; DrawTarget follows as its child (ParentId = DrawRules index).
 // Must be called after emitObjects() so that shapeIdx values are resolved.
 func (s *ShapeRef) emitDrawRules(objects *[]rive.Object, artboardOffset uint64) {
 	for _, rule := range s.drawRules {
-		dtIdx := uint64(len(*objects)) - artboardOffset
-		dt := &rive.DrawTarget{}
-		dt.DrawableId = rule.target.shapeIdx
-		dt.PlacementValue = rule.placement
-		// ParentId=0: artboard-level sibling, suppressed by Component.Properties()
-		*objects = append(*objects, dt)
+		// DrawRules is emitted first so DrawTarget can reference it as parent.
+		drIdx := uint64(len(*objects)) - artboardOffset
+		dtIdx := drIdx + 1 // DrawTarget follows immediately
 
 		dr := &rive.DrawRules{}
 		dr.ParentId = s.shapeIdx
 		dr.DrawTargetId = dtIdx
 		*objects = append(*objects, dr)
+
+		dt := &rive.DrawTarget{}
+		dt.ParentId = drIdx // child of DrawRules, matching Rive editor output
+		dt.DrawableId = rule.target.shapeIdx
+		dt.PlacementValue = rule.placement
+		*objects = append(*objects, dt)
 	}
 }
 

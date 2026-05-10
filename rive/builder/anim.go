@@ -142,11 +142,15 @@ func (a *AnimationBuilder) KeyframeColor(target *ShapeRef, propKey uint32, frame
 }
 
 // KeyframeDrawOrder adds a hold keyframe that switches a shape's draw order at a
-// specific frame. source is the shape whose DrawRules will be keyed; target is
-// the reference shape (nil resets to default hierarchy order); placement is
-// PlacementAbove or PlacementBelow.
+// specific frame. source is the shape whose animated DrawRules object will be keyed;
+// target is the reference shape to draw relative to; placement is PlacementAbove or
+// PlacementBelow.
 //
-// All draw-order keyframes are implicitly hold (no interpolation).
+// Passing target=nil emits a sentinel KeyFrameId (Value=^uint64(0), Rive's -1),
+// which deactivates the DrawRules so the source falls back to default hierarchy order.
+//
+// All draw-order keyframes are implicitly hold (InterpolationType=0); interpolation
+// is not meaningful for ID-typed properties. Returns a for chaining.
 func (a *AnimationBuilder) KeyframeDrawOrder(source *ShapeRef, frame uint64, target *ShapeRef, placement uint64) *AnimationBuilder {
 	a.drawOrderKFs = append(a.drawOrderKFs, drawOrderKF{
 		source:    source,
@@ -216,7 +220,15 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 	for _, src := range slotOrder {
 		slot := slotMap[src]
 
-		// Emit one DrawTarget per unique (target shape, placement) pair.
+		// Emit DrawRules first so DrawTarget objects can reference it as parent.
+		// DrawTargetId is sentinel (^uint64(0)) — animation keyframes drive it.
+		slot.rulesIdx = uint64(len(*objects)) - artboardOffset
+		dr := &rive.DrawRules{}
+		dr.ParentId = src.shapeIdx
+		dr.DrawTargetId = ^uint64(0)
+		*objects = append(*objects, dr)
+
+		// Emit one DrawTarget per unique (target shape, placement) pair as children.
 		for _, kf := range a.drawOrderKFs {
 			if kf.source != src || kf.target == nil {
 				continue
@@ -225,19 +237,13 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 			if _, exists := slot.dtMap[k]; !exists {
 				dtIdx := uint64(len(*objects)) - artboardOffset
 				dt := &rive.DrawTarget{}
+				dt.ParentId = slot.rulesIdx // child of DrawRules, matching Rive editor output
 				dt.DrawableId = kf.target.shapeIdx
 				dt.PlacementValue = kf.placement
 				*objects = append(*objects, dt)
 				slot.dtMap[k] = dtIdx
 			}
 		}
-
-		// Emit DrawRules for this source shape (animated; starts with no active target).
-		slot.rulesIdx = uint64(len(*objects)) - artboardOffset
-		dr := &rive.DrawRules{}
-		dr.ParentId = src.shapeIdx
-		dr.DrawTargetId = ^uint64(0) // sentinel = no active target; animation drives this
-		*objects = append(*objects, dr)
 	}
 
 	// LinearAnimation follows the interpolator objects.
