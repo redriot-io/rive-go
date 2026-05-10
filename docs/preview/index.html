@@ -428,6 +428,24 @@ cards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachine
     } catch (e) {
       settle(false, `Exception: ${e.message || e}`);
     }
+
+    // Forward pointer events to the Rive SM so listeners fire on hover/click.
+    // The runtime registers mouse listeners internally but pointer events are
+    // more reliable across devices (mouse + touch + pen).
+    if (r && stateMachines && stateMachines.length) {
+      const fwd = (fn, e) => {
+        if (!r[fn]) return;
+        const rect = canvas.getBoundingClientRect();
+        r[fn](
+          (e.clientX - rect.left) * (canvas.width / rect.width),
+          (e.clientY - rect.top)  * (canvas.height / rect.height)
+        );
+      };
+      canvas.addEventListener('pointermove', e => fwd('reportPointerMoved', e));
+      canvas.addEventListener('pointerdown', e => fwd('reportPointerDown',  e));
+      canvas.addEventListener('pointerup',   e => fwd('reportPointerUp',    e));
+      canvas.style.cursor = 'pointer';
+    }
   }));
 });
 
@@ -617,6 +635,21 @@ fromjsonCards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stat
       r = new rive.Rive(riveOpts);
     } catch (e) {
       settle(false, `Exception: ${e.message || e}`);
+    }
+
+    if (r && stateMachines && stateMachines.length) {
+      const fwd = (fn, e) => {
+        if (!r[fn]) return;
+        const rect = canvas.getBoundingClientRect();
+        r[fn](
+          (e.clientX - rect.left) * (canvas.width / rect.width),
+          (e.clientY - rect.top)  * (canvas.height / rect.height)
+        );
+      };
+      canvas.addEventListener('pointermove', e => fwd('reportPointerMoved', e));
+      canvas.addEventListener('pointerdown', e => fwd('reportPointerDown',  e));
+      canvas.addEventListener('pointerup',   e => fwd('reportPointerUp',    e));
+      canvas.style.cursor = 'pointer';
     }
   }));
 });
