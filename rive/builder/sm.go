@@ -160,9 +160,10 @@ func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *
 
 // StateMachineBuilder builds a state machine and all its sub-objects.
 type StateMachineBuilder struct {
-	name   string
-	inputs []*InputRef
-	layers []*LayerBuilder
+	name      string
+	inputs    []*InputRef
+	layers    []*LayerBuilder
+	listeners []listenerConfig
 }
 
 // BoolInput adds a boolean input.
@@ -191,6 +192,14 @@ func (sm *StateMachineBuilder) Layer(name string) *LayerBuilder {
 	lb := &LayerBuilder{name: name}
 	sm.layers = append(sm.layers, lb)
 	return lb
+}
+
+// Listener registers a pointer-event listener on target for the given event type.
+// The returned ListenerRef is reserved for future action binding (Phase 2C).
+func (sm *StateMachineBuilder) Listener(target *ShapeRef, lt ListenerType) *ListenerRef {
+	cfg := listenerConfig{target: target, lt: lt}
+	sm.listeners = append(sm.listeners, cfg)
+	return &ListenerRef{cfg: &sm.listeners[len(sm.listeners)-1]}
 }
 
 // preComputeStateIndices assigns local 0-based indices to inputs and states.
@@ -296,6 +305,14 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 
 		// ExitState sentinel
 		*objects = append(*objects, &rive.ExitState{})
+	}
+
+	// --- Listeners ---
+	for _, lc := range sm.listeners {
+		obj := &rive.StateMachineListenerSingle{}
+		obj.TargetId = lc.target.shapeIdx
+		obj.ListenerTypeValue = uint64(lc.lt)
+		*objects = append(*objects, obj)
 	}
 
 	return nil
