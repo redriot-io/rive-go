@@ -267,9 +267,17 @@ func (l *LayerBuilder) BlendState1D(name string, input *InputRef) *BlendState1DR
 	return br
 }
 
+// ExitState returns a sentinel StateRef for the layer's ExitState (child index 2).
+// Use this as the `to` argument in Transition() to stop the layer's playback.
+// ExitState is always emitted at layer-child index 2 (after AnyState and EntryState).
+func (l *LayerBuilder) ExitState() *StateRef {
+	return &StateRef{name: "ExitState", idx: 2}
+}
+
 // Transition adds a transition from → to, optionally with initial conditions.
 // Returns a TransitionRef for fluent condition/timing configuration.
 // from must be a StateRef returned by this layer's State() or BlendState1D().StateHandle() method.
+// Use ExitState() as the `to` argument to stop the layer.
 func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *TransitionRef {
 	te := &transitionEntry{to: to, conditions: conditions}
 	for _, se := range l.states {
@@ -297,7 +305,7 @@ func (sm *StateMachineBuilder) BoolInput(name string) *InputRef {
 	return ref
 }
 
-// NumberInput adds a number input with optional initial value.
+// NumberInput adds a number input.
 func (sm *StateMachineBuilder) NumberInput(name string) *InputRef {
 	ref := &InputRef{kind: inputNumber, name: name}
 	sm.inputs = append(sm.inputs, ref)
@@ -311,7 +319,8 @@ func (sm *StateMachineBuilder) TriggerInput(name string) *InputRef {
 	return ref
 }
 
-// Layer adds a layer to the state machine.
+// Layer adds a layer to the state machine. Calling Layer multiple times creates
+// independent layers that run concurrently, sharing the SM's inputs.
 func (sm *StateMachineBuilder) Layer(name string) *LayerBuilder {
 	lb := &LayerBuilder{name: name}
 	sm.layers = append(sm.layers, lb)
@@ -327,19 +336,19 @@ func (sm *StateMachineBuilder) Listener(target *ShapeRef, lt ListenerType) *List
 
 // preComputeStateIndices assigns indices to inputs and states.
 // Inputs are numbered 0,1,2,… within the SM's input list.
-// States use layer-child indices: AnyState=0, EntryState=1, first user state=2, …
-// The Rive runtime resolves StateToId as a layer-child index, not a user-state-list index.
+// States use layer-child indices with three sentinels before user states:
+//   child 0: AnyState
+//   child 1: EntryState
+//   child 2: ExitState  ← third sentinel; transitions TO here stop the layer
+//   child 3+: user states (AnimationState, BlendState1DInput, …)
 func (sm *StateMachineBuilder) preComputeStateIndices() {
 	for i, inp := range sm.inputs {
 		inp.idx = uint64(i)
 	}
 	for _, layer := range sm.layers {
 		for i, se := range layer.states {
-			// +2: AnyState is emitted as child 0, EntryState as child 1.
-			// TODO(phase3): If ExitState (typeKey=64) is ever emitted as a third
-			// sentinel child before user states, this offset must become +3.
-			// Currently we emit: AnyState(0) + EntryState(1) = 2 sentinels.
-			se.ref.idx = uint64(i + 2)
+			// +3: AnyState(0) + EntryState(1) + ExitState(2) = 3 sentinels before user states.
+			se.ref.idx = uint64(i + 3)
 		}
 	}
 }
@@ -387,17 +396,20 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 		layerObj.Name = layer.name
 		*objects = append(*objects, layerObj)
 
-		// AnyState sentinel (no transitions in this builder)
+		// child 0: AnyState sentinel
 		*objects = append(*objects, &rive.AnyState{})
 
-		// EntryState + auto transition to first user state
+		// child 1: EntryState + auto transition to first user state (child 3)
 		*objects = append(*objects, &rive.EntryState{})
 		if len(layer.states) > 0 {
 			entryTrans := newStateTransition(layer.states[0].ref.idx)
 			*objects = append(*objects, entryTrans)
 		}
 
-		// User states with their transitions and (for blend states) animations
+		// child 2: ExitState sentinel — transitions here stop the layer
+		*objects = append(*objects, &rive.ExitState{})
+
+		// children 3+: user states with transitions and blend animations
 		for _, se := range layer.states {
 			if se.blendRef != nil {
 				// BlendState1DInput
@@ -471,9 +483,6 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 				}
 			}
 		}
-
-		// ExitState sentinel
-		*objects = append(*objects, &rive.ExitState{})
 	}
 
 	// --- Listeners ---

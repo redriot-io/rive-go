@@ -307,6 +307,13 @@ const demos = [
     tags: ["state-machine", "blend", "animation"],
     stateMachines: ["SpeedSM"],
   },
+  {
+    file: "examples/multi_layer.riv",
+    title: "\u21c6 Multi-Layer SM",
+    desc: "Two independent layers share one SM. Layer 1 (Position) drives X oscillation slow\u2194fast via 'running' bool. Layer 2 (Color) drives blue\u2194orange via 'hot' bool. Both layers run concurrently. Phase 3C: ExitState at sentinel[2], user states at index 3+.",
+    tags: ["state-machine", "multi-layer", "animation"],
+    stateMachines: ["MultiSM"],
+  },
 ];
 
 // Build card DOM elements first (no Rive yet)

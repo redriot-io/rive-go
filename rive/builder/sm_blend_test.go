@@ -173,7 +173,7 @@ func TestBlend1D_EntryTransitionIndex(t *testing.T) {
 	data := mustBuild(t, b)
 	f := mustReadBytes(t, data)
 
-	// Find the EntryState's StateTransition and check stateTo=2
+	// Find the EntryState's StateTransition and check stateTo=3
 	entryFound := false
 	for i, o := range f.Objects {
 		if o.TypeKey() != 63 { // EntryState
@@ -187,8 +187,8 @@ func TestBlend1D_EntryTransitionIndex(t *testing.T) {
 		}
 		props := propsByKey(f.Objects[i+1].Properties())
 		// stateTo key 151
-		if v, ok := props[151]; !ok || v.Value.(uint64) != 2 {
-			t.Errorf("EntryState transition stateTo = %v, want 2", props[151].Value)
+		if v, ok := props[151]; !ok || v.Value.(uint64) != 3 {
+			t.Errorf("EntryState transition stateTo = %v, want 3", props[151].Value)
 		}
 		break
 	}
