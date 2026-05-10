@@ -44,6 +44,6 @@ const server = http.createServer((req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`rive-go e2e server → http://127.0.0.1:${PORT}  (root: ${ROOT})`);
 });

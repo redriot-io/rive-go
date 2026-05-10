@@ -48,7 +48,7 @@ jobs:
           echo "SERVER_PID=$!" >> $GITHUB_ENV
           # Wait up to 20s for the server to respond
           for i in $(seq 1 20); do
-            curl -sf http://127.0.0.1:5173/ && echo "Server ready" && break
+            curl -s http://127.0.0.1:5173/ > /dev/null && echo "Server ready" && break
             echo "Waiting ($i)..."
             sleep 1
           done

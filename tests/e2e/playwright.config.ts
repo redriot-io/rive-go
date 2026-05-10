@@ -16,14 +16,9 @@ export default defineConfig({
     bypassCSP: true,        // allow canvas.getImageData() cross-origin reads
   },
 
-  // Start the repo-root static server before any test.
-  // In CI the server is started by the workflow before playwright runs.
-  webServer: {
-    command: 'node server.js',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: true,   // always reuse if already up (CI starts it; local dev starts it)
-    timeout: 30_000,
-  },
+  // webServer is intentionally absent from this config.
+  // CI: the workflow starts `node server.js` before running playwright.
+  // Local dev: run `npm run serve` in a separate terminal, then `npm test`.
 
   projects: [
     {
