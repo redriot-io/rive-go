@@ -265,25 +265,28 @@ func generateSpinningSquare() ([]byte, error) {
 }
 
 // generateSpeedBlend builds a BlendState1D demo.
-// A rectangle moves left-right with speed determined by a numeric "speed" input.
-// walk_anim (threshold=0): small oscillation 60→280px.
-// run_anim  (threshold=1): large oscillation 60→360px.
-// The speed input starts at 0.5, giving a 50/50 blend.
+// speed=0 (threshold 0) → tight bounce 60→100px.
+// speed=1 (threshold 1) → full sweep  60→360px.
+// speed=0.5 (initial)   → medium      60→230px, clearly "in between".
+// The dramatic range difference makes the 50/50 blend immediately visible.
 func generateSpeedBlend() ([]byte, error) {
 	b := builder.New()
 	ab := b.Artboard("SpeedBlend", 420, 160)
 
 	rect := ab.Rectangle(60, 80, 60, 60).Fill(0xFF1E88E5).Name("runner")
 
+	// walk: tiny oscillation (threshold=0)
 	ab.Animation("walk_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
 		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
-		KeyframeFloat(rect, builder.PropX, 60, 280.0, builder.Linear())
+		KeyframeFloat(rect, builder.PropX, 60, 100.0, builder.Linear())
 
+	// run: full-width sweep (threshold=1)
 	ab.Animation("run_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
 		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
 		KeyframeFloat(rect, builder.PropX, 60, 360.0, builder.Linear())
 
 	sm := ab.StateMachine("SpeedSM")
+	// speed=0.5 → blend midpoint: rect oscillates 60→230px
 	speed := sm.NumberInput("speed").WithValue(0.5)
 
 	layer := sm.Layer("Main")
@@ -294,49 +297,38 @@ func generateSpeedBlend() ([]byte, error) {
 }
 
 // generateMultiLayer builds a two-layer state machine demo.
-// Layer 1 (Position): rect oscillates slow (small) or fast (large) when "running" is true.
-// Layer 2 (Color): rect is blue (idle) or orange (hot) when "hot" is true.
-// Both layers share the SM's inputs and run independently.
+// Layer 1 (Position): rect bounces left-right automatically (looping pingpong).
+// Layer 2 (Color):    rect cycles through blue→orange→green automatically (looping).
+// Both layers run concurrently with no user input — the visual shows both
+// effects happening simultaneously: a bouncing, color-changing rectangle.
 func generateMultiLayer() ([]byte, error) {
 	b := builder.New()
 	ab := b.Artboard("MultiLayer", 420, 200)
 
-	rect := ab.Rectangle(60, 80, 80, 60).Fill(0xFF1565C0).Name("box")
+	rect := ab.Rectangle(60, 100, 70, 70).Fill(0xFF1565C0).Name("box")
 
-	// Layer 1 animations (X position)
-	ab.Animation("slow_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
+	// Layer 1: looping horizontal bounce
+	ab.Animation("bounce_anim", builder.WithDuration(90), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
 		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
-		KeyframeFloat(rect, builder.PropX, 60, 200.0, builder.Linear())
+		KeyframeFloat(rect, builder.PropX, 90, 310.0, builder.Linear())
 
-	ab.Animation("fast_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
-		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
-		KeyframeFloat(rect, builder.PropX, 60, 360.0, builder.Linear())
-
-	// Layer 2 animations (color — single keyframe hold)
-	ab.Animation("blue_anim", builder.WithDuration(2), builder.WithFPS(60)).
-		KeyframeColor(rect, builder.PropColorValue, 0, 0xFF1565C0, builder.Linear())
-
-	ab.Animation("orange_anim", builder.WithDuration(2), builder.WithFPS(60)).
-		KeyframeColor(rect, builder.PropColorValue, 0, 0xFFE65100, builder.Linear())
+	// Layer 2: looping color cycle (blue → orange → green → back)
+	ab.Animation("color_cycle_anim", builder.WithDuration(120), builder.WithFPS(60), builder.WithLoop(builder.Loop)).
+		KeyframeColor(rect, builder.PropColorValue, 0, 0xFF1565C0, builder.Linear()).
+		KeyframeColor(rect, builder.PropColorValue, 40, 0xFFE65100, builder.Linear()).
+		KeyframeColor(rect, builder.PropColorValue, 80, 0xFF2E7D32, builder.Linear()).
+		KeyframeColor(rect, builder.PropColorValue, 120, 0xFF1565C0, builder.Linear())
 
 	sm := ab.StateMachine("MultiSM")
-	running := sm.BoolInput("running")
-	hot := sm.BoolInput("hot")
 
-	// Layer 1: controls X position
+	// Layer 1: single state — entry auto-transitions, animation loops forever
 	layer1 := sm.Layer("Position")
-	slow := layer1.State("Slow", builder.WithAnimation("slow_anim"))
-	fast := layer1.State("Fast", builder.WithAnimation("fast_anim"))
-	layer1.Transition(slow, fast).When(running).IsTrue()
-	layer1.Transition(fast, slow).When(running).IsFalse()
+	layer1.State("Bounce", builder.WithAnimation("bounce_anim"))
 
-	// Layer 2: controls color
+	// Layer 2: single state — entry auto-transitions, color cycles independently
 	layer2 := sm.Layer("Color")
-	blue := layer2.State("Blue", builder.WithAnimation("blue_anim"))
-	orange := layer2.State("Orange", builder.WithAnimation("orange_anim"))
-	layer2.Transition(blue, orange).When(hot).IsTrue()
-	layer2.Transition(orange, blue).When(hot).IsFalse()
+	layer2.State("Cycle", builder.WithAnimation("color_cycle_anim"))
 
-	_ = fast; _ = orange
+	_ = layer1; _ = layer2
 	return b.Bytes()
 }
