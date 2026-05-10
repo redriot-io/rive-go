@@ -5,6 +5,7 @@
 //	rivtool inspect <file.riv>                — dump object tree with properties
 //	rivtool validate <file.riv>               — check well-formedness of a .riv
 //	rivtool validate --schema <scene.json>    — validate a JSON scene file
+//	rivtool verify <file.riv>                 — structural wiring checks (SM, listeners, refs)
 //	rivtool create --from <scene.json>        — build .riv from JSON (stdout)
 //	rivtool create --from <scene.json> --output <out.riv>
 //	rivtool create --from -                   — read JSON from stdin
@@ -55,6 +56,15 @@ func main() {
 		}
 	case "create":
 		cmdCreate(os.Args[2:])
+	case "verify":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "verify requires a file argument")
+			os.Exit(1)
+		}
+		ok := cmdVerify(os.Args[2])
+		if !ok {
+			os.Exit(1)
+		}
 	case "generate":
 		cmdGenerate()
 	default:
@@ -71,6 +81,7 @@ Commands:
   inspect  <file.riv>                    dump object tree (typeKey, properties)
   validate <file.riv>                    check well-formedness of a .riv file
   validate --schema <scene.json>         validate a JSON scene file (no build)
+  verify   <file.riv>                    structural wiring checks (SM, listeners, refs)
   create   --from <scene.json>           build .riv from JSON scene, write to stdout
   create   --from <scene.json> --output <out.riv>
   create   --from -                      read JSON from stdin
