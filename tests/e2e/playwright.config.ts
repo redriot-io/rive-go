@@ -11,7 +11,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
 
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'http://127.0.0.1:5173',
     headless: true,
     bypassCSP: true,        // allow canvas.getImageData() cross-origin reads
   },
@@ -19,7 +19,7 @@ export default defineConfig({
   // Start the repo-root static server before any test
   webServer: {
     command: 'node server.js',
-    url: 'http://localhost:5173',
+    url: 'http://127.0.0.1:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,
   },
