@@ -17,9 +17,16 @@ const (
 
 // InputRef is a handle to a state machine input, used in transition conditions.
 type InputRef struct {
-	kind inputKind
-	name string
-	idx  uint64 // global emission index, set during emit()
+	kind         inputKind
+	name         string
+	idx          uint64  // global emission index, set during emit()
+	initialValue float64 // initial value for number inputs (0 = suppressed)
+}
+
+// WithValue sets the initial value for a number input and returns the ref for chaining.
+func (r *InputRef) WithValue(v float64) *InputRef {
+	r.initialValue = v
+	return r
 }
 
 // CompareOp is the comparison operator for number conditions.
@@ -125,6 +132,7 @@ type transitionEntry struct {
 
 type stateEntry struct {
 	ref         *StateRef
+	blendRef    *BlendState1DRef // non-nil when this is a BlendState1DInput
 	transitions []*transitionEntry
 }
 
@@ -203,6 +211,35 @@ func (c *ConditionBuilder) LessThan(v float64) *TransitionRef {
 	return c.tr
 }
 
+// blendAnim1D describes one animation in a BlendState1D at a threshold value.
+type blendAnim1D struct {
+	animName  string
+	threshold float64
+}
+
+// BlendState1DRef is a handle to a BlendState1DInput layer state.
+// Use AddAnimation to register animations at threshold values.
+// The runtime interpolates between animations based on where the numeric
+// input falls relative to the registered thresholds.
+type BlendState1DRef struct {
+	ref   *StateRef
+	input *InputRef
+	anims []blendAnim1D
+}
+
+// AddAnimation registers a linear animation at a threshold value and returns
+// the ref for chaining. Threshold values should be ordered lowest to highest.
+func (r *BlendState1DRef) AddAnimation(animName string, threshold float64) *BlendState1DRef {
+	r.anims = append(r.anims, blendAnim1D{animName: animName, threshold: threshold})
+	return r
+}
+
+// StateHandle returns the underlying StateRef so this blend state can be used
+// as a from/to argument in LayerBuilder.Transition.
+func (r *BlendState1DRef) StateHandle() *StateRef {
+	return r.ref
+}
+
 // LayerBuilder builds a single state machine layer.
 type LayerBuilder struct {
 	name   string
@@ -222,9 +259,17 @@ func (l *LayerBuilder) State(name string, opts ...StateOption) *StateRef {
 	return ref
 }
 
+// BlendState1D adds a BlendState1DInput layer state driven by the given numeric input.
+func (l *LayerBuilder) BlendState1D(name string, input *InputRef) *BlendState1DRef {
+	ref := &StateRef{name: name}
+	br := &BlendState1DRef{ref: ref, input: input}
+	l.states = append(l.states, &stateEntry{ref: ref, blendRef: br})
+	return br
+}
+
 // Transition adds a transition from → to, optionally with initial conditions.
 // Returns a TransitionRef for fluent condition/timing configuration.
-// from must be a StateRef returned by this layer's State() method.
+// from must be a StateRef returned by this layer's State() or BlendState1D().StateHandle() method.
 func (l *LayerBuilder) Transition(from, to *StateRef, conditions ...Condition) *TransitionRef {
 	te := &transitionEntry{to: to, conditions: conditions}
 	for _, se := range l.states {
@@ -252,7 +297,7 @@ func (sm *StateMachineBuilder) BoolInput(name string) *InputRef {
 	return ref
 }
 
-// NumberInput adds a number input.
+// NumberInput adds a number input with optional initial value.
 func (sm *StateMachineBuilder) NumberInput(name string) *InputRef {
 	ref := &InputRef{kind: inputNumber, name: name}
 	sm.inputs = append(sm.inputs, ref)
@@ -274,7 +319,6 @@ func (sm *StateMachineBuilder) Layer(name string) *LayerBuilder {
 }
 
 // Listener registers a pointer-event listener on target for the given event type.
-// The returned ListenerRef is reserved for future action binding (Phase 2C).
 func (sm *StateMachineBuilder) Listener(target *ShapeRef, lt ListenerType) *ListenerRef {
 	cfg := listenerConfig{target: target, lt: lt}
 	sm.listeners = append(sm.listeners, cfg)
@@ -306,7 +350,6 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 	sm.preComputeStateIndices()
 
 	// Map from animation name → 0-based position in animation list.
-	// The Rive runtime's AnimationState.AnimationId is the 0-based animation index.
 	animByName := make(map[string]uint64, len(anims))
 	for i, a := range anims {
 		animByName[a.name] = uint64(i)
@@ -328,6 +371,7 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 		case inputNumber:
 			o := &rive.StateMachineNumber{}
 			o.Name = inp.name
+			o.Value = inp.initialValue // 0 is default, suppressed by Properties()
 			obj = o
 		case inputTrigger:
 			o := &rive.StateMachineTrigger{}
@@ -353,42 +397,77 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 			*objects = append(*objects, entryTrans)
 		}
 
-		// User states with their transitions (interleaved)
+		// User states with their transitions and (for blend states) animations
 		for _, se := range layer.states {
-			var stateObj rive.Object
-			if se.ref.animName != "" {
-				animIdx, ok := animByName[se.ref.animName]
-				if !ok {
-					return fmt.Errorf("builder: state %q references unknown animation %q", se.ref.name, se.ref.animName)
+			if se.blendRef != nil {
+				// BlendState1DInput
+				bs := &rive.BlendState1DInput{}
+				bs.InputId = se.blendRef.input.idx
+				*objects = append(*objects, bs)
+
+				// Transitions from this blend state (before blend animations)
+				for _, te := range se.transitions {
+					t := newStateTransition(te.to.idx)
+					if te.durationMs > 0 {
+						t.Duration = uint64(te.durationMs)
+					}
+					if te.exitTimeFrames > 0 {
+						t.ExitTime = uint64(te.exitTimeFrames)
+					}
+					*objects = append(*objects, t)
+					for _, cond := range te.conditions {
+						inp := cond.inputRef()
+						*objects = append(*objects, cond.makeConditionObject(inp.idx))
+					}
 				}
-				as := &rive.AnimationState{}
-				as.Speed = 1.0 // runtime default; zero value would emit Speed=0
-				as.AnimationId = animIdx
-				stateObj = as
+
+				// BlendAnimation1D children
+				for _, ba := range se.blendRef.anims {
+					animIdx, ok := animByName[ba.animName]
+					if !ok {
+						return fmt.Errorf("builder: blend state %q references unknown animation %q",
+							se.blendRef.ref.name, ba.animName)
+					}
+					a := &rive.BlendAnimation1D{}
+					a.AnimationId = animIdx
+					a.Value = ba.threshold
+					*objects = append(*objects, a)
+				}
 			} else {
-				as := &rive.AnimationState{}
-				as.Speed = 1.0 // runtime default; zero value would emit Speed=0
-				as.AnimationId = ^uint64(0) // sentinel: suppress emission
-				stateObj = as
-			}
-			*objects = append(*objects, stateObj)
-
-			// Transitions from this state
-			for _, te := range se.transitions {
-				t := newStateTransition(te.to.idx)
-				if te.durationMs > 0 {
-					t.Duration = uint64(te.durationMs)
+				// AnimationState
+				var stateObj rive.Object
+				if se.ref.animName != "" {
+					animIdx, ok := animByName[se.ref.animName]
+					if !ok {
+						return fmt.Errorf("builder: state %q references unknown animation %q",
+							se.ref.name, se.ref.animName)
+					}
+					as := &rive.AnimationState{}
+					as.Speed = 1.0
+					as.AnimationId = animIdx
+					stateObj = as
+				} else {
+					as := &rive.AnimationState{}
+					as.Speed = 1.0
+					as.AnimationId = ^uint64(0) // sentinel: suppress emission
+					stateObj = as
 				}
-				if te.exitTimeFrames > 0 {
-					t.ExitTime = uint64(te.exitTimeFrames)
-				}
-				*objects = append(*objects, t)
+				*objects = append(*objects, stateObj)
 
-				// Conditions under this transition
-				for _, cond := range te.conditions {
-					inp := cond.inputRef()
-					condObj := cond.makeConditionObject(inp.idx)
-					*objects = append(*objects, condObj)
+				// Transitions from this state
+				for _, te := range se.transitions {
+					t := newStateTransition(te.to.idx)
+					if te.durationMs > 0 {
+						t.Duration = uint64(te.durationMs)
+					}
+					if te.exitTimeFrames > 0 {
+						t.ExitTime = uint64(te.exitTimeFrames)
+					}
+					*objects = append(*objects, t)
+					for _, cond := range te.conditions {
+						inp := cond.inputRef()
+						*objects = append(*objects, cond.makeConditionObject(inp.idx))
+					}
 				}
 			}
 		}
@@ -406,22 +485,20 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 		obj.EventId = ^uint64(0) // suppress: pointer listener, not a Rive Event listener
 		*objects = append(*objects, obj)
 
-		// Emit action objects immediately after their parent listener.
 		for _, ac := range lc.actions {
 			switch ac.kind {
 			case actionTrigger:
 				a := &rive.ListenerTriggerChange{}
 				a.InputId = ac.input.idx
-				a.NestedInputId = ^uint64(0) // suppress: no nested artboard
+				a.NestedInputId = ^uint64(0)
 				*objects = append(*objects, a)
 			case actionSetBool:
 				a := &rive.ListenerBoolChange{}
 				a.InputId = ac.input.idx
-				a.NestedInputId = ^uint64(0) // suppress: no nested artboard
+				a.NestedInputId = ^uint64(0)
 				if ac.boolValue {
-					a.Value = 1 // default=1, suppressed in binary
+					a.Value = 1
 				}
-				// Value=0 (false) is non-default, will be emitted as key=228
 				*objects = append(*objects, a)
 			}
 		}

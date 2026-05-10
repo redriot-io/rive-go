@@ -300,6 +300,13 @@ const demos = [
     tagClass: "tag-blue",
     stateMachines: ["ButtonSM"],
   },
+  {
+    file: "examples/speed_blend.riv",
+    title: "\u26a1 Speed Blend (BlendState1D)",
+    desc: "A rectangle oscillates left-right. walk animation (threshold=0) moves 60\u2192280px; run (threshold=1) moves 60\u2192360px. Speed input starts at 0.5 = 50/50 blend. Phase 3B: BlendState1DInput driven by a number input.",
+    tags: ["state-machine", "blend", "animation"],
+    stateMachines: ["SpeedSM"],
+  },
 ];
 
 // Build card DOM elements first (no Rive yet)

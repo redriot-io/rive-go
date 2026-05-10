@@ -32,6 +32,7 @@ func main() {
 		{"multi_shape.riv", generateMultiShape},
 		{"spinning_square.riv", generateSpinningSquare},
 		{"interactive_button.riv", generateInteractiveButton},
+		{"speed_blend.riv", generateSpeedBlend},
 	}
 
 	for _, s := range steps {
@@ -258,6 +259,35 @@ func generateSpinningSquare() ([]byte, error) {
 		KeyframeFloat(sq, builder.PropScaleY, 0, 0.8, builder.Linear()).
 		KeyframeFloat(sq, builder.PropScaleY, 30, 1.2, builder.Linear()).
 		KeyframeFloat(sq, builder.PropScaleY, 60, 0.8, builder.Linear())
+
+	return b.Bytes()
+}
+
+// generateSpeedBlend builds a BlendState1D demo.
+// A rectangle moves left-right with speed determined by a numeric "speed" input.
+// walk_anim (threshold=0): small oscillation 60→280px.
+// run_anim  (threshold=1): large oscillation 60→360px.
+// The speed input starts at 0.5, giving a 50/50 blend.
+func generateSpeedBlend() ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("SpeedBlend", 420, 160)
+
+	rect := ab.Rectangle(60, 80, 60, 60).Fill(0xFF1E88E5).Name("runner")
+
+	ab.Animation("walk_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
+		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
+		KeyframeFloat(rect, builder.PropX, 60, 280.0, builder.Linear())
+
+	ab.Animation("run_anim", builder.WithDuration(60), builder.WithFPS(60), builder.WithLoop(builder.PingPong)).
+		KeyframeFloat(rect, builder.PropX, 0, 60.0, builder.Linear()).
+		KeyframeFloat(rect, builder.PropX, 60, 360.0, builder.Linear())
+
+	sm := ab.StateMachine("SpeedSM")
+	speed := sm.NumberInput("speed").WithValue(0.5)
+
+	layer := sm.Layer("Main")
+	blend := layer.BlendState1D("SpeedBlend", speed)
+	blend.AddAnimation("walk_anim", 0.0).AddAnimation("run_anim", 1.0)
 
 	return b.Bytes()
 }

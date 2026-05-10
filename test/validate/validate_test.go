@@ -47,6 +47,8 @@ const (
 	tkTransitionBoolCondition uint32 = 71
 	tkKeyFrameBool            uint32 = 84
 	tkCubicInterpolator       uint32 = 28
+	tkBlendState1DInput       uint32 = 76
+	tkBlendAnimation1D        uint32 = 75
 )
 
 // knownTypeKeys is the complete set of type keys this builder emits.
@@ -63,6 +65,7 @@ var knownTypeKeys = map[uint32]bool{
 	tkExitState: true, tkStateTransition: true, tkTransitionBoolCondition: true,
 	tkKeyFrameBool: true,
 	tkCubicInterpolator: true, // emitted by Cubic() easing
+	tkBlendState1DInput: true, tkBlendAnimation1D: true,
 }
 
 // property key constants
