@@ -308,11 +308,32 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 	}
 
 	// --- Listeners ---
-	for _, lc := range sm.listeners {
+	for i := range sm.listeners {
+		lc := &sm.listeners[i]
 		obj := &rive.StateMachineListenerSingle{}
 		obj.TargetId = lc.target.shapeIdx
 		obj.ListenerTypeValue = uint64(lc.lt)
 		*objects = append(*objects, obj)
+
+		// Emit action objects immediately after their parent listener.
+		for _, ac := range lc.actions {
+			switch ac.kind {
+			case actionTrigger:
+				a := &rive.ListenerTriggerChange{}
+				a.InputId = ac.input.idx
+				a.NestedInputId = ^uint64(0) // suppress: no nested artboard
+				*objects = append(*objects, a)
+			case actionSetBool:
+				a := &rive.ListenerBoolChange{}
+				a.InputId = ac.input.idx
+				a.NestedInputId = ^uint64(0) // suppress: no nested artboard
+				if ac.boolValue {
+					a.Value = 1 // default=1, suppressed in binary
+				}
+				// Value=0 (false) is non-default, will be emitted as key=228
+				*objects = append(*objects, a)
+			}
+		}
 	}
 
 	return nil
