@@ -206,6 +206,26 @@ func (e *ParseError) Error() string {
 	return e.Message
 }
 
+// ValidationWarning is a non-fatal diagnostic returned by ValidateJSON.
+// Type-assert from the []error returned by ValidateJSON to distinguish from ParseError.
+type ValidationWarning struct {
+	Field   string
+	Message string
+}
+
+func (w *ValidationWarning) Error() string {
+	if w.Field != "" {
+		return fmt.Sprintf("[WARN] %s: %s", w.Field, w.Message)
+	}
+	return fmt.Sprintf("[WARN] %s", w.Message)
+}
+
+// IsWarning reports whether err is a ValidationWarning.
+func IsWarning(err error) bool {
+	_, ok := err.(*ValidationWarning)
+	return ok
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 // FromJSON parses a JSON scene description and returns a configured Builder.
@@ -300,6 +320,93 @@ func ValidateJSON(data []byte) []error {
 				}
 				if kf.Value == nil {
 					errs = append(errs, &ParseError{Field: kfField + ".value", Message: "required"})
+				}
+			}
+		}
+	}
+
+	// SM-level structural checks
+	smNames := map[string]bool{}
+	for si, sm := range ab.StateMachines {
+		sf := fmt.Sprintf("artboard.state_machines[%d]", si)
+		if sm.Name == "" {
+			errs = append(errs, &ParseError{Field: sf + ".name", Message: "required"})
+			continue
+		}
+		if smNames[sm.Name] {
+			errs = append(errs, &ParseError{Field: sf + ".name", Message: fmt.Sprintf("duplicate state machine name %q", sm.Name)})
+		}
+		smNames[sm.Name] = true
+		if len(sm.Layers) == 0 {
+			errs = append(errs, &ParseError{Field: fmt.Sprintf("%s[%q].layers", sf, sm.Name), Message: "at least one layer required"})
+		}
+		seenIns := map[string]bool{}
+		for ii, inp := range sm.Inputs {
+			if inp.Name == "" {
+				errs = append(errs, &ParseError{Field: fmt.Sprintf("%s[%q].inputs[%d].name", sf, sm.Name, ii), Message: "required"})
+			} else if seenIns[inp.Name] {
+				errs = append(errs, &ParseError{Field: fmt.Sprintf("%s[%q].inputs", sf, sm.Name), Message: fmt.Sprintf("duplicate input name %q", inp.Name)})
+			} else {
+				seenIns[inp.Name] = true
+			}
+		}
+		for li, layer := range sm.Layers {
+			lf := fmt.Sprintf("%s[%q].layers[%d]", sf, sm.Name, li)
+			seenSt := map[string]bool{}
+			for sti, state := range layer.States {
+				if state.Name == "" {
+					errs = append(errs, &ParseError{Field: fmt.Sprintf("%s.states[%d].name", lf, sti), Message: "required"})
+				} else if seenSt[state.Name] {
+					errs = append(errs, &ParseError{Field: lf + ".states", Message: fmt.Sprintf("duplicate state name %q", state.Name)})
+				} else {
+					seenSt[state.Name] = true
+				}
+			}
+			for ti, tr := range layer.Transitions {
+				tf := fmt.Sprintf("%s.transitions[%d]", lf, ti)
+				if tr.From == "" {
+					errs = append(errs, &ParseError{Field: tf + ".from", Message: "required"})
+				}
+				if tr.To == "" {
+					errs = append(errs, &ParseError{Field: tf + ".to", Message: "required"})
+				}
+			}
+		}
+		// Cycle detection: warn on back-edges in the transition graph (per layer)
+		for _, layer := range sm.Layers {
+			graph := map[string][]string{}
+			for _, tr := range layer.Transitions {
+				if tr.From != "" && tr.To != "" &&
+					!strings.EqualFold(tr.From, "ExitState") &&
+					!strings.EqualFold(tr.To, "ExitState") {
+					graph[tr.From] = append(graph[tr.From], tr.To)
+				}
+			}
+			visited := map[string]bool{}
+			inStack := map[string]string{} // node → predecessor
+			var dfs func(node, parent string) bool
+			dfs = func(node, parent string) bool {
+				visited[node] = true
+				inStack[node] = parent
+				for _, next := range graph[node] {
+					if !visited[next] {
+						if dfs(next, node) {
+							return true
+						}
+					} else if _, onStack := inStack[next]; onStack {
+						errs = append(errs, &ValidationWarning{
+							Field:   fmt.Sprintf("state_machines[%q].layers[%q]", sm.Name, layer.Name),
+							Message: fmt.Sprintf("cycle detected: %q → %q (transitions form a loop)", node, next),
+						})
+						return true
+					}
+				}
+				delete(inStack, node)
+				return false
+			}
+			for _, state := range layer.States {
+				if !visited[state.Name] {
+					dfs(state.Name, "")
 				}
 			}
 		}
@@ -486,10 +593,39 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 
 	// Add state machines.
 	for _, sm := range ab.StateMachines {
+		if sm.Name == "" {
+			return nil, &ParseError{Field: "state_machines[].name", Message: "required"}
+		}
+		if len(sm.Layers) == 0 {
+			return nil, &ParseError{
+				Field:   fmt.Sprintf("state_machines[%q].layers", sm.Name),
+				Message: "state machine must have at least one layer",
+			}
+		}
+
 		smb := artboard.StateMachine(sm.Name)
 
-		// Build input refs by name.
+		// Build input refs by name, tracking types for condition type checking.
 		inputMap := map[string]*builder.InputRef{}
+		inputTypeMap := map[string]string{} // name → "bool"|"number"|"trigger"
+		seenInputs := map[string]bool{}
+		for _, inp := range sm.Inputs {
+			if inp.Name == "" {
+				return nil, &ParseError{
+					Field:   fmt.Sprintf("state_machines[%q].inputs[].name", sm.Name),
+					Message: "required",
+				}
+			}
+			if seenInputs[inp.Name] {
+				return nil, &ParseError{
+					Field:   fmt.Sprintf("state_machines[%q].inputs", sm.Name),
+					Message: fmt.Sprintf("duplicate input name %q", inp.Name),
+				}
+			}
+			seenInputs[inp.Name] = true
+			inputTypeMap[inp.Name] = strings.ToLower(inp.Type)
+		}
+
 		for _, inp := range sm.Inputs {
 			switch strings.ToLower(inp.Type) {
 			case "bool":
@@ -521,14 +657,51 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 			lb := smb.Layer(layer.Name)
 
 			stateMap := map[string]*builder.StateRef{}
+			seenStates := map[string]bool{}
 			for _, state := range layer.States {
+				if state.Name == "" {
+					return nil, &ParseError{
+						Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[].name", sm.Name, layer.Name),
+						Message: "required",
+					}
+				}
+				if seenStates[state.Name] {
+					return nil, &ParseError{
+						Field:   fmt.Sprintf("state_machines[%q].layers[%q].states", sm.Name, layer.Name),
+						Message: fmt.Sprintf("duplicate state name %q", state.Name),
+					}
+				}
+				seenStates[state.Name] = true
+
 				switch strings.ToLower(state.Type) {
 				case "blend_1d":
+					// Input must exist and be numeric
+					if state.Input == "" {
+						return nil, &ParseError{
+							Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].input", sm.Name, layer.Name, state.Name),
+							Message: "blend_1d state requires an input name",
+						}
+					}
+					if t, ok := inputTypeMap[state.Input]; ok && t != "number" {
+						return nil, &ParseError{
+							Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].input", sm.Name, layer.Name, state.Name),
+							Message: fmt.Sprintf("blend_1d input %q must be type number, got %q", state.Input, t),
+						}
+					}
 					inp, ok := inputMap[state.Input]
 					if !ok {
 						return nil, &ParseError{
 							Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].input", sm.Name, layer.Name, state.Name),
 							Message: fmt.Sprintf("unknown input %q", state.Input),
+						}
+					}
+					// Thresholds must be non-decreasing
+					for bi := 1; bi < len(state.Blends); bi++ {
+						if state.Blends[bi].Threshold < state.Blends[bi-1].Threshold {
+							return nil, &ParseError{
+								Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].blends[%d].threshold", sm.Name, layer.Name, state.Name, bi),
+								Message: fmt.Sprintf("thresholds must be non-decreasing: %.4g < %.4g", state.Blends[bi].Threshold, state.Blends[bi-1].Threshold),
+							}
 						}
 					}
 					br := lb.BlendState1D(state.Name, inp)
@@ -553,6 +726,12 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 
 			for _, trans := range layer.Transitions {
 				lf := fmt.Sprintf("state_machines[%q].layers[%q].transitions", sm.Name, layer.Name)
+				if trans.From == "" {
+					return nil, &ParseError{Field: lf, Message: "transition.from is required"}
+				}
+				if trans.To == "" {
+					return nil, &ParseError{Field: lf, Message: "transition.to is required"}
+				}
 
 				var from *builder.StateRef
 				if strings.EqualFold(trans.From, "ExitState") {
@@ -577,12 +756,38 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 				}
 
 				var conditions []builder.Condition
-				for _, cond := range trans.Conditions {
+				for ci, cond := range trans.Conditions {
+					cf := fmt.Sprintf("state_machines[%q].layers[%q].transitions[%q→%q].conditions[%d]", sm.Name, layer.Name, trans.From, trans.To, ci)
 					inp, ok := inputMap[cond.Input]
 					if !ok {
 						return nil, &ParseError{
-							Field:   fmt.Sprintf("state_machines[%q] condition", sm.Name),
+							Field:   cf + ".input",
 							Message: fmt.Sprintf("unknown input %q", cond.Input),
+						}
+					}
+					// Type mismatch: verify condition type matches input type
+					inpType := inputTypeMap[cond.Input]
+					if cond.Value == nil {
+						// nil value → trigger condition; only valid on trigger inputs
+						if inpType != "trigger" {
+							return nil, &ParseError{
+								Field:   cf,
+								Message: fmt.Sprintf("trigger condition used on %q input %q (omit value only for trigger inputs)", inpType, cond.Input),
+							}
+						}
+					} else {
+						var boolVal bool
+						if json.Unmarshal(cond.Value, &boolVal) == nil && inpType == "number" {
+							return nil, &ParseError{
+								Field:   cf + ".value",
+								Message: fmt.Sprintf("bool condition value on number input %q; use a number and op instead", cond.Input),
+							}
+						}
+						if inpType == "trigger" {
+							return nil, &ParseError{
+								Field:   cf,
+								Message: fmt.Sprintf("condition value not allowed on trigger input %q; omit value for trigger conditions", cond.Input),
+							}
 						}
 					}
 					c, err := makeCondition(inp, &cond)
