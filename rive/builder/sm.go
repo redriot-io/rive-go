@@ -202,17 +202,18 @@ func (sm *StateMachineBuilder) Listener(target *ShapeRef, lt ListenerType) *List
 	return &ListenerRef{cfg: &sm.listeners[len(sm.listeners)-1]}
 }
 
-// preComputeStateIndices assigns local 0-based indices to inputs and states.
+// preComputeStateIndices assigns indices to inputs and states.
 // Inputs are numbered 0,1,2,… within the SM's input list.
-// States are numbered 0,1,2,… within each layer's user-state list.
-// These match what the Rive runtime expects for InputId and StateToId references.
+// States use layer-child indices: AnyState=0, EntryState=1, first user state=2, …
+// The Rive runtime resolves StateToId as a layer-child index, not a user-state-list index.
 func (sm *StateMachineBuilder) preComputeStateIndices() {
 	for i, inp := range sm.inputs {
 		inp.idx = uint64(i)
 	}
 	for _, layer := range sm.layers {
 		for i, se := range layer.states {
-			se.ref.idx = uint64(i)
+			// +2: AnyState is emitted as child 0, EntryState as child 1.
+			se.ref.idx = uint64(i + 2)
 		}
 	}
 }
