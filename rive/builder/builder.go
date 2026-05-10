@@ -155,5 +155,12 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 		}
 	}
 
+	// Emit draw rules post-pass: all shapeIdx values are resolved at this point.
+	for _, child := range ab.children {
+		if sr, ok := child.(*ShapeRef); ok {
+			sr.emitDrawRules(objects, artboardOffset)
+		}
+	}
+
 	return nil
 }

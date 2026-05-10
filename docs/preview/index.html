@@ -202,7 +202,7 @@
 
 <header>
   <h1>rive<span>-go</span> · Live Previews</h1>
-  <p>Eight hand-coded demo scenes + six generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
+  <p>Eight hand-coded demo scenes + seven generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
   <div class="badge-row">
     <a href="https://github.com/redriot-io/rive-go" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-redriot--io%2Frive--go-6c63ff?logo=github&logoColor=white" alt="GitHub" />
@@ -217,7 +217,7 @@
 
 <div style="max-width:1100px;margin:3rem auto 1rem;padding:0 1rem">
   <h2 style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:0.4rem">FromJSON Pipeline <span style="font-size:0.85rem;font-weight:400;color:var(--muted)">(JSON → rivtool create → .riv)</span></h2>
-  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Six scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Seven scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
 </div>
 <div class="grid" id="fromjson-grid"></div>
 
@@ -467,6 +467,13 @@ const fromjsonDemos = [
     tags: ["llm-generated", "fromjson", "16 tracks", "loop"],
     tagClass: "ref",
     animations: ["falling"],
+  },
+  {
+    file: "fromjson_draw_order.riv",
+    title: "Draw Order Rules (FromJSON)",
+    desc: "Three overlapping rectangles. Green (middle declaration) uses draw_rules to render in front of both red and blue, overriding the default emission order. Blue slides left-right through the scene.",
+    tags: ["fromjson", "draw-order", "pingpong"],
+    animations: ["slide"],
   },
 ];
 

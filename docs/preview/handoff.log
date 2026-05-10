@@ -102,3 +102,59 @@ reversal hypothesis. If confirmed, the fix is to always emit background
 shapes LAST in the fromjson children list, or add an explicit Z-sort step
 in the ArtboardBuilder.
 
+
+---
+## T-396 — PROJ_RIVE-GO_CODE_V5_COMPLETE
+Date: 2026-05-10
+Commit: d76225a
+
+### Root cause confirmed
+Rive @rive-app/canvas v2 renders artboard children in REVERSE stream order
+(first-emitted = rendered in FRONT). Browser tests of T-395 experiments proved it.
+
+### Fix applied
+`rive/builder/builder.go` — `ArtboardBuilder.emit()`: loop `ab.children` in
+reverse so first-declared child is last-emitted → rendered at back.
+ShapeRef.shapeIdx set during emitObjects() so animation indices self-correct.
+
+### Files changed
+- `rive/builder/builder.go` — core fix
+- `docs/preview/fromjson/autumn_leaves.json` — restored gradient sky (commit 8121298)
+- `docs/preview/fromjson_autumn.riv` — rebuilt (1115 bytes), object order: leaf5→leaf4→leaf3→leaf2→leaf1→sky
+- `docs/preview/fromjson_dots.riv`, `fromjson_easing.riv` — rebuilt (structurally consistent)
+- Deleted: mixed_bg_test, autumn_sky_last, ellipse_test (.json + .riv)
+- `docs/preview/index.html` — removed 3 diagnostic cards, count updated to six
+
+### All tests pass
+GOTMPDIR workaround required (/tmp is noexec in this container).
+
+---
+## T-406 — PROJ_RIVE-GO_CODE_V1_COMPLETE
+Date: 2026-05-10
+
+### Draw Order Rules API
+
+Implemented Draw Order Rules (DrawTarget typeKey=48, DrawRules typeKey=49) in the
+goriv builder. Shapes can now declare explicit draw-order constraints independent
+of their declaration order in the children list.
+
+### Files changed
+- `rive/builder/drawrule.go` — new: PlacementAbove/Below constants, drawRuleConfig struct
+- `rive/builder/shape.go` — added drawRules field, DrawAbove/DrawBelow methods, emitDrawRules()
+- `rive/builder/builder.go` — post-pass in emit() to call emitDrawRules after all shapes
+- `rive/builder/props.go` — added PropDrawableId=119, PropPlacementValue=120, PropDrawTargetId=121
+- `rive/builder/drawrule_test.go` — 5 new tests (above/below/multi/round-trip/no-rules)
+- `rive/fromjson/fromjson.go` — Child.DrawRules []DrawRuleDef, applied in buildScene post-pass
+- `docs/preview/fromjson/draw_order_demo.json` — demo scene
+- `docs/preview/fromjson_draw_order.riv` — compiled (299 bytes)
+- `docs/preview/index.html` — preview card added, count updated to seven
+- `cmd/rivtool/main.go` — DrawTarget/DrawRules added to typeKeyName map
+
+### Design notes
+- Draw rules use a deferred post-pass (after all shapes) so all shapeIdx values are set
+- DrawTarget.ParentId=0 → artboard root sibling (suppressed by Component.Properties)
+- DrawRules.ParentId = source.shapeIdx (child of source shape)
+- Fluent API: shape.DrawAbove(target).DrawBelow(other) (chainable)
+- fromjson: draw_rules array on child, applied after nameMap is fully populated
+
+### All tests pass

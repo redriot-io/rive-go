@@ -569,6 +569,8 @@ func typeKeyName(k uint32) string {
 		38:  "WorldTransformComponent",
 		42:  "ClippingShape",
 		47:  "TrimPath",
+		48:  "DrawTarget",
+		49:  "DrawRules",
 		51:  "Polygon",
 		52:  "Star",
 		53:  "StateMachine",

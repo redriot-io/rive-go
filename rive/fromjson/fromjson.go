@@ -47,8 +47,15 @@ type Child struct {
 	ScaleY       float64         `json:"scaleY,omitempty"`
 	Opacity      float64         `json:"opacity,omitempty"`
 	CornerRadius float64         `json:"corner_radius,omitempty"` // rectangles only
-	Fill     json.RawMessage `json:"fill,omitempty"`
-	Stroke   *StrokeDef      `json:"stroke,omitempty"`
+	Fill      json.RawMessage `json:"fill,omitempty"`
+	Stroke    *StrokeDef      `json:"stroke,omitempty"`
+	DrawRules []DrawRuleDef   `json:"draw_rules,omitempty"`
+}
+
+// DrawRuleDef describes one draw-order constraint on a shape.
+type DrawRuleDef struct {
+	Type   string `json:"type"`   // "above" | "below"
+	Target string `json:"target"` // name of the reference shape
 }
 
 // StrokeDef describes a stroke paint.
@@ -363,6 +370,35 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 		}
 	}
 	_ = animBuilders
+
+	// Apply draw rules (after all shapes added so targets are resolvable).
+	for i, child := range ab.Children {
+		if len(child.DrawRules) == 0 {
+			continue
+		}
+		ref := nameMap[child.Name]
+		cf := fmt.Sprintf("artboard.children[%d].draw_rules", i)
+		for j, rule := range child.DrawRules {
+			target, ok := nameMap[rule.Target]
+			if !ok {
+				return nil, &ParseError{
+					Field:   fmt.Sprintf("%s[%d].target", cf, j),
+					Message: fmt.Sprintf("no shape named %q", rule.Target),
+				}
+			}
+			switch strings.ToLower(rule.Type) {
+			case "above":
+				ref.DrawAbove(target)
+			case "below":
+				ref.DrawBelow(target)
+			default:
+				return nil, &ParseError{
+					Field:   fmt.Sprintf("%s[%d].type", cf, j),
+					Message: fmt.Sprintf("unknown draw rule type %q (above|below)", rule.Type),
+				}
+			}
+		}
+	}
 
 	// Add state machines.
 	for _, sm := range ab.StateMachines {

@@ -56,6 +56,8 @@ type ShapeRef struct {
 	fill   *fillConfig
 	stroke *strokeConfig
 
+	drawRules []drawRuleConfig
+
 	// Set during emitObjects — used by AnimationBuilder to resolve objectIds.
 	shapeIdx uint64 // Shape object global index
 	pathIdx  uint64 // Rectangle/Ellipse global index
@@ -128,6 +130,38 @@ func (s *ShapeRef) CornerRadius(r float64) *ShapeRef {
 func (s *ShapeRef) Name(n string) *ShapeRef {
 	s.name = n
 	return s
+}
+
+// DrawAbove makes this shape render in front of target.
+// Must be called before Build(); the rule is emitted as a DrawRules/DrawTarget pair
+// in a post-pass after all shapes have been emitted.
+func (s *ShapeRef) DrawAbove(target *ShapeRef) *ShapeRef {
+	s.drawRules = append(s.drawRules, drawRuleConfig{target: target, placement: PlacementAbove})
+	return s
+}
+
+// DrawBelow makes this shape render behind target.
+func (s *ShapeRef) DrawBelow(target *ShapeRef) *ShapeRef {
+	s.drawRules = append(s.drawRules, drawRuleConfig{target: target, placement: PlacementBelow})
+	return s
+}
+
+// emitDrawRules emits DrawTarget + DrawRules object pairs for each draw rule.
+// Must be called after emitObjects() so that shapeIdx values are resolved.
+func (s *ShapeRef) emitDrawRules(objects *[]rive.Object, artboardOffset uint64) {
+	for _, rule := range s.drawRules {
+		dtIdx := uint64(len(*objects)) - artboardOffset
+		dt := &rive.DrawTarget{}
+		dt.DrawableId = rule.target.shapeIdx
+		dt.PlacementValue = rule.placement
+		// ParentId=0: artboard-level sibling, suppressed by Component.Properties()
+		*objects = append(*objects, dt)
+
+		dr := &rive.DrawRules{}
+		dr.ParentId = s.shapeIdx
+		dr.DrawTargetId = dtIdx
+		*objects = append(*objects, dr)
+	}
 }
 
 // emitObjects writes the Shape, its path child, and its paint children

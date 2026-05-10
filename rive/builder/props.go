@@ -19,4 +19,9 @@ const (
 
 	// SolidColor property (animate the SolidColor child of a Fill)
 	PropColorValue uint32 = 37 // SolidColor.colorValue (color)
+
+	// DrawTarget / DrawRules properties (draw order control)
+	PropDrawableId    uint32 = 119 // DrawTarget.drawableId — artboard-relative index of target shape
+	PropPlacementValue uint32 = 120 // DrawTarget.placementValue — 0=above, 1=below
+	PropDrawTargetId  uint32 = 121 // DrawRules.drawTargetId — artboard-relative index of DrawTarget
 )
