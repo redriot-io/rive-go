@@ -318,7 +318,7 @@ const demos = [
 ];
 
 // Build card DOM elements first (no Rive yet)
-const cards = demos.map(({ file, title, desc, tags, tagClass, animations, stateMachines }) => {
+const cards = demos.map(({ file, title, desc, tags, tagClass, animations, stateMachines, inputDriver }) => {
   const card = document.createElement('div');
   card.className = 'card';
 
@@ -372,7 +372,7 @@ const cards = demos.map(({ file, title, desc, tags, tagClass, animations, stateM
   card.appendChild(body);
   document.getElementById('grid').appendChild(card);
 
-  return { file, canvas, dot, loadingMsg, errMsg, animations, stateMachines };
+  return { file, canvas, dot, loadingMsg, errMsg, animations, stateMachines, inputDriver };
 });
 
 // Sequential loading queue
