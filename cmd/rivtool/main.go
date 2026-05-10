@@ -571,6 +571,7 @@ func typeKeyName(k uint32) string {
 		47:  "TrimPath",
 		48:  "DrawTarget",
 		49:  "DrawRules",
+		50:  "KeyFrameId",
 		51:  "Polygon",
 		52:  "Star",
 		53:  "StateMachine",

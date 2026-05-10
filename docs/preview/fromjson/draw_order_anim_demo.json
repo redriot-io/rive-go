@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "DrawOrderAnimDemo",
+    "width": 400,
+    "height": 300,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "panel",
+        "x": 200,
+        "y": 150,
+        "width": 160,
+        "height": 200,
+        "corner_radius": 16,
+        "fill": "#1A1A2E"
+      },
+      {
+        "type": "ellipse",
+        "name": "ball",
+        "x": 60,
+        "y": 150,
+        "width": 70,
+        "height": 70,
+        "fill": "#FF6B6B"
+      }
+    ],
+    "animations": [
+      {
+        "name": "pass",
+        "duration": 3.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "ball.x",
+            "keyframes": [
+              { "time": 0.0,  "value": 60,  "easing": "linear" },
+              { "time": 3.0,  "value": 340, "easing": "linear" }
+            ]
+          }
+        ],
+        "draw_order_tracks": [
+          {
+            "shape": "ball",
+            "keyframes": [
+              { "time": 0.0,  "target": "",      "placement": "above" },
+              { "time": 1.2,  "target": "panel", "placement": "below" },
+              { "time": 1.8,  "target": "",      "placement": "above" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

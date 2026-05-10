@@ -80,15 +80,26 @@ type animKF struct {
 	interp  Interpolation
 }
 
+// drawOrderKF is one animated draw-order keyframe.
+// It switches DrawRules.DrawTargetId at a given frame (always hold).
+// target=nil means "reset to default order" (DrawTargetId = sentinel).
+type drawOrderKF struct {
+	source    *ShapeRef
+	frame     uint64
+	target    *ShapeRef // nil = no active rule
+	placement uint64
+}
+
 // AnimationBuilder constructs a LinearAnimation with its keyed targets.
 type AnimationBuilder struct {
-	name     string
-	fps      uint64
-	duration uint64
-	speed    float64
-	loop     LoopType
-	kfs      []animKF
-	idx      uint64 // global emission index, set during emit()
+	name         string
+	fps          uint64
+	duration     uint64
+	speed        float64
+	loop         LoopType
+	kfs          []animKF
+	drawOrderKFs []drawOrderKF
+	idx          uint64 // global emission index, set during emit()
 }
 
 func newAnimationBuilder(name string, opts ...AnimationOption) *AnimationBuilder {
@@ -130,8 +141,34 @@ func (a *AnimationBuilder) KeyframeColor(target *ShapeRef, propKey uint32, frame
 	return a
 }
 
+// KeyframeDrawOrder adds a hold keyframe that switches a shape's draw order at a
+// specific frame. source is the shape whose DrawRules will be keyed; target is
+// the reference shape (nil resets to default hierarchy order); placement is
+// PlacementAbove or PlacementBelow.
+//
+// All draw-order keyframes are implicitly hold (no interpolation).
+func (a *AnimationBuilder) KeyframeDrawOrder(source *ShapeRef, frame uint64, target *ShapeRef, placement uint64) *AnimationBuilder {
+	a.drawOrderKFs = append(a.drawOrderKFs, drawOrderKF{
+		source:    source,
+		frame:     frame,
+		target:    target,
+		placement: placement,
+	})
+	return a
+}
+
 // cubicKey is used to deduplicate CubicEaseInterpolator objects.
 type cubicKey struct{ x1, y1, x2, y2 float64 }
+
+// doTargetKey uniquely identifies a (target shape, placement) pair.
+type doTargetKey struct{ shapeIdx, placement uint64 }
+
+// doSlot tracks the DrawRules object and its associated DrawTarget objects
+// emitted for one source shape's animated draw order.
+type doSlot struct {
+	rulesIdx uint64              // artboard-relative index of the DrawRules object
+	dtMap    map[doTargetKey]uint64 // (targetShapeIdx, placement) → DrawTarget artboard-relative index
+}
 
 // emit writes the LinearAnimation object graph into the slice.
 // Must be called after all ShapeRef.emitObjects() so that ShapeRef indices are set.
@@ -160,6 +197,47 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 				*objects = append(*objects, ce)
 			}
 		}
+	}
+
+	// ── Animated draw order pre-pass ─────────────────────────────────────────
+	// Emit DrawTarget + DrawRules objects for animated draw order keyframes
+	// BEFORE the LinearAnimation so their artboard-relative indices are known
+	// when emitting the animation's KeyFrameId objects.
+	slotMap := map[*ShapeRef]*doSlot{}
+	var slotOrder []*ShapeRef
+
+	for _, kf := range a.drawOrderKFs {
+		if _, ok := slotMap[kf.source]; !ok {
+			slotMap[kf.source] = &doSlot{dtMap: map[doTargetKey]uint64{}}
+			slotOrder = append(slotOrder, kf.source)
+		}
+	}
+
+	for _, src := range slotOrder {
+		slot := slotMap[src]
+
+		// Emit one DrawTarget per unique (target shape, placement) pair.
+		for _, kf := range a.drawOrderKFs {
+			if kf.source != src || kf.target == nil {
+				continue
+			}
+			k := doTargetKey{kf.target.shapeIdx, kf.placement}
+			if _, exists := slot.dtMap[k]; !exists {
+				dtIdx := uint64(len(*objects)) - artboardOffset
+				dt := &rive.DrawTarget{}
+				dt.DrawableId = kf.target.shapeIdx
+				dt.PlacementValue = kf.placement
+				*objects = append(*objects, dt)
+				slot.dtMap[k] = dtIdx
+			}
+		}
+
+		// Emit DrawRules for this source shape (animated; starts with no active target).
+		slot.rulesIdx = uint64(len(*objects)) - artboardOffset
+		dr := &rive.DrawRules{}
+		dr.ParentId = src.shapeIdx
+		dr.DrawTargetId = ^uint64(0) // sentinel = no active target; animation drives this
+		*objects = append(*objects, dr)
 	}
 
 	// LinearAnimation follows the interpolator objects.
@@ -259,6 +337,48 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 					*objects = append(*objects, f)
 				}
 			}
+		}
+	}
+
+	// ── Animated draw order keyframes ────────────────────────────────────────
+	// Emit KeyedObject → KeyedProperty(121) → KeyFrameId (hold) sequences.
+	for _, src := range slotOrder {
+		slot := slotMap[src]
+
+		kobj := &rive.KeyedObject{}
+		kobj.ObjectId = slot.rulesIdx
+		*objects = append(*objects, kobj)
+
+		kprop := &rive.KeyedProperty{}
+		kprop.PropertyKey = uint64(PropDrawTargetId) // 121
+		*objects = append(*objects, kprop)
+
+		// Collect and sort keyframes for this source shape.
+		type doKFEntry struct {
+			frame uint64
+			value uint64
+		}
+		var sorted []doKFEntry
+		for _, kf := range a.drawOrderKFs {
+			if kf.source != src {
+				continue
+			}
+			v := ^uint64(0) // nil target → sentinel (no active rule)
+			if kf.target != nil {
+				k := doTargetKey{kf.target.shapeIdx, kf.placement}
+				v = slot.dtMap[k]
+			}
+			sorted = append(sorted, doKFEntry{kf.frame, v})
+		}
+		sort.Slice(sorted, func(i, j int) bool { return sorted[i].frame < sorted[j].frame })
+
+		for _, kf := range sorted {
+			f := &rive.KeyFrameId{}
+			f.Frame = kf.frame
+			f.Value = kf.value
+			// InterpolationType=0 (hold) is the default and suppressed; InterpolatorId=^uint64(0) suppressed
+			f.InterpolatorId = ^uint64(0)
+			*objects = append(*objects, f)
 		}
 	}
 

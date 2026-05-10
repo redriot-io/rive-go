@@ -158,3 +158,35 @@ of their declaration order in the children list.
 - fromjson: draw_rules array on child, applied after nameMap is fully populated
 
 ### All tests pass
+
+---
+## T-407 — PROJ_RIVE-GO_CODE_V2_COMPLETE
+Date: 2026-05-10
+
+### Animated Draw Order (Hold Keyframes on DrawRules)
+
+Implemented animated draw order: hold keyframes that switch DrawRules.drawTargetId
+(key=121) at specific animation frames, using KeyFrameId (typeKey=50).
+
+### Files changed
+- `rive/builder/anim.go` — drawOrderKF struct, drawOrderKFs field on AnimationBuilder,
+  KeyframeDrawOrder() method, animated draw order pre-pass in emit() (DrawTarget+DrawRules
+  objects emitted before LinearAnimation so indices are known), draw order keyframe
+  emission section at end of emit()
+- `rive/builder/draworder_anim_test.go` — 5 new tests
+- `rive/fromjson/fromjson.go` — DrawOrderTrackDef + DrawOrderKFDef types added to
+  AnimationDef; parse and apply in buildScene after regular tracks
+- `docs/preview/fromjson/draw_order_anim_demo.json` — ball passes through panel
+- `docs/preview/fromjson_draw_order_anim.riv` — compiled (254 bytes)
+- `docs/preview/index.html` — preview card added, count updated to eight
+- `cmd/rivtool/main.go` — KeyFrameId (typeKey=50) named in inspector
+
+### Design notes
+- DrawTarget+DrawRules for animated rules emitted BEFORE LinearAnimation in emit()
+  so artboard-relative indices are stable when emitting KeyFrameId values
+- KeyFrameId.Value = DrawTarget artboard-relative index, or ^uint64(0) for "no rule"
+- InterpolationType=0 (hold) is the implicit default (suppressed from binary)
+- Multiple (target, placement) pairs per source shape each get their own DrawTarget
+- Static draw rules (from T-406) and animated draw rules coexist on the same shape
+
+### All tests pass (10 packages)

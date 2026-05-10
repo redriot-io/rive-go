@@ -85,12 +85,27 @@ type gradientStop struct {
 
 // AnimationDef describes a linear animation.
 type AnimationDef struct {
-	Name     string     `json:"name"`
-	Duration float64    `json:"duration"` // seconds
-	FPS      float64    `json:"fps,omitempty"`
-	Loop     string     `json:"loop,omitempty"` // "oneshot"|"loop"|"pingpong"
-	Speed    float64    `json:"speed,omitempty"`
-	Tracks   []TrackDef `json:"tracks"`
+	Name            string            `json:"name"`
+	Duration        float64           `json:"duration"` // seconds
+	FPS             float64           `json:"fps,omitempty"`
+	Loop            string            `json:"loop,omitempty"` // "oneshot"|"loop"|"pingpong"
+	Speed           float64           `json:"speed,omitempty"`
+	Tracks          []TrackDef        `json:"tracks"`
+	DrawOrderTracks []DrawOrderTrackDef `json:"draw_order_tracks,omitempty"`
+}
+
+// DrawOrderTrackDef keys a shape's draw order across the animation timeline.
+// Each keyframe switches which shape the source draws above or below (hold semantics).
+type DrawOrderTrackDef struct {
+	Shape     string            `json:"shape"`     // name of the source shape
+	Keyframes []DrawOrderKFDef  `json:"keyframes"`
+}
+
+// DrawOrderKFDef is one draw-order keyframe.
+type DrawOrderKFDef struct {
+	Time      float64 `json:"time"`                // seconds
+	Target    string  `json:"target,omitempty"`    // target shape name; omit/empty = reset to default
+	Placement string  `json:"placement,omitempty"` // "above" (default) | "below"
 }
 
 // TrackDef animates one property of one shape.
@@ -366,6 +381,46 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 					}
 					ab2.KeyframeFloat(ref, propKey, frame, val, interp)
 				}
+			}
+		}
+	}
+	// Process draw_order_tracks for each animation.
+	for ai, anim := range ab.Animations {
+		ab2 := animBuilders[ai]
+		for ti, dot := range anim.DrawOrderTracks {
+			dof := fmt.Sprintf("animations[%q].draw_order_tracks[%d]", anim.Name, ti)
+			src, ok := nameMap[dot.Shape]
+			if !ok {
+				return nil, &ParseError{
+					Field:   dof + ".shape",
+					Message: fmt.Sprintf("no shape named %q", dot.Shape),
+				}
+			}
+			fps := anim.FPS
+			if fps <= 0 {
+				fps = 60
+			}
+			for ki, kf := range dot.Keyframes {
+				frame := uint64(math.Round(kf.Time * fps))
+				var targetRef *builder.ShapeRef
+				var placement uint64
+				if kf.Target != "" {
+					t, ok2 := nameMap[kf.Target]
+					if !ok2 {
+						return nil, &ParseError{
+							Field:   fmt.Sprintf("%s.keyframes[%d].target", dof, ki),
+							Message: fmt.Sprintf("no shape named %q", kf.Target),
+						}
+					}
+					targetRef = t
+					switch strings.ToLower(kf.Placement) {
+					case "below":
+						placement = builder.PlacementBelow
+					default: // "above" or ""
+						placement = builder.PlacementAbove
+					}
+				}
+				ab2.KeyframeDrawOrder(src, frame, targetRef, placement)
 			}
 		}
 	}
