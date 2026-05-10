@@ -157,16 +157,30 @@ type SMLayer struct {
 	Transitions []SMTransition `json:"transitions,omitempty"`
 }
 
+// SMBlendEntry is one animation threshold in a BlendState1D state.
+type SMBlendEntry struct {
+	Animation string  `json:"animation"`
+	Threshold float64 `json:"threshold"`
+}
+
 // SMState is one state in a layer.
+// Type: "animation" (default) uses the animation field.
+// Type: "blend_1d" uses input + blends for BlendState1DInput.
 type SMState struct {
-	Name      string `json:"name"`
-	Animation string `json:"animation,omitempty"`
+	Name      string         `json:"name"`
+	Type      string         `json:"type,omitempty"`       // "animation" | "blend_1d"
+	Animation string         `json:"animation,omitempty"`  // for "animation" type
+	Input     string         `json:"input,omitempty"`      // for "blend_1d" type
+	Blends    []SMBlendEntry `json:"blends,omitempty"`     // for "blend_1d" type
 }
 
 // SMTransition is one transition between states.
+// Use "ExitState" as From or To to target the layer sentinel.
 type SMTransition struct {
 	From       string        `json:"from"`
 	To         string        `json:"to"`
+	DurationMs int           `json:"duration_ms,omitempty"` // blend duration in milliseconds
+	ExitTime   int           `json:"exit_time,omitempty"`   // frames before transition fires
 	Conditions []SMCondition `json:"conditions,omitempty"`
 }
 
@@ -481,7 +495,18 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 			case "bool":
 				inputMap[inp.Name] = smb.BoolInput(inp.Name)
 			case "number":
-				inputMap[inp.Name] = smb.NumberInput(inp.Name)
+				ref := smb.NumberInput(inp.Name)
+				if inp.Default != nil {
+					var v float64
+					if err := json.Unmarshal(inp.Default, &v); err != nil {
+						return nil, &ParseError{
+							Field:   fmt.Sprintf("state_machines[%q].inputs[%q].default", sm.Name, inp.Name),
+							Message: "number input default must be a numeric value",
+						}
+					}
+					ref.WithValue(v)
+				}
+				inputMap[inp.Name] = ref
 			case "trigger":
 				inputMap[inp.Name] = smb.TriggerInput(inp.Name)
 			default:
@@ -497,26 +522,57 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 
 			stateMap := map[string]*builder.StateRef{}
 			for _, state := range layer.States {
-				var opts []builder.StateOption
-				if state.Animation != "" {
-					opts = append(opts, builder.WithAnimation(state.Animation))
+				switch strings.ToLower(state.Type) {
+				case "blend_1d":
+					inp, ok := inputMap[state.Input]
+					if !ok {
+						return nil, &ParseError{
+							Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].input", sm.Name, layer.Name, state.Name),
+							Message: fmt.Sprintf("unknown input %q", state.Input),
+						}
+					}
+					br := lb.BlendState1D(state.Name, inp)
+					for bi, ba := range state.Blends {
+						if ba.Animation == "" {
+							return nil, &ParseError{
+								Field:   fmt.Sprintf("state_machines[%q].layers[%q].states[%q].blends[%d].animation", sm.Name, layer.Name, state.Name, bi),
+								Message: "animation name required",
+							}
+						}
+						br.AddAnimation(ba.Animation, ba.Threshold)
+					}
+					stateMap[state.Name] = br.StateHandle()
+				default: // "animation" or ""
+					var opts []builder.StateOption
+					if state.Animation != "" {
+						opts = append(opts, builder.WithAnimation(state.Animation))
+					}
+					stateMap[state.Name] = lb.State(state.Name, opts...)
 				}
-				stateMap[state.Name] = lb.State(state.Name, opts...)
 			}
 
 			for _, trans := range layer.Transitions {
-				from, ok := stateMap[trans.From]
-				if !ok {
-					return nil, &ParseError{
-						Field:   fmt.Sprintf("state_machines[%q].layers[%q].transitions", sm.Name, layer.Name),
-						Message: fmt.Sprintf("unknown from state %q", trans.From),
+				lf := fmt.Sprintf("state_machines[%q].layers[%q].transitions", sm.Name, layer.Name)
+
+				var from *builder.StateRef
+				if strings.EqualFold(trans.From, "ExitState") {
+					from = lb.ExitState()
+				} else {
+					var ok bool
+					from, ok = stateMap[trans.From]
+					if !ok {
+						return nil, &ParseError{Field: lf, Message: fmt.Sprintf("unknown from state %q", trans.From)}
 					}
 				}
-				to, ok := stateMap[trans.To]
-				if !ok {
-					return nil, &ParseError{
-						Field:   fmt.Sprintf("state_machines[%q].layers[%q].transitions", sm.Name, layer.Name),
-						Message: fmt.Sprintf("unknown to state %q", trans.To),
+
+				var to *builder.StateRef
+				if strings.EqualFold(trans.To, "ExitState") {
+					to = lb.ExitState()
+				} else {
+					var ok bool
+					to, ok = stateMap[trans.To]
+					if !ok {
+						return nil, &ParseError{Field: lf, Message: fmt.Sprintf("unknown to state %q", trans.To)}
 					}
 				}
 
@@ -535,7 +591,13 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 					}
 					conditions = append(conditions, c)
 				}
-				lb.Transition(from, to, conditions...)
+				tr := lb.Transition(from, to, conditions...)
+				if trans.DurationMs > 0 {
+					tr.Duration(trans.DurationMs)
+				}
+				if trans.ExitTime > 0 {
+					tr.ExitTime(trans.ExitTime)
+				}
 			}
 		}
 
@@ -572,10 +634,16 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 					lr.SetBool(inp, val)
 				case "set_trigger":
 					lr.SetTrigger(inp)
+				case "set_number":
+					var val float64
+					if err := json.Unmarshal(act.Value, &val); err != nil {
+						return nil, &ParseError{Field: af + ".value", Message: "must be a number"}
+					}
+					lr.SetNumber(inp, val)
 				default:
 					return nil, &ParseError{
 						Field:   af + ".type",
-						Message: fmt.Sprintf("unknown action type %q (set_bool|set_trigger)", act.Type),
+						Message: fmt.Sprintf("unknown action type %q (set_bool|set_trigger|set_number)", act.Type),
 					}
 				}
 			}

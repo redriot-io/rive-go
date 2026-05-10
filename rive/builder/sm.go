@@ -509,6 +509,12 @@ func (sm *StateMachineBuilder) emit(objects *[]rive.Object, anims []*AnimationBu
 					a.Value = 1
 				}
 				*objects = append(*objects, a)
+			case actionSetNumber:
+				a := &rive.ListenerNumberChange{}
+				a.InputId = ac.input.idx
+				a.NestedInputId = ^uint64(0)
+				a.Value = ac.numberValue
+				*objects = append(*objects, a)
 			}
 		}
 	}

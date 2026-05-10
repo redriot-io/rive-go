@@ -17,12 +17,14 @@ type actionKind uint8
 const (
 	actionTrigger actionKind = iota
 	actionSetBool
+	actionSetNumber
 )
 
 type actionConfig struct {
-	kind      actionKind
-	input     *InputRef
-	boolValue bool
+	kind        actionKind
+	input       *InputRef
+	boolValue   bool
+	numberValue float64
 }
 
 // listenerConfig holds the data for a single listener on a state machine.
@@ -47,5 +49,11 @@ func (l *ListenerRef) SetTrigger(input *InputRef) *ListenerRef {
 // SetBool adds an action that sets input to value when this listener's event occurs.
 func (l *ListenerRef) SetBool(input *InputRef, value bool) *ListenerRef {
 	l.cfg.actions = append(l.cfg.actions, actionConfig{kind: actionSetBool, input: input, boolValue: value})
+	return l
+}
+
+// SetNumber adds an action that sets a number input to value when this listener's event occurs.
+func (l *ListenerRef) SetNumber(input *InputRef, value float64) *ListenerRef {
+	l.cfg.actions = append(l.cfg.actions, actionConfig{kind: actionSetNumber, input: input, numberValue: value})
 	return l
 }
