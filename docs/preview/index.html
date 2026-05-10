@@ -202,7 +202,7 @@
 
 <header>
   <h1>rive<span>-go</span> · Live Previews</h1>
-  <p>Eight hand-coded demo scenes + eight generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
+  <p>Eight hand-coded demo scenes + nine generated via the FromJSON pipeline (JSON → <code>rivtool create</code> → .riv).</p>
   <div class="badge-row">
     <a href="https://github.com/redriot-io/rive-go" target="_blank">
       <img src="https://img.shields.io/badge/GitHub-redriot--io%2Frive--go-6c63ff?logo=github&logoColor=white" alt="GitHub" />
@@ -217,7 +217,7 @@
 
 <div style="max-width:1100px;margin:3rem auto 1rem;padding:0 1rem">
   <h2 style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:0.4rem">FromJSON Pipeline <span style="font-size:0.85rem;font-weight:400;color:var(--muted)">(JSON → rivtool create → .riv)</span></h2>
-  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Eight scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Nine scenes defined as JSON, compiled to binary .riv via <code style="background:var(--surface);padding:2px 6px;border-radius:4px">rivtool create</code>. If they render correctly, the full pipeline is validated.</p>
 </div>
 <div class="grid" id="fromjson-grid"></div>
 
@@ -482,6 +482,14 @@ const fromjsonDemos = [
     tags: ["fromjson", "draw-order", "keyframe-id", "loop"],
     tagClass: "ref",
     animations: ["pass"],
+  },
+  {
+    file: "fromjson_moon_orbit.riv",
+    title: "✦ Moon Orbit (FromJSON)",
+    desc: "Moon orbiting Earth with animated draw order — moon passes behind Earth on the far side of the orbit. Radial gradients, cubic easing on x/y, scale depth effect (0.7× at far side), and draw_order_tracks switching placement above↔below at t=1.5s and t=3.5s. LLM-generated JSON.",
+    tags: ["fromjson", "draw-order", "radial-gradient", "cubic", "loop"],
+    tagClass: "ref",
+    animations: ["orbit"],
   },
 ];
 

@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Moon Orbit",
+    "width": 400,
+    "height": 400,
+    "children": [
+      {
+        "type": "ellipse",
+        "name": "orbit_ring",
+        "x": 200, "y": 200,
+        "width": 240, "height": 240,
+        "stroke": { "color": "#33FFFFFF", "width": 1.5 }
+      },
+      {
+        "type": "ellipse",
+        "name": "earth",
+        "x": 200, "y": 200,
+        "width": 60, "height": 60,
+        "fill": {
+          "type": "radial_gradient",
+          "center": [-5, -5],
+          "radius": 38,
+          "stops": [
+            { "position": 0.0, "color": "#FF1565C0" },
+            { "position": 1.0, "color": "#FF0D47A1" }
+          ]
+        }
+      },
+      {
+        "type": "ellipse",
+        "name": "moon",
+        "x": 320, "y": 200,
+        "width": 22, "height": 22,
+        "fill": {
+          "type": "radial_gradient",
+          "center": [-2, -2],
+          "radius": 14,
+          "stops": [
+            { "position": 0.0, "color": "#FFEEEEEE" },
+            { "position": 1.0, "color": "#FF9E9E9E" }
+          ]
+        }
+      }
+    ],
+    "animations": [
+      {
+        "name": "orbit",
+        "duration": 4.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "moon.x",
+            "keyframes": [
+              { "time": 0.0, "value": 320, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 1.0, "value": 200, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 2.0, "value": 80,  "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 3.0, "value": 200, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 4.0, "value": 320, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "moon.y",
+            "keyframes": [
+              { "time": 0.0, "value": 200, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 1.0, "value": 80,  "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 2.0, "value": 200, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 3.0, "value": 320, "easing": { "x1": 0.42, "y1": 0.0, "x2": 0.58, "y2": 1.0 } },
+              { "time": 4.0, "value": 200, "easing": "linear" }
+            ]
+          },
+          {
+            "target": "moon.scaleX",
+            "keyframes": [
+              { "time": 0.0, "value": 1.0,  "easing": "ease-in-out" },
+              { "time": 1.0, "value": 0.85, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 0.7,  "easing": "ease-in-out" },
+              { "time": 3.0, "value": 0.85, "easing": "ease-in-out" },
+              { "time": 4.0, "value": 1.0,  "easing": "linear" }
+            ]
+          },
+          {
+            "target": "moon.scaleY",
+            "keyframes": [
+              { "time": 0.0, "value": 1.0,  "easing": "ease-in-out" },
+              { "time": 1.0, "value": 0.85, "easing": "ease-in-out" },
+              { "time": 2.0, "value": 0.7,  "easing": "ease-in-out" },
+              { "time": 3.0, "value": 0.85, "easing": "ease-in-out" },
+              { "time": 4.0, "value": 1.0,  "easing": "linear" }
+            ]
+          }
+        ],
+        "draw_order_tracks": [
+          {
+            "shape": "moon",
+            "keyframes": [
+              { "time": 0.0, "target": "earth", "placement": "above" },
+              { "time": 1.5, "target": "earth", "placement": "below" },
+              { "time": 3.5, "target": "earth", "placement": "above" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
