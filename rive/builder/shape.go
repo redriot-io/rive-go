@@ -233,22 +233,30 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 
 	// --- Fill paint ---
 	if s.fill != nil {
-		fillRelIdx := uint64(len(*objects)) - artboardOffset
-		fill := &rive.Fill{}
-		fill.ParentId = s.shapeIdx
-		fill.IsVisible = true
-		fill.BlendModeValue = 127
-		*objects = append(*objects, fill)
-
 		if s.fill.gradient != nil {
+			fillRelIdx := uint64(len(*objects)) - artboardOffset
+			fill := &rive.Fill{}
+			fill.ParentId = s.shapeIdx
+			fill.IsVisible = true
+			fill.BlendModeValue = 127
+			*objects = append(*objects, fill)
 			emitGradient(objects, fillRelIdx, artboardOffset, s.fill.gradient)
 		} else {
+			// SolidColor emitted BEFORE Fill (official encoder forward-reference pattern).
+			// SolidColor.parentId points forward to Fill (the very next slot).
 			s.solidColorIdx = uint64(len(*objects)) - artboardOffset
 			s.hasSolidColorIdx = true
+			fillFwdRef := s.solidColorIdx + 1
 			sc := &rive.SolidColor{}
 			sc.ColorValue = s.fill.color
-			sc.ParentId = fillRelIdx
+			sc.ParentId = fillFwdRef
 			*objects = append(*objects, sc)
+
+			fill := &rive.Fill{}
+			fill.ParentId = s.shapeIdx
+			fill.IsVisible = true
+			fill.BlendModeValue = 127
+			*objects = append(*objects, fill)
 		}
 	}
 

@@ -194,19 +194,21 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 
 		// --- Fill paint under TextStyle ---
 		if style.fillColor != nil {
-			fillIdx := uint64(len(*objects)) - artboardOffset
+			// SolidColor emitted BEFORE Fill (official encoder forward-reference pattern).
+			// SolidColor.parentId points forward to Fill (the very next slot).
+			style.solidColorIdx = uint64(len(*objects)) - artboardOffset
+			style.hasSolidColorIdx = true
+			fillFwdRef := style.solidColorIdx + 1
+			sc := &rive.SolidColor{}
+			sc.ColorValue = *style.fillColor
+			sc.ParentId = fillFwdRef
+			*objects = append(*objects, sc)
+
 			fill := &rive.Fill{}
 			fill.ParentId = style.idx
 			fill.IsVisible = true
 			fill.BlendModeValue = 127
 			*objects = append(*objects, fill)
-
-			style.solidColorIdx = uint64(len(*objects)) - artboardOffset
-			style.hasSolidColorIdx = true
-			sc := &rive.SolidColor{}
-			sc.ColorValue = *style.fillColor
-			sc.ParentId = fillIdx
-			*objects = append(*objects, sc)
 		}
 	}
 

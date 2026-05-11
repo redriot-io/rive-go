@@ -41,9 +41,10 @@ func TestDrawAbove_EmitsCorrectObjects(t *testing.T) {
 	if dt.PlacementValue != builder.PlacementAbove {
 		t.Errorf("DrawTarget.PlacementValue = %d, want %d (above)", dt.PlacementValue, builder.PlacementAbove)
 	}
-	// bottom is declared second; in reverse-emit order it's emitted first, so its shapeIdx = 1
-	if dt.DrawableId != 1 {
-		t.Errorf("DrawTarget.DrawableId = %d, want 1 (bottom shapeIdx)", dt.DrawableId)
+	// top is declared first; in forward-emit order it's emitted first, shapeIdx=1.
+	// bottom is declared second, shapeIdx=5 (each rectangle emits 4 objects: Shape + path + SolidColor + Fill).
+	if dt.DrawableId != 5 {
+		t.Errorf("DrawTarget.DrawableId = %d, want 5 (bottom shapeIdx)", dt.DrawableId)
 	}
 
 	// DrawRules.ParentId must equal top.shapeIdx
