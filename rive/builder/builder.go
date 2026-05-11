@@ -100,6 +100,14 @@ func (ab *ArtboardBuilder) Node(name string, x, y float64) *NodeRef {
 	return nr
 }
 
+// Path adds a custom path shape to the artboard. Vertices are added with
+// .LineTo / .CubicTo; call .Close() to close the path before encoding.
+func (ab *ArtboardBuilder) Path(x, y float64) *PathRef {
+	pr := &PathRef{x: x, y: y}
+	ab.children = append(ab.children, pr)
+	return pr
+}
+
 // Animation adds a linear animation to this artboard and returns its builder.
 func (ab *ArtboardBuilder) Animation(name string, opts ...AnimationOption) *AnimationBuilder {
 	a := newAnimationBuilder(name, opts...)
@@ -155,10 +163,20 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 		}
 	}
 
-	// Emit draw rules post-pass: all shapeIdx values are resolved at this point.
+	// Emit draw rules post-pass: all shapeIdx/pathIdx values are resolved at this point.
+	for _, child := range ab.children {
+		switch c := child.(type) {
+		case *ShapeRef:
+			c.emitDrawRules(objects, artboardOffset)
+		case *PathRef:
+			c.emitDrawRules(objects, artboardOffset)
+		}
+	}
+
+	// Emit clipping shapes post-pass: SourceId resolved after all children emitted.
 	for _, child := range ab.children {
 		if sr, ok := child.(*ShapeRef); ok {
-			sr.emitDrawRules(objects, artboardOffset)
+			sr.emitClips(objects, artboardOffset)
 		}
 	}
 

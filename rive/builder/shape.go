@@ -57,6 +57,7 @@ type ShapeRef struct {
 	stroke *strokeConfig
 
 	drawRules []drawRuleConfig
+	clips     []*PathRef
 
 	// Set during emitObjects — used by AnimationBuilder to resolve objectIds.
 	shapeIdx uint64 // Shape object global index
@@ -240,7 +241,7 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 		*objects = append(*objects, fill)
 
 		if s.fill.gradient != nil {
-			s.emitGradient(objects, fillRelIdx, artboardOffset, s.fill.gradient)
+			emitGradient(objects, fillRelIdx, artboardOffset, s.fill.gradient)
 		} else {
 			s.solidColorIdx = uint64(len(*objects)) - artboardOffset
 			s.hasSolidColorIdx = true
@@ -268,36 +269,28 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 	}
 }
 
-func (s *ShapeRef) emitGradient(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64, g *gradientConfig) {
-	gradRelIdx := uint64(len(*objects)) - artboardOffset
-	var grad rive.Object
-	if g.radial {
-		rg := &rive.RadialGradient{}
-		rg.StartX = g.x1
-		rg.StartY = g.y1
-		rg.EndX = g.x2
-		rg.EndY = g.y2
-		rg.ParentId = parentIdx
-		rg.Opacity = 1.0
-		grad = rg
-	} else {
-		lg := &rive.LinearGradient{}
-		lg.StartX = g.x1
-		lg.StartY = g.y1
-		lg.EndX = g.x2
-		lg.EndY = g.y2
-		lg.ParentId = parentIdx
-		lg.Opacity = 1.0 // runtime default; zero value would emit key#46=0 → invisible gradient
-		grad = lg
-	}
-	*objects = append(*objects, grad)
+// animIdx returns the artboard-relative index of this shape's Shape object.
+func (s *ShapeRef) animIdx() uint64 { return s.shapeIdx }
 
-	for _, stop := range g.stops {
-		gs := &rive.GradientStop{}
-		gs.ColorValue = stop.Color
-		gs.Position = stop.Position
-		gs.ParentId = gradRelIdx
-		*objects = append(*objects, gs)
+// animColorIdx returns the artboard-relative index of this shape's SolidColor object.
+func (s *ShapeRef) animColorIdx() (uint64, bool) { return s.solidColorIdx, s.hasSolidColorIdx }
+
+// ClipWith adds a clipping mask to this shape using the geometry of p.
+// The clip is applied after all shapes are emitted (post-pass).
+func (s *ShapeRef) ClipWith(p *PathRef) *ShapeRef {
+	s.clips = append(s.clips, p)
+	return s
+}
+
+// emitClips emits a ClippingShape child for each clip source added via ClipWith.
+// Must be called after emitObjects so that shapeIdx and pathIdx are resolved.
+func (s *ShapeRef) emitClips(objects *[]rive.Object, artboardOffset uint64) {
+	for _, p := range s.clips {
+		cs := &rive.ClippingShape{}
+		cs.ParentId = s.shapeIdx
+		cs.SourceId = p.pathIdx
+		cs.IsVisible = true
+		*objects = append(*objects, cs)
 	}
 }
 

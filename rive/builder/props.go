@@ -20,6 +20,10 @@ const (
 	// SolidColor property (animate the SolidColor child of a Fill)
 	PropColorValue uint32 = 37 // SolidColor.colorValue (color)
 
+	// Vertex properties (animate StraightVertex / CubicDetachedVertex children of a PointsPath)
+	PropVertexX uint32 = 24 // Vertex.x (double, same key as ParametricPath.width — context differs by target object)
+	PropVertexY uint32 = 25 // Vertex.y (double)
+
 	// DrawTarget / DrawRules properties (draw order control)
 	PropDrawableId    uint32 = 119 // DrawTarget.drawableId — artboard-relative index of target shape
 	PropPlacementValue uint32 = 120 // DrawTarget.placementValue — 0=above, 1=below

@@ -69,9 +69,17 @@ func WithLoop(l LoopType) AnimationOption { return func(c *animConfig) { c.loop 
 // WithSpeed sets playback speed multiplier (default 1.0).
 func WithSpeed(s float64) AnimationOption { return func(c *animConfig) { c.speed = s } }
 
+// AnimTarget is implemented by any animation target that exposes its artboard-relative
+// object index. *ShapeRef, *PathRef, and *PathVertexRef all implement this interface,
+// so they can all be passed to KeyframeFloat / KeyframeColor.
+type AnimTarget interface {
+	animIdx() uint64
+	animColorIdx() (uint64, bool)
+}
+
 // animKF is one keyframe entry stored by AnimationBuilder.
 type animKF struct {
-	target  *ShapeRef
+	target  AnimTarget
 	propKey uint32
 	frame   uint64
 	value   float64 // float keyframe value
@@ -117,7 +125,7 @@ func newAnimationBuilder(name string, opts ...AnimationOption) *AnimationBuilder
 }
 
 // KeyframeFloat adds a float keyframe for x, y, opacity, rotation, scale, etc.
-func (a *AnimationBuilder) KeyframeFloat(target *ShapeRef, propKey uint32, frame uint64, value float64, interp ...Interpolation) *AnimationBuilder {
+func (a *AnimationBuilder) KeyframeFloat(target AnimTarget, propKey uint32, frame uint64, value float64, interp ...Interpolation) *AnimationBuilder {
 	i := Interpolation(LinearInterp{})
 	if len(interp) > 0 {
 		i = interp[0]
@@ -127,12 +135,12 @@ func (a *AnimationBuilder) KeyframeFloat(target *ShapeRef, propKey uint32, frame
 }
 
 // KeyframeRotation adds a rotation keyframe, accepting degrees (converted to radians internally).
-func (a *AnimationBuilder) KeyframeRotation(target *ShapeRef, frame uint64, degrees float64, interp ...Interpolation) *AnimationBuilder {
+func (a *AnimationBuilder) KeyframeRotation(target AnimTarget, frame uint64, degrees float64, interp ...Interpolation) *AnimationBuilder {
 	return a.KeyframeFloat(target, PropRotation, frame, degrees*math.Pi/180.0, interp...)
 }
 
 // KeyframeColor adds a color keyframe.
-func (a *AnimationBuilder) KeyframeColor(target *ShapeRef, propKey uint32, frame uint64, color uint32, interp ...Interpolation) *AnimationBuilder {
+func (a *AnimationBuilder) KeyframeColor(target AnimTarget, propKey uint32, frame uint64, color uint32, interp ...Interpolation) *AnimationBuilder {
 	i := Interpolation(LinearInterp{})
 	if len(interp) > 0 {
 		i = interp[0]
@@ -276,10 +284,14 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 
 	for _, kf := range a.kfs {
 		var objIdx uint64
-		if kf.isColor && kf.target.hasSolidColorIdx {
-			objIdx = kf.target.solidColorIdx
+		if kf.isColor {
+			if colorIdx, ok := kf.target.animColorIdx(); ok {
+				objIdx = colorIdx
+			} else {
+				objIdx = kf.target.animIdx()
+			}
 		} else {
-			objIdx = kf.target.shapeIdx
+			objIdx = kf.target.animIdx()
 		}
 		k := tpKey{objIdx, kf.propKey}
 		if _, ok := groupMap[k]; !ok {
