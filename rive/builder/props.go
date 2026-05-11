@@ -25,7 +25,14 @@ const (
 	PropVertexY uint32 = 25 // Vertex.y (double)
 
 	// DrawTarget / DrawRules properties (draw order control)
-	PropDrawableId    uint32 = 119 // DrawTarget.drawableId — artboard-relative index of target shape
+	PropDrawableId     uint32 = 119 // DrawTarget.drawableId — artboard-relative index of target shape
 	PropPlacementValue uint32 = 120 // DrawTarget.placementValue — 0=above, 1=below
-	PropDrawTargetId  uint32 = 121 // DrawRules.drawTargetId — artboard-relative index of DrawTarget
+	PropDrawTargetId   uint32 = 121 // DrawRules.drawTargetId — artboard-relative index of DrawTarget
+
+	// Text properties
+	PropTextAlign     uint32 = 281 // Text.alignValue (uint): 0=left, 1=right, 2=center
+	PropFontSize      uint32 = 274 // TextStyle.fontSize (double)
+	PropLetterSpacing uint32 = 390 // TextStyle.letterSpacing (double)
+	PropLineHeight    uint32 = 370 // TextStyle.lineHeight (double, -1=auto)
+	PropTextContent   uint32 = 268 // TextValueRun.text (string)
 )

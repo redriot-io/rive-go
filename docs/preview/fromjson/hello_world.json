@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "HelloWorld",
+    "width": 400,
+    "height": 200,
+    "fonts": [
+      { "name": "Inter", "file": "test.ttf" }
+    ],
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "bg",
+        "x": 200,
+        "y": 100,
+        "width": 400,
+        "height": 200,
+        "fill": "#F5F5F5"
+      },
+      {
+        "type": "text",
+        "name": "greeting",
+        "x": 200,
+        "y": 90,
+        "align": "center",
+        "style": {
+          "font": "Inter",
+          "fontSize": 36,
+          "fill": "#111111"
+        },
+        "text": "Hello World"
+      },
+      {
+        "type": "text",
+        "name": "subtitle",
+        "x": 200,
+        "y": 140,
+        "align": "center",
+        "style": {
+          "font": "Inter",
+          "fontSize": 16,
+          "fill": "#666666",
+          "letterSpacing": 1.5
+        },
+        "text": "Rive text support — Tier 3 Phase 2A"
+      }
+    ]
+  }
+}

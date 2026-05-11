@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -24,11 +25,27 @@ type Scene struct {
 	Artboard Artboard `json:"artboard"`
 }
 
+// FontDef describes a font to embed in the scene.
+type FontDef struct {
+	Name string `json:"name"` // logical name used in style references
+	File string `json:"file"` // TTF/OTF path relative to the JSON file (FromJSONFile only)
+}
+
+// TextStyleDef describes the style properties of a text child.
+type TextStyleDef struct {
+	Font          string  `json:"font"`                    // matches a FontDef.Name
+	FontSize      float64 `json:"fontSize"`
+	Fill          string  `json:"fill,omitempty"`          // hex color e.g. "#FF0000"
+	LineHeight    float64 `json:"lineHeight,omitempty"`    // 0 = auto
+	LetterSpacing float64 `json:"letterSpacing,omitempty"`
+}
+
 // Artboard describes the canvas and its children.
 type Artboard struct {
 	Name          string         `json:"name"`
 	Width         float64        `json:"width"`
 	Height        float64        `json:"height"`
+	Fonts         []FontDef      `json:"fonts,omitempty"`
 	Children      []Child        `json:"children,omitempty"`
 	Animations    []AnimationDef `json:"animations,omitempty"`
 	StateMachines []SMDef        `json:"state_machines,omitempty"`
@@ -54,6 +71,10 @@ type Child struct {
 	Vertices []VertexDef    `json:"vertices,omitempty"`
 	Closed   bool           `json:"closed,omitempty"`
 	Clip     string         `json:"clip,omitempty"` // name of a path child to use as clip source
+	// text-specific fields
+	Text  string        `json:"text,omitempty"`  // for type="text"
+	Style *TextStyleDef `json:"style,omitempty"` // for type="text"
+	Align string        `json:"align,omitempty"` // "left"|"center"|"right" for type="text"
 }
 
 // DrawRuleDef describes one draw-order constraint on a shape.
@@ -250,16 +271,23 @@ func FromJSON(data []byte) (*builder.Builder, error) {
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene)
+	return buildScene(&scene, "")
 }
 
-// FromJSONFile reads path and calls FromJSON.
+// FromJSONFile reads path and builds a scene with font files resolved relative to path's directory.
 func FromJSONFile(path string) (*builder.Builder, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", path, err)
 	}
-	return FromJSON(data)
+	var scene Scene
+	if err := json.Unmarshal(data, &scene); err != nil {
+		return nil, &ParseError{Message: fmt.Sprintf("invalid JSON: %v", err)}
+	}
+	if scene.Version != 1 {
+		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
+	}
+	return buildScene(&scene, filepath.Dir(path))
 }
 
 // ValidateJSON checks JSON structure without building the .riv.
@@ -300,6 +328,8 @@ func ValidateJSON(data []byte) []error {
 		switch strings.ToLower(child.Type) {
 		case "rectangle", "ellipse":
 			// no extra validation
+		case "text":
+			// text validation handled in buildScene
 		case "path":
 			if child.Closed && len(child.Vertices) < 3 {
 				errs = append(errs, &ParseError{Field: field + ".vertices", Message: fmt.Sprintf("closed path requires at least 3 vertices, got %d", len(child.Vertices))})
@@ -319,7 +349,7 @@ func ValidateJSON(data []byte) []error {
 		case "":
 			errs = append(errs, &ParseError{Field: field + ".type", Message: "required"})
 		default:
-			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse|path)", child.Type)})
+			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse|path|text)", child.Type)})
 		}
 	}
 
@@ -465,7 +495,7 @@ func ValidateJSON(data []byte) []error {
 
 // ── Internal scene builder ────────────────────────────────────────────────────
 
-func buildScene(scene *Scene) (*builder.Builder, error) {
+func buildScene(scene *Scene, baseDir string) (*builder.Builder, error) {
 	ab := &scene.Artboard
 
 	if ab.Name == "" {
@@ -484,6 +514,26 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 	shapeMap := map[string]*builder.ShapeRef{}
 	pathMap  := map[string]*builder.PathRef{}
 	animMap  := map[string]builder.AnimTarget{}
+
+	// Load fonts and embed them in the artboard.
+	fontMap := map[string]*builder.FontRef{}
+	for i, fd := range ab.Fonts {
+		ff := fmt.Sprintf("artboard.fonts[%d]", i)
+		if fd.Name == "" {
+			return nil, &ParseError{Field: ff + ".name", Message: "required"}
+		}
+		if fd.File == "" {
+			return nil, &ParseError{Field: ff + ".file", Message: "required"}
+		}
+		if baseDir == "" {
+			return nil, &ParseError{Field: ff + ".file", Message: "font file references require FromJSONFile (base directory unknown)"}
+		}
+		ttfBytes, err := os.ReadFile(filepath.Join(baseDir, fd.File))
+		if err != nil {
+			return nil, &ParseError{Field: ff + ".file", Message: fmt.Sprintf("cannot read %q: %v", fd.File, err)}
+		}
+		fontMap[fd.Name] = artboard.EmbedFont(fd.Name, ttfBytes)
+	}
 
 	for i, child := range ab.Children {
 		cf := fmt.Sprintf("artboard.children[%d]", i)
@@ -508,8 +558,14 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 			}
 			pathMap[child.Name] = ref
 			animMap[child.Name] = ref
+		case "text":
+			ref, err := addText(artboard, &child, fontMap)
+			if err != nil {
+				return nil, err
+			}
+			animMap[child.Name] = ref
 		default:
-			return nil, &ParseError{Field: cf + ".type", Message: fmt.Sprintf("unknown shape type %q (rectangle|ellipse|path)", child.Type)}
+			return nil, &ParseError{Field: cf + ".type", Message: fmt.Sprintf("unknown shape type %q (rectangle|ellipse|path|text)", child.Type)}
 		}
 	}
 
@@ -1366,5 +1422,63 @@ func parseCompareOp(op string) builder.CompareOp {
 		return builder.GreaterThanOrEqual
 	default: // "==" or ""
 		return builder.Equal
+	}
+}
+
+// ── Text support ──────────────────────────────────────────────────────────────
+
+// addText adds a text child to artboard using fontMap to resolve font references.
+func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string]*builder.FontRef) (*builder.TextRef, error) {
+	cf := fmt.Sprintf("child %q", child.Name)
+	if child.Text == "" {
+		return nil, &ParseError{Field: cf + ".text", Message: "text content required for type=text"}
+	}
+	if child.Style == nil {
+		return nil, &ParseError{Field: cf + ".style", Message: "style required for type=text"}
+	}
+	if child.Style.Font == "" {
+		return nil, &ParseError{Field: cf + ".style.font", Message: "font name required"}
+	}
+	if child.Style.FontSize <= 0 {
+		return nil, &ParseError{Field: cf + ".style.fontSize", Message: "fontSize must be > 0"}
+	}
+
+	font, ok := fontMap[child.Style.Font]
+	if !ok {
+		return nil, &ParseError{Field: cf + ".style.font", Message: fmt.Sprintf("font %q not defined in artboard.fonts", child.Style.Font)}
+	}
+
+	ref := artboard.Text(child.Name).
+		Position(child.X, child.Y).
+		Align(parseTextAlign(child.Align))
+
+	style := ref.Style(font, child.Style.FontSize)
+	if child.Style.Fill != "" {
+		color, err := parseColor(child.Style.Fill)
+		if err != nil {
+			return nil, &ParseError{Field: cf + ".style.fill", Message: err.Error()}
+		}
+		style.Fill(color)
+	}
+	if child.Style.LineHeight != 0 {
+		style.LineHeight(child.Style.LineHeight)
+	}
+	if child.Style.LetterSpacing != 0 {
+		style.LetterSpacing(child.Style.LetterSpacing)
+	}
+
+	ref.Run(child.Text, style)
+	return ref, nil
+}
+
+// parseTextAlign maps an align string to builder.TextAlign.
+func parseTextAlign(s string) builder.TextAlign {
+	switch strings.ToLower(s) {
+	case "right":
+		return builder.AlignRight
+	case "center":
+		return builder.AlignCenter
+	default: // "left" or ""
+		return builder.AlignLeft
 	}
 }

@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/redriot-io/rive-go/rive"
+	"github.com/redriot-io/rive-go/rive/builder"
 	"github.com/redriot-io/rive-go/rive/fromjson"
 )
 
@@ -154,8 +155,14 @@ func cmdCreate(args []string) {
 		}
 	}
 
-	// Parse and build
-	b, err := fromjson.FromJSON(data)
+	// Parse and build — use FromJSONFile when reading from a file so font
+	// relative paths are resolved against the JSON file's directory.
+	var b *builder.Builder
+	if fromPath == "-" {
+		b, err = fromjson.FromJSON(data)
+	} else {
+		b, err = fromjson.FromJSONFile(fromPath)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "create: parse error: %v\n", err)
 		os.Exit(1)

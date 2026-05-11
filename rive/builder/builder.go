@@ -67,6 +67,7 @@ type ArtboardBuilder struct {
 	name          string
 	width, height float64
 
+	fonts         []*FontRef
 	children      []childEmitter
 	animations    []*AnimationBuilder
 	stateMachines []*StateMachineBuilder
@@ -98,6 +99,23 @@ func (ab *ArtboardBuilder) Node(name string, x, y float64) *NodeRef {
 	nr := &NodeRef{name: name, x: x, y: y}
 	ab.children = append(ab.children, nr)
 	return nr
+}
+
+// EmbedFont registers a font asset with raw TTF/OTF bytes and returns a FontRef.
+// The FontRef is passed to TextRef.Style to associate a font with a text style.
+// Fonts are emitted before text objects in the artboard's object stream.
+func (ab *ArtboardBuilder) EmbedFont(name string, ttfBytes []byte) *FontRef {
+	f := &FontRef{name: name, ttfBytes: ttfBytes}
+	ab.fonts = append(ab.fonts, f)
+	return f
+}
+
+// Text adds a text object to the artboard and returns its builder.
+// Set position and style with the returned TextRef's fluent methods.
+func (ab *ArtboardBuilder) Text(name string) *TextRef {
+	t := &TextRef{name: name}
+	ab.children = append(ab.children, t)
+	return t
 }
 
 // Path adds a custom path shape to the artboard. Vertices are added with
@@ -141,6 +159,18 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	a.DefaultStateMachineId = ^uint64(0)
 	a.ViewModelId = ^uint64(0)
 	*objects = append(*objects, a)
+
+	// Emit font assets before any children so FontRef.idx is set when TextRef emits.
+	for _, f := range ab.fonts {
+		f.idx = uint64(len(*objects)) - artboardOffset
+		fa := &rive.FontAsset{}
+		fa.Name = f.name
+		*objects = append(*objects, fa)
+
+		fac := &rive.FileAssetContents{}
+		fac.Bytes = f.ttfBytes
+		*objects = append(*objects, fac)
+	}
 
 	// Emit children in REVERSE declaration order: first-declared = last-emitted = back layer.
 	// The Rive runtime renders first-emitted objects in front, so reversing here means

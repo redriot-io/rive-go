@@ -404,3 +404,20 @@ ADDED:
 - TestFromJSON_AutumnLeavesStructure (unit test, validates binary object counts)
 - fromjson/* to integration test (Chromium harness catches blank-canvas regressions)
 - All tests green; pushed aca8de9
+
+---
+## T-454 — Path preview demos + Playwright e2e (2026-05-11)
+**Commit:** 5000069
+
+### Changes
+- `docs/preview/fromjson/star_path.json` — 10-vertex star, linear gradient (gold→orange), 3s spin loop
+- `docs/preview/fromjson/bezier_leaf.json` — 4 CubicVertex leaf + open 2-vertex stem, 2s pingpong (color+scale)
+- `docs/preview/fromjson/path_morph.json` — diamond (radius=8 rounded verts) + inner diamond, 2s loop (4-color cycle + rotation)
+- All 3 compiled via `rivtool create --from`, all pass `rivtool verify` (5 checks each: artboard, 1 anim, parentId refs, KeyedObject refs, no SM)
+- `docs/preview/index.html`: 3 new cards in fromjsonDemos array
+- `tests/e2e/render.spec.ts` + `animation.spec.ts`: 3 new entries each
+
+### Notes
+- `go test ./...` all green (GOTMPDIR=/app/workspace/tmp workaround for noexec /tmp)
+- Playwright cannot run locally — Alpine musl vs glibc chromium incompatibility; CI (ubuntu-latest) verifies browser tests
+- rivtool_bin was stale before T-455 changes; rebuilt with `go build -o rivtool_bin ./cmd/rivtool/` before compiling JSONs

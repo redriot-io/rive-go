@@ -194,12 +194,14 @@ func readObject(r *encoding.BinaryReader, typeKey uint32, tocTypes map[uint32]Pr
 }
 
 // lookupPropType finds the wire type for a property key.
-// Checks the file's ToC first, then falls back to the global compiled-in table.
+// Prefers the compiled-in globalPropTypes table over the file's ToC because the
+// 2-bit ToC encoding cannot represent PropertyTypeBytes (value 4 truncates to 0).
+// Falls back to the ToC for property keys not in the compiled-in table.
 func lookupPropType(key uint32, tocTypes map[uint32]PropertyType) (PropertyType, bool) {
-	if t, ok := tocTypes[key]; ok {
+	if t, ok := globalPropTypes[key]; ok {
 		return t, true
 	}
-	if t, ok := globalPropTypes[key]; ok {
+	if t, ok := tocTypes[key]; ok {
 		return t, true
 	}
 	return 0, false
