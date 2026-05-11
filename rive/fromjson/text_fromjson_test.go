@@ -120,11 +120,11 @@ func TestFromJSON_Text_FontBytesPresent(t *testing.T) {
 // Test 4: TextStyle fontSize is parsed correctly.
 func TestFromJSON_Text_FontSize(t *testing.T) {
 	path := writeSceneFile(t, helloWorldScene)
-	styles := buildAndFind(t, path, 573)
+	styles := buildAndFind(t, path, 137) // TextStylePaint (official typeKey)
 	if len(styles) != 1 {
-		t.Fatalf("want 1 TextStyle, got %d", len(styles))
+		t.Fatalf("want 1 TextStylePaint (typeKey=137), got %d", len(styles))
 	}
-	ts := styles[0].(*rive.TextStyle)
+	ts := styles[0].(*rive.TextStylePaint)
 	if ts.FontSize != 32 {
 		t.Errorf("FontSize = %g, want 32", ts.FontSize)
 	}

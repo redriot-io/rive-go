@@ -1,0 +1,1330 @@
+=== ball_test.riv ===
+=== HEADER ===
+Fingerprint: RIVE
+Major: 7  Minor: 0  FileID: 16590
+File size: 995 bytes
+
+=== TABLE OF CONTENTS (8 keys) ===
+Key     FieldIdx  WireType
+197     0         uint            artboardId
+198     0         uint            animationId
+224     0         uint            targetId
+225     0         uint            listenerTypeValue
+236     0         uint            defaultStateMachineId
+389     0         uint            k389
+399     0         uint            k399
+494     0         uint            editModeValue
+
+=== OBJECT STREAM (89 objects) ===
+
+[0] Backboard (typeKey=23)
+    (no properties)
+
+[1] Artboard (typeKey=1)
+    name (4) = "Artboard" [string]
+    width (7) = 500 [float]
+    height (8) = 500 [float]
+    editModeValue (494) = 4 [uint]
+    xArtboard (9) = -240 [float]
+    defaultStateMachineId (236) = 0 [uint]
+
+[2] Event (typeKey=128)
+    name (4) = "Event" [string]
+    parentId (5) = 0 → [1] Artboard "Artboard" [uint]
+
+[3] NestedArtboard (typeKey=92)
+    name (4) = "Nested Artboard" [string]
+    parentId (5) = 0 → [1] Artboard "Artboard" [uint]
+    x (13) = 91.00000762939453 [float]
+    y (14) = 100 [float]
+    artboardId (197) = 2 [uint]
+
+[4] NestedLinearAnimation (typeKey=95)
+    parentId (5) = 2 → [3] NestedArtboard "Nested Artboard" [uint]
+    animationId (198) = 0 [uint]
+
+[5] ArtboardComponentList (typeKey=420)
+    parentId (5) = 0 → [1] Artboard "Artboard" [uint]
+
+[6] SolidColor (typeKey=18)
+    parentId (5) = 6 → [7] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[7] Fill (typeKey=20)
+    parentId (5) = 0 → [1] Artboard "Artboard" [uint]
+
+[8] LinearAnimation (typeKey=31)
+    name (55) = "Timeline 1" [string]
+
+[9] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[10] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[11] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[12] AnyState (typeKey=62)
+    (no properties)
+
+[13] ExitState (typeKey=64)
+    (no properties)
+
+[14] EntryState (typeKey=63)
+    (no properties)
+
+[15] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+[16] NestedStateMachine (typeKey=114)
+    name (138) = "Nested Artboard" [string]
+    targetId (224) = 2 [uint]
+    listenerTypeValue (225) = 5 [uint]
+    k399 (399) = 1 [uint]
+
+[17] NestedTrigger (typeKey=168)
+    k389 (389) = 1 [uint]
+
+[18] Artboard (typeKey=1)
+    name (4) = "Nested Artboard 2" [string]
+    width (7) = 300 [float]
+    height (8) = 300 [float]
+    editModeValue (494) = 6 [uint]
+    xArtboard (9) = 842 [float]
+    yArtboard (10) = 51 [float]
+    defaultStateMachineId (236) = 0 [uint]
+
+[19] Event (typeKey=128)
+    name (4) = "Nested Event" [string]
+    parentId (5) = 0 → [18] Artboard "Nested Artboard 2" [uint]
+
+[20] Shape (typeKey=3)
+    parentId (5) = 0 → [18] Artboard "Nested Artboard 2" [uint]
+    x (13) = 148.6666717529297 [float]
+    y (14) = 159.6666717529297 [float]
+
+[21] Ellipse (typeKey=4)
+    parentId (5) = 2 → [20] Shape [uint]
+    width (20) = 156.6666717529297 [float]
+    height (21) = 156.6666717529297 [float]
+
+[22] SolidColor (typeKey=18)
+    parentId (5) = 7 → [25] Fill [uint]
+    colorValue (37) = 0xFF2654FF [color]
+
+[23] SolidColor (typeKey=18)
+    parentId (5) = 8 → [26] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[24] ArtboardComponentList (typeKey=420)
+    parentId (5) = 0 → [18] Artboard "Nested Artboard 2" [uint]
+
+[25] Fill (typeKey=20)
+    parentId (5) = 2 → [20] Shape [uint]
+
+[26] Fill (typeKey=20)
+    parentId (5) = 0 → [18] Artboard "Nested Artboard 2" [uint]
+
+[27] TextModifierGroup (typeKey=138)
+    x1 (63) = 0.3036586344242096 [float]
+    y1 (64) = 162.55264282226562 [float]
+    y2 (66) = 137.98155212402344 [float]
+
+[28] TextModifierGroup (typeKey=138)
+    y1 (64) = 137.98155212402344 [float]
+    x2 (65) = 0.6994029879570007 [float]
+    y2 (66) = 169.90248107910156 [float]
+
+[29] LinearAnimation (typeKey=31)
+    name (55) = "Bounce" [string]
+
+[30] KeyedObject (typeKey=25)
+    objectId (51) = 1 [uint]
+
+[31] KeyedProperty (typeKey=26)
+    propertyKey (53) = 395 [uint]
+
+[32] BlendAnimationDirect (typeKey=171)
+    frame (67) = 60 [uint]
+
+[33] KeyedObject (typeKey=25)
+    objectId (51) = 2 [uint]
+
+[34] KeyedProperty (typeKey=26)
+    propertyKey (53) = 14 [uint]
+
+[35] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 3 [uint]
+    interpolatorId (69) = 9 [uint]
+    value (70) = 216.99696350097656 [float]
+
+[36] KeyFrameDouble (typeKey=30)
+    frame (67) = 30 [uint]
+    interpolationType (68) = 3 [uint]
+    interpolatorId (69) = 10 [uint]
+    value (70) = 137.98155212402344 [float]
+
+[37] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 216.99696350097656 [float]
+
+[38] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[39] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[40] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[41] AnyState (typeKey=62)
+    (no properties)
+
+[42] EntryState (typeKey=63)
+    (no properties)
+
+[43] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+[44] ExitState (typeKey=64)
+    (no properties)
+
+[45] Artboard (typeKey=1)
+    name (4) = "Nested Artboard" [string]
+    width (7) = 300 [float]
+    height (8) = 300 [float]
+    editModeValue (494) = 5 [uint]
+    xArtboard (9) = 442 [float]
+    yArtboard (10) = 51 [float]
+    defaultStateMachineId (236) = 0 [uint]
+
+[46] Event (typeKey=128)
+    name (4) = "Nested Event" [string]
+    parentId (5) = 0 → [45] Artboard "Nested Artboard" [uint]
+
+[47] Shape (typeKey=3)
+    parentId (5) = 0 → [45] Artboard "Nested Artboard" [uint]
+    x (13) = 148.6666717529297 [float]
+    y (14) = 159.6666717529297 [float]
+
+[48] Ellipse (typeKey=4)
+    parentId (5) = 2 → [47] Shape [uint]
+    width (20) = 156.6666717529297 [float]
+    height (21) = 156.6666717529297 [float]
+
+[49] SolidColor (typeKey=18)
+    parentId (5) = 7 → [52] Fill [uint]
+    colorValue (37) = 0xFF2654FF [color]
+
+[50] ArtboardComponentList (typeKey=420)
+    parentId (5) = 0 → [45] Artboard "Nested Artboard" [uint]
+
+[51] SolidColor (typeKey=18)
+    parentId (5) = 8 → [53] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[52] Fill (typeKey=20)
+    parentId (5) = 2 → [47] Shape [uint]
+
+[53] Fill (typeKey=20)
+    parentId (5) = 0 → [45] Artboard "Nested Artboard" [uint]
+
+[54] TextModifierGroup (typeKey=138)
+    x1 (63) = 0.3036586344242096 [float]
+    y1 (64) = 162.55264282226562 [float]
+    y2 (66) = 137.98155212402344 [float]
+
+[55] TextModifierGroup (typeKey=138)
+    y1 (64) = 137.98155212402344 [float]
+    x2 (65) = 0.6994029879570007 [float]
+    y2 (66) = 169.90248107910156 [float]
+
+[56] LinearAnimation (typeKey=31)
+    name (55) = "Bounce" [string]
+    loopValue (59) = 1 [uint]
+
+[57] KeyedObject (typeKey=25)
+    objectId (51) = 2 [uint]
+
+[58] KeyedProperty (typeKey=26)
+    propertyKey (53) = 14 [uint]
+
+[59] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 3 [uint]
+    interpolatorId (69) = 9 [uint]
+    value (70) = 216.99696350097656 [float]
+
+[60] KeyFrameDouble (typeKey=30)
+    frame (67) = 30 [uint]
+    interpolationType (68) = 3 [uint]
+    interpolatorId (69) = 10 [uint]
+    value (70) = 137.98155212402344 [float]
+
+[61] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 216.99696350097656 [float]
+
+[62] KeyedObject (typeKey=25)
+    objectId (51) = 1 [uint]
+
+[63] KeyedProperty (typeKey=26)
+    propertyKey (53) = 395 [uint]
+
+[64] BlendAnimationDirect (typeKey=171)
+    frame (67) = 60 [uint]
+
+[65] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[66] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[67] AnyState (typeKey=62)
+    (no properties)
+
+[68] ExitState (typeKey=64)
+    (no properties)
+
+[69] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[70] EntryState (typeKey=63)
+    (no properties)
+
+[71] StateTransition (typeKey=65)
+    stateToId (151) = 2 [uint]
+
+[72] Artboard (typeKey=1)
+    name (4) = "Artboard 2" [string]
+    width (7) = 500 [float]
+    height (8) = 500 [float]
+    editModeValue (494) = 5 [uint]
+    xArtboard (9) = 1242 [float]
+    yArtboard (10) = 51 [float]
+    defaultStateMachineId (236) = 0 [uint]
+
+[73] Event (typeKey=128)
+    name (4) = "Event" [string]
+    parentId (5) = 0 → [72] Artboard "Artboard 2" [uint]
+
+[74] NestedArtboard (typeKey=92)
+    name (4) = "Nested Artboard 2" [string]
+    parentId (5) = 0 → [72] Artboard "Artboard 2" [uint]
+    x (13) = 91.00000762939453 [float]
+    y (14) = 100 [float]
+    artboardId (197) = 1 [uint]
+
+[75] NestedLinearAnimation (typeKey=95)
+    parentId (5) = 2 → [74] NestedArtboard "Nested Artboard 2" [uint]
+    animationId (198) = 0 [uint]
+
+[76] SolidColor (typeKey=18)
+    parentId (5) = 6 → [78] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[77] ArtboardComponentList (typeKey=420)
+    parentId (5) = 0 → [72] Artboard "Artboard 2" [uint]
+
+[78] Fill (typeKey=20)
+    parentId (5) = 0 → [72] Artboard "Artboard 2" [uint]
+
+[79] LinearAnimation (typeKey=31)
+    name (55) = "Timeline 1" [string]
+
+[80] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[81] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[82] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[83] AnyState (typeKey=62)
+    (no properties)
+
+[84] ExitState (typeKey=64)
+    (no properties)
+
+[85] EntryState (typeKey=63)
+    (no properties)
+
+[86] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+[87] NestedStateMachine (typeKey=114)
+    name (138) = "Nested Artboard" [string]
+    targetId (224) = 2 [uint]
+    listenerTypeValue (225) = 5 [uint]
+    k399 (399) = 1 [uint]
+
+[88] NestedTrigger (typeKey=168)
+    k389 (389) = 1 [uint]
+
+=== SUMMARY ===
+Objects: 89
+Type distribution: Artboard(4) Shape(2) Ellipse(2) SolidColor(6) Fill(6) Backboard(1) KeyedObject(4) KeyedProperty(4) KeyFrameDouble(6) LinearAnimation(4) StateMachine(4) StateMachineLayer(4) AnimationState(4) AnyState(4) EntryState(4) ExitState(4) StateTransition(4) NestedArtboard(2) NestedLinearAnimation(2) NestedStateMachine(2) Event(4) TextModifierGroup(4) NestedTrigger(2) BlendAnimationDirect(2) ArtboardComponentList(4)
+ToC keys: 8
+Bytes properties in ToC: none
+ParentId tree depth: 3
+
+=== blend_test.riv ===
+=== HEADER ===
+Fingerprint: RIVE
+Major: 7  Minor: 0  FileID: 2424
+File size: 503 bytes
+
+=== TABLE OF CONTENTS (6 keys) ===
+Key     FieldIdx  WireType
+160     0         uint            exitTime
+165     0         uint            animationId
+166     2         float           value
+167     0         uint            inputId
+168     0         uint            inputId
+171     0         uint            exitBlendAnimationId
+
+=== OBJECT STREAM (52 objects) ===
+
+[0] Backboard (typeKey=23)
+    (no properties)
+
+[1] Artboard (typeKey=1)
+    width (7) = 767 [float]
+    height (8) = 444 [float]
+    xArtboard (9) = -382 [float]
+    yArtboard (10) = -381 [float]
+    name (4) = "New Artboard" [string]
+
+[2] Shape (typeKey=3)
+    parentId (5) = 0 → [1] Artboard "New Artboard" [uint]
+    x (13) = 307.12646484375 [float]
+    y (14) = 187.25979614257812 [float]
+
+[3] Rectangle (typeKey=7)
+    parentId (5) = 1 → [2] Shape [uint]
+    width (20) = 200 [float]
+    height (21) = 200 [float]
+
+[4] SolidColor (typeKey=18)
+    parentId (5) = 5 → [6] Fill [uint]
+
+[5] SolidColor (typeKey=18)
+    parentId (5) = 6 → [7] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[6] Fill (typeKey=20)
+    parentId (5) = 1 → [2] Shape [uint]
+
+[7] Fill (typeKey=20)
+    parentId (5) = 0 → [1] Artboard "New Artboard" [uint]
+
+[8] CubicEaseInterpolator (typeKey=28)
+    (no properties)
+
+[9] LinearAnimation (typeKey=31)
+    name (55) = "very long animation name" [string]
+
+[10] LinearAnimation (typeKey=31)
+    name (55) = "rotate" [string]
+    loopValue (59) = 2 [uint]
+
+[11] KeyedObject (typeKey=25)
+    objectId (51) = 1 [uint]
+
+[12] KeyedProperty (typeKey=26)
+    propertyKey (53) = 15 [uint]
+
+[13] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 7 [uint]
+
+[14] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 3.1415927410125732 [float]
+
+[15] LinearAnimation (typeKey=31)
+    name (55) = "vertical" [string]
+    loopValue (59) = 2 [uint]
+
+[16] KeyedObject (typeKey=25)
+    objectId (51) = 1 [uint]
+
+[17] KeyedProperty (typeKey=26)
+    propertyKey (53) = 14 [uint]
+
+[18] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 7 [uint]
+    value (70) = 344 [float]
+
+[19] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 100 [float]
+
+[20] LinearAnimation (typeKey=31)
+    name (55) = "horizontal" [string]
+    loopValue (59) = 2 [uint]
+
+[21] KeyedObject (typeKey=25)
+    objectId (51) = 1 [uint]
+
+[22] KeyedProperty (typeKey=26)
+    propertyKey (53) = 13 [uint]
+
+[23] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 7 [uint]
+    value (70) = 100 [float]
+
+[24] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 667 [float]
+
+[25] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[26] StateMachineNumber (typeKey=56)
+    name (138) = "Number 1" [string]
+    value (140) = 27.84326171875 [float]
+
+[27] StateMachineNumber (typeKey=56)
+    name (138) = "Number 2" [string]
+    value (140) = 24.916015625 [float]
+
+[28] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[29] Unknown(typeKey=73) (typeKey=73)
+    (no properties)
+
+[30] Unknown(typeKey=77) (typeKey=77)
+    animationId (165) = 2 [uint]
+    inputId (168) = 0 [uint]
+
+[31] Unknown(typeKey=77) (typeKey=77)
+    animationId (165) = 3 [uint]
+    inputId (168) = 1 [uint]
+
+[32] AnyState (typeKey=62)
+    (no properties)
+
+[33] EntryState (typeKey=63)
+    (no properties)
+
+[34] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+[35] ExitState (typeKey=64)
+    (no properties)
+
+[36] StateMachine (typeKey=53)
+    name (55) = "blend" [string]
+
+[37] StateMachineNumber (typeKey=56)
+    name (138) = "verticality" [string]
+    value (140) = 66.6278076171875 [float]
+
+[38] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[39] EntryState (typeKey=63)
+    (no properties)
+
+[40] StateTransition (typeKey=65)
+    stateToId (151) = 1 [uint]
+
+[41] Unknown(typeKey=76) (typeKey=76)
+    inputId (167) = 0 [uint]
+
+[42] Unknown(typeKey=78) (typeKey=78)
+    stateToId (151) = 2 [uint]
+    flags (152) = 28 [uint]
+    exitTime (160) = 100 [uint]
+    exitBlendAnimationId (171) = 1 [uint]
+
+[43] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 3 [uint]
+
+[44] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 2 [uint]
+    value (166) = 100 [float]
+
+[45] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 1 [uint]
+
+[46] Unknown(typeKey=76) (typeKey=76)
+    inputId (167) = 0 [uint]
+
+[47] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 1 [uint]
+    value (166) = 19.4647216796875 [float]
+
+[48] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 3 [uint]
+    value (166) = 54.082733154296875 [float]
+
+[49] Unknown(typeKey=75) (typeKey=75)
+    animationId (165) = 2 [uint]
+    value (166) = 99.479248046875 [float]
+
+[50] AnyState (typeKey=62)
+    (no properties)
+
+[51] ExitState (typeKey=64)
+    (no properties)
+
+=== SUMMARY ===
+Objects: 52
+Type distribution: Artboard(1) Shape(1) Rectangle(1) SolidColor(2) Fill(2) Backboard(1) KeyedObject(3) KeyedProperty(3) CubicEaseInterpolator(1) KeyFrameDouble(6) LinearAnimation(4) StateMachine(2) StateMachineNumber(3) StateMachineLayer(2) AnyState(2) EntryState(2) ExitState(2) StateTransition(2) Unknown(typeKey=73)(1) Unknown(typeKey=75)(6) Unknown(typeKey=76)(2) Unknown(typeKey=77)(2) Unknown(typeKey=78)(1)
+ToC keys: 6
+Bytes properties in ToC: none
+ParentId tree depth: 3
+
+=== ellipsis.riv ===
+=== HEADER ===
+Fingerprint: RIVE
+Major: 7  Minor: 0  FileID: 11448
+File size: 805828 bytes
+
+=== TABLE OF CONTENTS (14 keys) ===
+Key     FieldIdx  WireType
+203     1         string/bytes    name
+204     0         uint            assetId
+212     1         string/bytes    bytes  ← bytes proxied as string/field-idx=1
+236     0         uint            defaultStateMachineId
+268     1         string/bytes    text
+272     0         uint            styleId
+274     2         float           fontSize
+279     0         uint            fontAssetId
+284     0         uint            sizingValue
+285     2         float           width
+286     2         float           height
+287     0         uint            k287
+288     2         float           k288
+289     0         uint            k289
+
+=== OBJECT STREAM (21 objects) ===
+
+[0] Backboard (typeKey=23)
+    (no properties)
+
+[1] FontAsset (typeKey=141)
+    name (203) = "Inter" [string]
+    assetId (204) = 37163 [uint]
+
+[2] FileAssetContents (typeKey=106)
+    bytes (212) = <805528 bytes> [bytes]
+
+[3] Artboard (typeKey=1)
+    width (7) = 500 [float]
+    height (8) = 500 [float]
+    defaultStateMachineId (236) = 0 [uint]
+    name (4) = "New Artboard" [string]
+
+[4] Text (typeKey=134)
+    parentId (5) = 0 → [3] Artboard "New Artboard" [uint]
+    x (13) = 129.47265625 [float]
+    y (14) = 175.13926696777344 [float]
+    sizingValue (284) = 2 [uint]
+    k287 (287) = 3 [uint]
+    width (285) = 120.52734375 [float]
+    height (286) = 23.502700805664062 [float]
+
+[5] TextStyle (typeKey=137)
+    parentId (5) = 1 → [4] Text [uint]
+    fontSize (274) = 20 [float]
+    fontAssetId (279) = 0 [uint]
+
+[6] SolidColor (typeKey=18)
+    parentId (5) = 8 → [11] Fill [uint]
+    colorValue (37) = 0xFFFFFFFF [color]
+
+[7] Unknown(typeKey=144) (typeKey=144)
+    parentId (5) = 2 → [5] TextStyle [uint]
+    k289 (289) = 1936486004 [uint]
+
+[8] Unknown(typeKey=144) (typeKey=144)
+    parentId (5) = 2 → [5] TextStyle [uint]
+    k289 (289) = 2003265652 [uint]
+    k288 (288) = 400 [float]
+
+[9] TextValueRun (typeKey=135)
+    parentId (5) = 1 → [4] Text [uint]
+    styleId (272) = 2 [uint]
+    text (268) = "one two three" [string]
+
+[10] SolidColor (typeKey=18)
+    parentId (5) = 9 → [12] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[11] Fill (typeKey=20)
+    parentId (5) = 2 → [5] TextStyle [uint]
+
+[12] Fill (typeKey=20)
+    parentId (5) = 0 → [3] Artboard "New Artboard" [uint]
+
+[13] LinearAnimation (typeKey=31)
+    name (55) = "Timeline 1" [string]
+    duration (57) = 180 [uint]
+    loopValue (59) = 2 [uint]
+
+[14] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[15] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[16] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[17] AnyState (typeKey=62)
+    (no properties)
+
+[18] ExitState (typeKey=64)
+    (no properties)
+
+[19] EntryState (typeKey=63)
+    (no properties)
+
+[20] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+=== SUMMARY ===
+Objects: 21
+Type distribution: Artboard(1) SolidColor(2) Fill(2) Backboard(1) LinearAnimation(1) StateMachine(1) StateMachineLayer(1) AnimationState(1) AnyState(1) EntryState(1) ExitState(1) StateTransition(1) FileAssetContents(1) Text(1) TextValueRun(1) TextStyle(1) FontAsset(1) Unknown(typeKey=144)(2)
+ToC keys: 14
+Bytes properties in ToC: key 212 bytes (field_idx=1)
+ParentId tree depth: 4
+Embedded bytes total: 805528 bytes
+
+=== hello_world.riv ===
+=== HEADER ===
+Fingerprint: RIVE
+Major: 7  Minor: 0  FileID: 9568
+File size: 33413 bytes
+
+=== TABLE OF CONTENTS (7 keys) ===
+Key     FieldIdx  WireType
+204     0         uint            assetId
+212     1         string/bytes    bytes  ← bytes proxied as string/field-idx=1
+236     0         uint            defaultStateMachineId
+268     1         string/bytes    text
+272     0         uint            styleId
+274     2         float           fontSize
+279     0         uint            fontAssetId
+
+=== OBJECT STREAM (19 objects) ===
+
+[0] Backboard (typeKey=23)
+    (no properties)
+
+[1] FontAsset (typeKey=141)
+    assetId (204) = 35321 [uint]
+
+[2] FileAssetContents (typeKey=106)
+    bytes (212) = <33184 bytes> [bytes]
+
+[3] Artboard (typeKey=1)
+    width (7) = 500 [float]
+    height (8) = 500 [float]
+    defaultStateMachineId (236) = 0 [uint]
+    name (4) = "New Artboard" [string]
+
+[4] Text (typeKey=134)
+    name (4) = "Hello World" [string]
+    parentId (5) = 0 → [3] Artboard "New Artboard" [uint]
+    x (13) = 73.48046875 [float]
+    y (14) = 175.78515625 [float]
+
+[5] TextStyle (typeKey=137)
+    parentId (5) = 1 → [4] Text "Hello World" [uint]
+    fontSize (274) = 60 [float]
+    fontAssetId (279) = 0 [uint]
+
+[6] SolidColor (typeKey=18)
+    parentId (5) = 6 → [9] Fill [uint]
+    colorValue (37) = 0xFF00F3FF [color]
+
+[7] TextValueRun (typeKey=135)
+    parentId (5) = 1 → [4] Text "Hello World" [uint]
+    styleId (272) = 2 [uint]
+    text (268) = "Hello World!" [string]
+
+[8] SolidColor (typeKey=18)
+    parentId (5) = 7 → [10] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[9] Fill (typeKey=20)
+    parentId (5) = 2 → [5] TextStyle [uint]
+
+[10] Fill (typeKey=20)
+    parentId (5) = 0 → [3] Artboard "New Artboard" [uint]
+
+[11] LinearAnimation (typeKey=31)
+    name (55) = "Timeline 1" [string]
+
+[12] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[13] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[14] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[15] AnyState (typeKey=62)
+    (no properties)
+
+[16] EntryState (typeKey=63)
+    (no properties)
+
+[17] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+[18] ExitState (typeKey=64)
+    (no properties)
+
+=== SUMMARY ===
+Objects: 19
+Type distribution: Artboard(1) SolidColor(2) Fill(2) Backboard(1) LinearAnimation(1) StateMachine(1) StateMachineLayer(1) AnimationState(1) AnyState(1) EntryState(1) ExitState(1) StateTransition(1) FileAssetContents(1) Text(1) TextValueRun(1) TextStyle(1) FontAsset(1)
+ToC keys: 7
+Bytes properties in ToC: key 212 bytes (field_idx=1)
+ParentId tree depth: 4
+Embedded bytes total: 33184 bytes
+
+=== new_text.riv ===
+=== HEADER ===
+Fingerprint: RIVE
+Major: 7  Minor: 0  FileID: 9377
+File size: 392885 bytes
+
+=== TABLE OF CONTENTS (12 keys) ===
+Key     FieldIdx  WireType
+204     0         uint            assetId
+212     1         string/bytes    bytes  ← bytes proxied as string/field-idx=1
+236     0         uint            defaultStateMachineId
+268     1         string/bytes    text
+272     0         uint            styleId
+274     2         float           fontSize
+279     0         uint            fontAssetId
+280     1         string/bytes    value
+284     0         uint            sizingValue
+285     2         float           width
+286     2         float           height
+287     0         uint            k287
+
+=== OBJECT STREAM (118 objects) ===
+
+[0] Backboard (typeKey=23)
+    (no properties)
+
+[1] FontAsset (typeKey=141)
+    assetId (204) = 29181 [uint]
+
+[2] FileAssetContents (typeKey=106)
+    bytes (212) = <109364 bytes> [bytes]
+
+[3] FontAsset (typeKey=141)
+    assetId (204) = 35321 [uint]
+
+[4] FileAssetContents (typeKey=106)
+    bytes (212) = <33184 bytes> [bytes]
+
+[5] FontAsset (typeKey=141)
+    assetId (204) = 27482 [uint]
+
+[6] FileAssetContents (typeKey=106)
+    bytes (212) = <33184 bytes> [bytes]
+
+[7] FontAsset (typeKey=141)
+    assetId (204) = 31864 [uint]
+
+[8] FileAssetContents (typeKey=106)
+    bytes (212) = <109860 bytes> [bytes]
+
+[9] FontAsset (typeKey=141)
+    assetId (204) = 28067 [uint]
+
+[10] FileAssetContents (typeKey=106)
+    bytes (212) = <105888 bytes> [bytes]
+
+[11] Artboard (typeKey=1)
+    name (4) = "New Artboard" [string]
+    width (7) = 500 [float]
+    height (8) = 500 [float]
+    defaultStateMachineId (236) = 0 [uint]
+
+[12] Text (typeKey=134)
+    name (4) = "Text" [string]
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    x (13) = 311.7463073730469 [float]
+    y (14) = 34.58246994018555 [float]
+
+[13] TextStyle (typeKey=137)
+    parentId (5) = 1 → [12] Text "Text" [uint]
+    fontAssetId (279) = 0 [uint]
+
+[14] TextValueRun (typeKey=135)
+    parentId (5) = 1 → [12] Text "Text" [uint]
+    styleId (272) = 2 [uint]
+    text (268) = "re" [string]
+
+[15] Text (typeKey=134)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    x (13) = 223.4222412109375 [float]
+    y (14) = 43.782066345214844 [float]
+
+[16] TextStyle (typeKey=137)
+    parentId (5) = 4 → [15] Text [uint]
+    fontAssetId (279) = 4 [uint]
+
+[17] TextValueRun (typeKey=135)
+    parentId (5) = 4 → [15] Text [uint]
+    styleId (272) = 5 [uint]
+    text (268) = "te" [string]
+
+[18] TextValueRun (typeKey=135)
+    parentId (5) = 4 → [15] Text [uint]
+    styleId (272) = 9 [uint]
+    text (268) = "x" [string]
+
+[19] TextValueRun (typeKey=135)
+    parentId (5) = 4 → [15] Text [uint]
+    styleId (272) = 5 [uint]
+    text (268) = "t" [string]
+
+[20] TextStyle (typeKey=137)
+    parentId (5) = 4 → [15] Text [uint]
+    fontSize (274) = 21.0078125 [float]
+    fontAssetId (279) = 4 [uint]
+
+[21] SolidColor (typeKey=18)
+    parentId (5) = 57 → [68] Fill [uint]
+    colorValue (37) = 0xFF2A00FF [color]
+
+[22] Text (typeKey=134)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    x (13) = 207.82565307617188 [float]
+    y (14) = 122.44392395019531 [float]
+
+[23] TextValueRun (typeKey=135)
+    name (4) = "Text Run" [string]
+    parentId (5) = 11 → [22] Text [uint]
+    styleId (272) = 13 [uint]
+    text (268) = "here is " [string]
+
+[24] TextStyle (typeKey=137)
+    name (4) = "Text Style" [string]
+    parentId (5) = 11 → [22] Text [uint]
+    fontAssetId (279) = 1 [uint]
+
+[25] TextStyle (typeKey=137)
+    name (4) = "Text Style" [string]
+    parentId (5) = 11 → [22] Text [uint]
+    fontAssetId (279) = 3 [uint]
+
+[26] TextValueRun (typeKey=135)
+    parentId (5) = 11 → [22] Text [uint]
+    styleId (272) = 14 [uint]
+    text (268) = "some" [string]
+
+[27] TextValueRun (typeKey=135)
+    parentId (5) = 11 → [22] Text [uint]
+    styleId (272) = 13 [uint]
+    text (268) = " new text" [string]
+
+[28] Shape (typeKey=3)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    x (13) = 135.67552185058594 [float]
+    y (14) = 45.13243103027344 [float]
+
+[29] Rectangle (typeKey=7)
+    parentId (5) = 17 → [28] Shape [uint]
+    width (20) = 19.139860153198242 [float]
+    height (21) = 23.816022872924805 [float]
+
+[30] SolidColor (typeKey=18)
+    parentId (5) = 58 → [69] Fill [uint]
+
+[31] SolidColor (typeKey=18)
+    parentId (5) = 62 → [73] Stroke [uint]
+    colorValue (37) = 0xFFFFFFFF [color]
+
+[32] Text (typeKey=134)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    x (13) = 12.680355072021484 [float]
+    y (14) = 9.785655975341797 [float]
+    sizingValue (284) = 1 [uint]
+    width (285) = 100 [float]
+    height (286) = 200 [float]
+
+[33] TextStyle (typeKey=137)
+    name (4) = "Hi" [string]
+    parentId (5) = 21 → [32] Text [uint]
+    fontAssetId (279) = 0 [uint]
+
+[34] LinearGradient (typeKey=22)
+    parentId (5) = 59 → [70] Fill [uint]
+    startY (33) = 15.29296875 [float]
+    endX (34) = 91.41917419433594 [float]
+    endY (35) = 15.331217765808105 [float]
+
+[35] GradientStop (typeKey=19)
+    parentId (5) = 23 → [34] LinearGradient [uint]
+    colorValue (38) = 0xFFFF00E1 [color]
+
+[36] GradientStop (typeKey=19)
+    parentId (5) = 23 → [34] LinearGradient [uint]
+    colorValue (38) = 0xFF00FFEF [color]
+    position (39) = 1 [float]
+
+[37] GradientStop (typeKey=19)
+    parentId (5) = 23 → [34] LinearGradient [uint]
+    colorValue (38) = 0xFF42EBD2 [color]
+    position (39) = 0.29474788904190063 [float]
+
+[38] TextValueRun (typeKey=135)
+    parentId (5) = 21 → [32] Text [uint]
+    styleId (272) = 22 [uint]
+    text (268) = "text is " [string]
+
+[39] TextStyle (typeKey=137)
+    parentId (5) = 21 → [32] Text [uint]
+    fontSize (274) = 24 [float]
+    fontAssetId (279) = 2 [uint]
+
+[40] SolidColor (typeKey=18)
+    parentId (5) = 63 → [74] Stroke [uint]
+    colorValue (37) = 0xFF000000 [color]
+
+[41] SolidColor (typeKey=18)
+    parentId (5) = 64 → [75] Stroke [uint]
+    colorValue (37) = 0xFFFFFFFF [color]
+
+[42] LinearGradient (typeKey=22)
+    parentId (5) = 60 → [71] Fill [uint]
+    startX (42) = 45.309364318847656 [float]
+    startY (33) = 18.30048179626465 [float]
+    endX (34) = 54.16584014892578 [float]
+    endY (35) = 18.43009376525879 [float]
+
+[43] GradientStop (typeKey=19)
+    parentId (5) = 31 → [42] LinearGradient [uint]
+    colorValue (38) = 0xFF0014FF [color]
+
+[44] GradientStop (typeKey=19)
+    parentId (5) = 31 → [42] LinearGradient [uint]
+    colorValue (38) = 0xFFFF0000 [color]
+    position (39) = 1 [float]
+
+[45] TextValueRun (typeKey=135)
+    parentId (5) = 21 → [32] Text [uint]
+    styleId (272) = 28 [uint]
+    text (268) = "ok" [string]
+
+[46] TextValueRun (typeKey=135)
+    parentId (5) = 21 → [32] Text [uint]
+    styleId (272) = 22 [uint]
+    text (268) = " now?" [string]
+
+[47] Text (typeKey=134)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+    rotation (15) = 0.17359274625778198 [float]
+    x (13) = 77.32350158691406 [float]
+    y (14) = 170.93524169921875 [float]
+    sizingValue (284) = 2 [uint]
+    k287 (287) = 2 [uint]
+    width (285) = 201.4765625 [float]
+    height (286) = 158.671875 [float]
+
+[48] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontAssetId (279) = 0 [uint]
+
+[49] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 37 [uint]
+    text (268) = "ok " [string]
+
+[50] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontSize (274) = 23 [float]
+
+[51] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 39 [uint]
+    text (268) = "wh" [string]
+
+[52] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 43 [uint]
+    text (268) = "a" [string]
+
+[53] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 39 [uint]
+    text (268) = "t" [string]
+
+[54] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontSize (274) = 50 [float]
+
+[55] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 37 [uint]
+    text (268) = " th" [string]
+
+[56] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 46 [uint]
+    text (268) = "ee" [string]
+
+[57] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontSize (274) = 34 [float]
+    fontAssetId (279) = 0 [uint]
+
+[58] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 37 [uint]
+    text (268) = "n" [string]
+
+[59] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 39 [uint]
+    text (268) = "?\u2028well ok now multi line th\u2028is! kwe f" [string]
+
+[60] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontSize (274) = 25 [float]
+
+[61] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 49 [uint]
+    text (268) = "klje" [string]
+
+[62] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 39 [uint]
+    text (268) = " wkl" [string]
+
+[63] TextStyle (typeKey=137)
+    parentId (5) = 36 → [47] Text [uint]
+    fontSize (274) = 44 [float]
+
+[64] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 52 [uint]
+    text (268) = "fj jk" [string]
+
+[65] TextValueRun (typeKey=135)
+    parentId (5) = 36 → [47] Text [uint]
+    styleId (272) = 39 [uint]
+    text (268) = " kfew\u2028fekjf kejfkejf ekfjekfekk\nand now they are separate?" [string]
+
+[66] ClippingShape (typeKey=42)
+    parentId (5) = 36 → [47] Text [uint]
+    sourceId (92) = 21 [uint]
+
+[67] SolidColor (typeKey=18)
+    parentId (5) = 61 → [72] Fill [uint]
+    colorValue (37) = 0xFF313131 [color]
+
+[68] Fill (typeKey=20)
+    parentId (5) = 9 → [20] TextStyle [uint]
+
+[69] Fill (typeKey=20)
+    parentId (5) = 17 → [28] Shape [uint]
+
+[70] Fill (typeKey=20)
+    parentId (5) = 22 → [33] TextStyle "Hi" [uint]
+
+[71] Fill (typeKey=20)
+    parentId (5) = 28 → [39] TextStyle [uint]
+
+[72] Fill (typeKey=20)
+    parentId (5) = 0 → [11] Artboard "New Artboard" [uint]
+
+[73] Stroke (typeKey=24)
+    parentId (5) = 17 → [28] Shape [uint]
+
+[74] Stroke (typeKey=24)
+    parentId (5) = 28 → [39] TextStyle [uint]
+
+[75] Stroke (typeKey=24)
+    parentId (5) = 28 → [39] TextStyle [uint]
+    thickness (47) = 0.10000000149011612 [float]
+
+[76] CubicEaseInterpolator (typeKey=28)
+    (no properties)
+
+[77] LinearAnimation (typeKey=31)
+    name (55) = "Timeline 1" [string]
+    loopValue (59) = 2 [uint]
+
+[78] KeyedObject (typeKey=25)
+    objectId (51) = 28 [uint]
+
+[79] KeyedProperty (typeKey=26)
+    propertyKey (53) = 274 [uint]
+
+[80] KeyFrameDouble (typeKey=30)
+    frame (67) = 7 [uint]
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 65 [uint]
+    value (70) = 24 [float]
+
+[81] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 50 [float]
+
+[82] KeyedObject (typeKey=25)
+    objectId (51) = 31 [uint]
+
+[83] KeyedProperty (typeKey=26)
+    propertyKey (53) = 33 [uint]
+
+[84] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 1 [uint]
+    value (70) = 13.774298667907715 [float]
+
+[85] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 16.30484962463379 [float]
+
+[86] KeyedProperty (typeKey=26)
+    propertyKey (53) = 34 [uint]
+
+[87] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 1 [uint]
+    value (70) = 58.529518127441406 [float]
+
+[88] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 49.900394439697266 [float]
+
+[89] KeyedProperty (typeKey=26)
+    propertyKey (53) = 42 [uint]
+
+[90] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 1 [uint]
+    value (70) = 38.6480712890625 [float]
+
+[91] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 70.8497314453125 [float]
+
+[92] KeyedProperty (typeKey=26)
+    propertyKey (53) = 35 [uint]
+
+[93] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 1 [uint]
+    value (70) = 19.3149471282959 [float]
+
+[94] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 48.260826110839844 [float]
+
+[95] KeyedObject (typeKey=25)
+    objectId (51) = 34 [uint]
+
+[96] KeyedProperty (typeKey=26)
+    propertyKey (53) = 268 [uint]
+
+[97] Unknown(typeKey=142) (typeKey=142)
+    frame (67) = 1 [uint]
+    value (280) = "ok" [string]
+
+[98] Unknown(typeKey=142) (typeKey=142)
+    frame (67) = 30 [uint]
+    value (280) = "ok!" [string]
+
+[99] Unknown(typeKey=142) (typeKey=142)
+    frame (67) = 34 [uint]
+    value (280) = "ok!!" [string]
+
+[100] Unknown(typeKey=142) (typeKey=142)
+    frame (67) = 41 [uint]
+    value (280) = "OK." [string]
+
+[101] KeyedObject (typeKey=25)
+    objectId (51) = 22 [uint]
+
+[102] KeyedProperty (typeKey=26)
+    propertyKey (53) = 274 [uint]
+
+[103] KeyFrameDouble (typeKey=30)
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 65 [uint]
+    value (70) = 12 [float]
+
+[104] KeyFrameDouble (typeKey=30)
+    frame (67) = 30 [uint]
+    interpolationType (68) = 2 [uint]
+    interpolatorId (69) = 65 [uint]
+    value (70) = 22 [float]
+
+[105] KeyFrameDouble (typeKey=30)
+    frame (67) = 60 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 6 [float]
+
+[106] KeyedObject (typeKey=25)
+    objectId (51) = 17 [uint]
+
+[107] KeyedProperty (typeKey=26)
+    propertyKey (53) = 13 [uint]
+
+[108] KeyFrameDouble (typeKey=30)
+    frame (67) = 27 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 211.01162719726562 [float]
+
+[109] KeyedProperty (typeKey=26)
+    propertyKey (53) = 14 [uint]
+
+[110] KeyFrameDouble (typeKey=30)
+    frame (67) = 27 [uint]
+    interpolationType (68) = 1 [uint]
+    value (70) = 52.06639862060547 [float]
+
+[111] StateMachine (typeKey=53)
+    name (55) = "State Machine 1" [string]
+
+[112] StateMachineLayer (typeKey=57)
+    name (138) = "Layer 1" [string]
+
+[113] AnimationState (typeKey=61)
+    animationId (149) = 0 [uint]
+
+[114] ExitState (typeKey=64)
+    (no properties)
+
+[115] AnyState (typeKey=62)
+    (no properties)
+
+[116] EntryState (typeKey=63)
+    (no properties)
+
+[117] StateTransition (typeKey=65)
+    stateToId (151) = 0 [uint]
+
+=== SUMMARY ===
+Objects: 118
+Type distribution: Artboard(1) Shape(1) Rectangle(1) SolidColor(6) GradientStop(5) Fill(5) LinearGradient(2) Backboard(1) Stroke(3) KeyedObject(5) KeyedProperty(9) CubicEaseInterpolator(1) KeyFrameDouble(15) LinearAnimation(1) ClippingShape(1) StateMachine(1) StateMachineLayer(1) AnimationState(1) AnyState(1) EntryState(1) ExitState(1) StateTransition(1) FileAssetContents(5) Text(5) TextValueRun(22) TextStyle(13) FontAsset(5) Unknown(typeKey=142)(4)
+ToC keys: 12
+Bytes properties in ToC: key 212 bytes (field_idx=1)
+ParentId tree depth: 5
+Embedded bytes total: 391480 bytes
+

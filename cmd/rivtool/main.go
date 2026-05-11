@@ -68,6 +68,12 @@ func main() {
 		}
 	case "generate":
 		cmdGenerate()
+	case "dump":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "dump requires a file argument")
+			os.Exit(1)
+		}
+		cmdDump(os.Args[2])
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n", os.Args[1])
 		usage()
@@ -104,6 +110,318 @@ JSON Scene format (version 1):
 }
 
 // ── create ────────────────────────────────────────────────────────────────────
+
+// cmdDump implements: rivtool dump <file.riv>
+// Produces a complete, human-readable structural analysis of a .riv file.
+func cmdDump(path string) {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "read %s: %v\n", path, err)
+		os.Exit(1)
+	}
+
+	f, err := rive.ReadBytes(raw)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "parse %s: %v\n", path, err)
+		os.Exit(1)
+	}
+
+	// ── Header ────────────────────────────────────────────────────────────────
+	fmt.Println("=== HEADER ===")
+	fmt.Printf("Fingerprint: RIVE\n")
+	fmt.Printf("Major: %d  Minor: %d  FileID: %d\n", f.MajorVersion, f.MinorVersion, f.FileID)
+	fmt.Printf("File size: %d bytes\n", len(raw))
+
+	// ── ToC ───────────────────────────────────────────────────────────────────
+	toc := f.TocEntries()
+	tocKeys := make([]uint32, 0, len(toc))
+	for k := range toc {
+		tocKeys = append(tocKeys, k)
+	}
+	sortUint32(tocKeys)
+
+	wireTypeName := func(ft rive.PropertyType) string {
+		switch ft {
+		case 0:
+			return "uint"
+		case 1:
+			return "string/bytes"
+		case 2:
+			return "float"
+		case 3:
+			return "color"
+		default:
+			return fmt.Sprintf("unknown(%d)", ft)
+		}
+	}
+
+	fmt.Printf("\n=== TABLE OF CONTENTS (%d keys) ===\n", len(tocKeys))
+	fmt.Printf("%-6s  %-8s  %s\n", "Key", "FieldIdx", "WireType")
+	for _, k := range tocKeys {
+		name := propName(k)
+		ft := toc[k]
+		canonical, _ := rive.LookupGlobalPropType(k)
+		note := ""
+		if canonical == rive.PropertyTypeBytes && ft == 1 {
+			note = "  ← bytes proxied as string/field-idx=1"
+		}
+		fmt.Printf("%-6d  %-8d  %-14s  %s%s\n", k, ft, wireTypeName(ft), name, note)
+	}
+
+	// ── Object stream ──────────────────────────────────────────────────────────
+	fmt.Printf("\n=== OBJECT STREAM (%d objects) ===\n", len(f.Objects))
+
+	// Compute artboard offsets: parentId values are artboard-relative.
+	// Track the global index of the most recently emitted Artboard as the offset.
+	artboardOffsets := make([]int, len(f.Objects)) // artboardOffsets[i] = global index of owning Artboard
+	currentArtboardIdx := -1
+	for i, o := range f.Objects {
+		if o.TypeKey() == 1 { // Artboard
+			currentArtboardIdx = i
+		}
+		artboardOffsets[i] = currentArtboardIdx
+	}
+
+	resolveParentId := func(objIdx int, parentId uint64) string {
+		ao := artboardOffsets[objIdx]
+		if ao < 0 {
+			return fmt.Sprintf("%d (no artboard context)", parentId)
+		}
+		// artboard-relative parentId 0 = the Artboard itself
+		globalIdx := ao + int(parentId)
+		if globalIdx >= 0 && globalIdx < len(f.Objects) {
+			tname := dumpTypeKeyName(f.Objects[globalIdx].TypeKey())
+			// Try to find name property
+			for _, p := range f.Objects[globalIdx].Properties() {
+				if p.Key == 4 || p.Key == 55 {
+					tname += fmt.Sprintf(" %q", p.Value.(string))
+					break
+				}
+			}
+			return fmt.Sprintf("%d → [%d] %s", parentId, globalIdx, tname)
+		}
+		return fmt.Sprintf("%d (out of range)", parentId)
+	}
+
+	// Build parentMap for depth calculation (use artboard-relative offsets)
+	parentMap := make(map[int]int)
+	for i, o := range f.Objects {
+		parentMap[i] = -1
+		ao := artboardOffsets[i]
+		for _, p := range o.Properties() {
+			if p.Key == 5 && ao >= 0 {
+				parentMap[i] = ao + int(p.Value.(uint64))
+			}
+		}
+	}
+
+	for i, o := range f.Objects {
+		tname := dumpTypeKeyName(o.TypeKey())
+		fmt.Printf("\n[%d] %s (typeKey=%d)\n", i, tname, o.TypeKey())
+		props := o.Properties()
+		if len(props) == 0 {
+			fmt.Printf("    (no properties)\n")
+			continue
+		}
+		for _, p := range props {
+			name := propName(p.Key)
+			var val string
+			switch p.Type {
+			case rive.PropertyTypeUint:
+				uv := p.Value.(uint64)
+				if p.Key == 5 { // parentId — resolve artboard-relative
+					fmt.Printf("    parentId (%d) = %s [uint]\n", p.Key, resolveParentId(i, uv))
+					continue
+				}
+				val = fmt.Sprintf("%d", uv)
+			case rive.PropertyTypeString:
+				sv := p.Value.(string)
+				if len(sv) > 80 {
+					sv = sv[:80] + "…"
+				}
+				val = fmt.Sprintf("%q", sv)
+			case rive.PropertyTypeFloat:
+				val = fmt.Sprintf("%g", p.Value.(float64))
+			case rive.PropertyTypeColor:
+				val = fmt.Sprintf("0x%08X", uint32(p.Value.(uint64)))
+			case rive.PropertyTypeBytes:
+				b := p.Value.([]byte)
+				val = fmt.Sprintf("<%d bytes>", len(b))
+			default:
+				val = fmt.Sprintf("?(%v)", p.Value)
+			}
+			fmt.Printf("    %s (%d) = %s [%s]\n", name, p.Key, val, canonicalWireType(p.Type))
+		}
+	}
+
+	// ── Summary ────────────────────────────────────────────────────────────────
+	fmt.Printf("\n=== SUMMARY ===\n")
+	fmt.Printf("Objects: %d\n", len(f.Objects))
+
+	typeCounts := make(map[uint32]int)
+	for _, o := range f.Objects {
+		typeCounts[o.TypeKey()]++
+	}
+	typeKeys := make([]uint32, 0, len(typeCounts))
+	for k := range typeCounts {
+		typeKeys = append(typeKeys, k)
+	}
+	sortUint32(typeKeys)
+	var typeDist []string
+	for _, tk := range typeKeys {
+		typeDist = append(typeDist, fmt.Sprintf("%s(%d)", dumpTypeKeyName(tk), typeCounts[tk]))
+	}
+	fmt.Printf("Type distribution: %s\n", strings.Join(typeDist, " "))
+	fmt.Printf("ToC keys: %d\n", len(tocKeys))
+
+	// List bytes properties (canonical type 4) present in ToC
+	var bytesInToc []string
+	for _, k := range tocKeys {
+		if canonical, ok := rive.LookupGlobalPropType(k); ok && canonical == rive.PropertyTypeBytes {
+			bytesInToc = append(bytesInToc, fmt.Sprintf("key %d %s (field_idx=%d)", k, propName(k), toc[k]))
+		}
+	}
+	if len(bytesInToc) > 0 {
+		fmt.Printf("Bytes properties in ToC: %s\n", strings.Join(bytesInToc, ", "))
+	} else {
+		fmt.Printf("Bytes properties in ToC: none\n")
+	}
+
+	// Tree depth
+	maxDepth := 0
+	for i := range f.Objects {
+		d := depthOf(i, parentMap, 0)
+		if d > maxDepth {
+			maxDepth = d
+		}
+	}
+	fmt.Printf("ParentId tree depth: %d\n", maxDepth)
+
+	totalBytes := 0
+	for _, o := range f.Objects {
+		for _, p := range o.Properties() {
+			if p.Type == rive.PropertyTypeBytes {
+				totalBytes += len(p.Value.([]byte))
+			}
+		}
+	}
+	if totalBytes > 0 {
+		fmt.Printf("Embedded bytes total: %d bytes\n", totalBytes)
+	}
+}
+
+func sortUint32(s []uint32) {
+	for i := 1; i < len(s); i++ {
+		for j := i; j > 0 && s[j] < s[j-1]; j-- {
+			s[j], s[j-1] = s[j-1], s[j]
+		}
+	}
+}
+
+func canonicalWireType(pt rive.PropertyType) string {
+	switch pt {
+	case 0:
+		return "uint"
+	case 1:
+		return "string"
+	case 2:
+		return "float"
+	case 3:
+		return "color"
+	case 4:
+		return "bytes"
+	default:
+		return "unknown"
+	}
+}
+
+func propName(key uint32) string {
+	names := map[uint32]string{
+		3: "dependentIds", 4: "name", 5: "parentId", 6: "childOrder",
+		7: "width", 8: "height", 9: "xArtboard", 10: "yArtboard",
+		11: "originX", 12: "originY", 13: "x", 14: "y",
+		15: "rotation", 16: "scaleX", 17: "scaleY", 18: "opacity",
+		20: "width", 21: "height", 23: "blendModeValue", 24: "x", 25: "y",
+		26: "radius", 31: "cornerRadiusTL", 32: "isClosed",
+		33: "startY", 34: "endX", 35: "endY",
+		37: "colorValue", 38: "colorValue", 39: "position", 40: "fillRule",
+		41: "isVisible", 42: "startX", 43: "activeArtboardId", 44: "mainArtboardId",
+		45: "colorValue", 46: "opacity", 47: "thickness", 48: "cap",
+		49: "join", 50: "transformAffectsStroke", 51: "objectId", 52: "animationId",
+		53: "propertyKey", 54: "artboardId", 55: "name", 56: "fps",
+		57: "duration", 58: "speed", 59: "loopValue", 60: "workStart",
+		61: "workEnd", 62: "enableWorkArea", 63: "x1", 64: "y1",
+		65: "x2", 66: "y2", 67: "frame", 68: "interpolationType",
+		69: "interpolatorId", 70: "value", 71: "keyedObjectId", 72: "keyedPropertyId",
+		73: "order", 79: "rotation", 88: "value",
+		92: "sourceId", 114: "start", 115: "end", 116: "offset",
+		119: "drawableId", 120: "placementValue", 121: "drawTargetId",
+		123: "originX", 124: "originY", 125: "points", 126: "cornerRadius",
+		127: "innerRadius", 130: "flags", 137: "machineId", 138: "name",
+		139: "machineOrder", 140: "value", 141: "value", 149: "animationId",
+		150: "stateFromId", 151: "stateToId", 152: "flags",
+		153: "transitionId", 154: "conditionOrder", 155: "inputId",
+		156: "opValue", 157: "value", 158: "duration", 159: "transitionOrder",
+		160: "exitTime", 161: "cornerRadiusTR", 162: "cornerRadiusBL", 163: "cornerRadiusBR",
+		164: "linkCornerRadius", 165: "animationId", 166: "value", 167: "inputId",
+		168: "inputId", 169: "animationOrder", 170: "blendStateId",
+		171: "exitBlendAnimationId", 172: "strength", 173: "targetId",
+		176: "styleValue", 197: "artboardId", 198: "animationId",
+		199: "speed", 200: "mix", 201: "isPlaying", 202: "time",
+		203: "name", 204: "assetId", 205: "order", 206: "assetId",
+		207: "height", 208: "width", 209: "parentId", 211: "size",
+		212: "bytes", 213: "assetId", 215: "u", 216: "v", 217: "isClosed",
+		220: "toId", 223: "triangleIndexBytes", 224: "targetId",
+		225: "listenerTypeValue", 226: "listenerId", 227: "inputId",
+		228: "value", 229: "value", 230: "order", 231: "playbackValue",
+		232: "playbackValue", 233: "layer", 234: "x", 235: "y",
+		236: "defaultStateMachineId", 237: "inputId", 238: "nestedValue",
+		239: "nestedValue", 240: "targetId",
+		248: "url", 268: "text", 272: "styleId", 274: "fontSize",
+		279: "fontAssetId", 280: "value", 281: "alignValue", 284: "sizingValue",
+		285: "width", 286: "height", 359: "cdnUuid", 362: "cdnBaseUrl",
+		370: "lineHeight", 390: "letterSpacing", 395: "frame",
+		494: "editModeValue", 703: "fitFromBaseline", 932: "textRunListSource",
+	}
+	if n, ok := names[key]; ok {
+		return n
+	}
+	return fmt.Sprintf("k%d", key)
+}
+
+func dumpTypeKeyName(k uint32) string {
+	names := map[uint32]string{
+		1: "Artboard", 2: "Node", 3: "Shape", 4: "Ellipse",
+		5: "StraightVertex", 6: "CubicDetachedVertex", 7: "Rectangle",
+		8: "Triangle", 9: "CubicMirroredVertex", 10: "CubicAsymmetricVertex",
+		16: "PointsPath", 17: "RadialGradient", 18: "SolidColor",
+		19: "GradientStop", 20: "Fill", 21: "ShapePaint",
+		22: "LinearGradient", 23: "Backboard", 24: "Stroke",
+		25: "KeyedObject", 26: "KeyedProperty", 28: "CubicEaseInterpolator",
+		30: "KeyFrameDouble", 31: "LinearAnimation", 37: "KeyFrameColor",
+		38: "WorldTransformComponent", 42: "ClippingShape", 47: "TrimPath",
+		48: "DrawTarget", 49: "DrawRules", 50: "KeyFrameId",
+		51: "Polygon", 52: "Star", 53: "StateMachine",
+		55: "StateMachineInput", 56: "StateMachineNumber", 57: "StateMachineLayer",
+		58: "StateMachineTrigger", 59: "StateMachineBool",
+		61: "AnimationState", 62: "AnyState", 63: "EntryState",
+		64: "ExitState", 65: "StateTransition", 67: "TransitionInputCondition",
+		68: "TransitionTriggerCondition", 70: "TransitionNumberCondition",
+		71: "TransitionBoolCondition", 84: "KeyFrameBool",
+		91: "WorldTransformComponent", 92: "NestedArtboard",
+		95: "NestedLinearAnimation", 99: "Asset", 100: "Image",
+		103: "FileAsset", 106: "FileAssetContents", 109: "Mesh",
+		114: "NestedStateMachine", 128: "Event", 134: "Text",
+		135: "TextValueRun", 137: "TextStyle", 138: "TextModifierGroup",
+		141: "FontAsset", 168: "NestedTrigger", 170: "InterpolatingKeyFrame",
+		171: "BlendAnimationDirect", 420: "ArtboardComponentList",
+		450: "KeyFrameUint", 573: "TextStyleFeature",
+	}
+	if n, ok := names[k]; ok {
+		return n
+	}
+	return fmt.Sprintf("Unknown(typeKey=%d)", k)
+}
 
 // cmdCreate implements: rivtool create --from <file|--> [--output <out.riv>]
 func cmdCreate(args []string) {

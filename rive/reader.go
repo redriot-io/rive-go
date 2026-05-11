@@ -49,6 +49,17 @@ func (f *File) PropertyTypeOf(key uint32) (PropertyType, bool) {
 	return t, ok
 }
 
+// TocEntries returns a copy of the file's Table of Contents map (property key → wire type).
+// The values are the raw 2-bit field indices as written in the file, not the canonical
+// PropertyType constants (bytes properties appear with value 1, not 4).
+func (f *File) TocEntries() map[uint32]PropertyType {
+	out := make(map[uint32]PropertyType, len(f.propertyTypes))
+	for k, v := range f.propertyTypes {
+		out[k] = v
+	}
+	return out
+}
+
 // ── ReadBytes / ReadFile ──────────────────────────────────────────────────────
 
 // ReadBytes parses .riv bytes and returns the object graph.

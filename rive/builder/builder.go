@@ -45,6 +45,25 @@ func (b *Builder) Build() ([]rive.Object, error) {
 	var objects []rive.Object
 	// index 0: Backboard
 	objects = append(objects, &rive.Backboard{})
+
+	// Emit all font assets globally BEFORE any Artboard object. The official Rive
+	// encoder always places FontAsset/FileAssetContents pairs between Backboard and
+	// the first Artboard. FontRef.idx is the 0-based index in this font asset list
+	// (not artboard-relative), which is what fontAssetId (key 279) on TextStyle uses.
+	fontListIdx := uint64(0)
+	for _, ab := range b.artboards {
+		for _, f := range ab.fonts {
+			f.idx = fontListIdx
+			fontListIdx++
+			fa := &rive.FontAsset{}
+			fa.Name = f.name
+			objects = append(objects, fa)
+			fac := &rive.FileAssetContents{}
+			fac.Bytes = f.ttfBytes
+			objects = append(objects, fac)
+		}
+	}
+
 	for _, ab := range b.artboards {
 		if err := ab.emit(&objects); err != nil {
 			return nil, err
@@ -159,18 +178,6 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	a.DefaultStateMachineId = ^uint64(0)
 	a.ViewModelId = ^uint64(0)
 	*objects = append(*objects, a)
-
-	// Emit font assets before any children so FontRef.idx is set when TextRef emits.
-	for _, f := range ab.fonts {
-		f.idx = uint64(len(*objects)) - artboardOffset
-		fa := &rive.FontAsset{}
-		fa.Name = f.name
-		*objects = append(*objects, fa)
-
-		fac := &rive.FileAssetContents{}
-		fac.Bytes = f.ttfBytes
-		*objects = append(*objects, fac)
-	}
 
 	// Emit children in REVERSE declaration order: first-declared = last-emitted = back layer.
 	// The Rive runtime renders first-emitted objects in front, so reversing here means

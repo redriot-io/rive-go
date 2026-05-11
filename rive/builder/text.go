@@ -179,7 +179,7 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 	for _, style := range t.styles {
 		style.idx = uint64(len(*objects)) - artboardOffset
 
-		ts := &rive.TextStyle{}
+		ts := &rive.TextStylePaint{}
 		ts.ParentId = t.idx
 		ts.FontSize = style.fontSize
 		ts.FontAssetId = style.font.idx

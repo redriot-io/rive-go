@@ -118,11 +118,11 @@ func TestText_StyleProperties(t *testing.T) {
 		text.Run("Hi", style)
 	})
 
-	styles := findByTypeKey(objects, 573) // TextStyle
+	styles := findByTypeKey(objects, 137) // TextStylePaint (official typeKey)
 	if len(styles) != 1 {
-		t.Fatalf("want 1 TextStyle, got %d", len(styles))
+		t.Fatalf("want 1 TextStylePaint (typeKey=137), got %d", len(styles))
 	}
-	ts := styles[0].(*rive.TextStyle)
+	ts := styles[0].(*rive.TextStylePaint)
 	if ts.FontSize != 48 {
 		t.Errorf("TextStyle.FontSize = %g, want 48", ts.FontSize)
 	}
@@ -131,7 +131,9 @@ func TestText_StyleProperties(t *testing.T) {
 	}
 }
 
-// Test 5: TextStyle.fontAssetId references FontAsset by artboard-relative index.
+// Test 5: TextStyle.fontAssetId is the 0-based index into the file's FontAsset list.
+// This matches the official Rive encoder: FontAssets are emitted before Artboard,
+// and fontAssetId=0 means the first FontAsset in the file (not artboard-relative).
 func TestText_FontAssetIdWiring(t *testing.T) {
 	objects := buildTextScene(t, func(ab *builder.ArtboardBuilder, font *builder.FontRef) {
 		text := ab.Text("t").Position(0, 0)
@@ -139,35 +141,17 @@ func TestText_FontAssetIdWiring(t *testing.T) {
 		text.Run("X", style)
 	})
 
-	// Compute artboard offset: index of Artboard object
-	artboardOffset := uint64(0)
-	for i, o := range objects {
-		if o.TypeKey() == 1 { // Artboard
-			artboardOffset = uint64(i)
-			break
-		}
-	}
-
-	// Find FontAsset's artboard-relative index
-	fontArtIdx := uint64(0)
-	for i, o := range objects {
-		if o.TypeKey() == 141 {
-			fontArtIdx = uint64(i) - artboardOffset
-			break
-		}
-	}
-
-	// Verify TextStyle references it
+	// Single font scene: first (and only) FontAsset has font-list index 0.
 	for _, o := range objects {
-		if o.TypeKey() == 573 {
-			ts := o.(*rive.TextStyle)
-			if ts.FontAssetId != fontArtIdx {
-				t.Errorf("TextStyle.FontAssetId = %d, want %d", ts.FontAssetId, fontArtIdx)
+		if o.TypeKey() == 137 { // TextStylePaint
+			ts := o.(*rive.TextStylePaint)
+			if ts.FontAssetId != 0 {
+				t.Errorf("TextStylePaint.FontAssetId = %d, want 0 (first font in file)", ts.FontAssetId)
 			}
 			return
 		}
 	}
-	t.Fatal("TextStyle not found")
+	t.Fatal("TextStylePaint (typeKey=137) not found")
 }
 
 // Test 6: TextValueRun has correct text and styleId.
@@ -220,8 +204,8 @@ func TestText_StyleSpacing(t *testing.T) {
 		text.Run("X", style)
 	})
 	for _, o := range objects {
-		if o.TypeKey() == 573 {
-			ts := o.(*rive.TextStyle)
+		if o.TypeKey() == 137 { // TextStylePaint
+			ts := o.(*rive.TextStylePaint)
 			if ts.LetterSpacing != 2.5 {
 				t.Errorf("LetterSpacing = %g, want 2.5", ts.LetterSpacing)
 			}
@@ -231,7 +215,7 @@ func TestText_StyleSpacing(t *testing.T) {
 			return
 		}
 	}
-	t.Fatal("TextStyle not found")
+	t.Fatal("TextStylePaint (typeKey=137) not found")
 }
 
 // Test 9: Multiple runs reference same or different styles.
@@ -248,9 +232,9 @@ func TestText_MultipleRuns(t *testing.T) {
 	if len(runs) != 2 {
 		t.Fatalf("want 2 TextValueRun, got %d", len(runs))
 	}
-	styles := findByTypeKey(objects, 573) // TextStyle
+	styles := findByTypeKey(objects, 137) // TextStylePaint (official typeKey)
 	if len(styles) != 2 {
-		t.Fatalf("want 2 TextStyle, got %d", len(styles))
+		t.Fatalf("want 2 TextStylePaint (typeKey=137), got %d", len(styles))
 	}
 	// styleIds should differ
 	r1 := runs[0].(*rive.TextValueRun)
