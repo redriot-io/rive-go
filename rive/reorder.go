@@ -91,6 +91,10 @@ func fixParentIdsRange(objects []Object, artboardIdx, endIdx int, parentOf map[O
 // immediately before its parent Fill (typeKey=20) in the binary stream — a
 // forward reference that matches official Rive editor output.
 //
+// The swap is parent-scoped: a Fill/SolidColor pair is only swapped when the
+// SolidColor's recorded parent IS the adjacent Fill. This prevents cross-subtree
+// contamination (e.g. a Shape's Fill adjacent to a TextStylePaint's SolidColor).
+//
 // Supports files with multiple artboards: each artboard's children are processed
 // independently so parentId recalculation is scoped correctly.
 func ReorderByContract(objects []Object) []Object {
@@ -112,13 +116,27 @@ func ReorderByContract(objects []Object) []Object {
 		parentMaps[ai] = buildParentMapRange(objects, abIdx, endIdx)
 	}
 
-	// Copy and apply the SolidColor-before-Fill swap over the entire object list.
+	// Build a combined parent map (all artboards) for the per-pair parent check.
+	combinedParentOf := make(map[Object]Object)
+	for _, pm := range parentMaps {
+		for child, parent := range pm {
+			combinedParentOf[child] = parent
+		}
+	}
+
+	// Copy and apply the SolidColor-before-Fill swap, scoped to same-parent pairs.
+	// Only swap when the SolidColor at i+1 is recorded as a child of the Fill at i.
+	// This prevents swapping across subtree boundaries (e.g. Shape's Fill with
+	// an adjacent TextStylePaint's SolidColor).
 	result := make([]Object, len(objects))
 	copy(result, objects)
 	for i := 0; i < len(result)-1; i++ {
 		if result[i].TypeKey() == 20 && result[i+1].TypeKey() == 18 {
-			// Fill at i, SolidColor at i+1 → swap to canonical order.
-			result[i], result[i+1] = result[i+1], result[i]
+			fill := result[i]
+			sc := result[i+1]
+			if parent, ok := combinedParentOf[sc]; ok && parent == fill {
+				result[i], result[i+1] = sc, fill
+			}
 		}
 	}
 

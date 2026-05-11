@@ -74,7 +74,7 @@ func writeRiv(bw *encoding.BinaryWriter, objects []Object, cfg *writeConfig) err
 	// occurrence. The order here determines the ToC listing order, which must
 	// match the bit-pack order written below.
 	type tocEntry struct {
-		key     uint32
+		key      uint32
 		propType PropertyType
 	}
 	var orderedToc []tocEntry
@@ -86,16 +86,24 @@ func writeRiv(bw *encoding.BinaryWriter, objects []Object, cfg *writeConfig) err
 				continue
 			}
 			seenKey[p.Key] = true
-			// Only include keys from the format contract's ToC allowlist.
-			// CoreRegistry-known keys (the vast majority) are excluded from the ToC;
-			// the runtime resolves their types from its compiled-in table.
-			// ToCIncludeKeys encodes the field index directly, including the
-			// bytes-proxy rule (key 212 → field_index=1 instead of 4).
-			fieldIdx, include := ToCIncludeKeys[p.Key]
-			if !include {
-				continue
+
+			if fieldIdx, include := ToCIncludeKeys[p.Key]; include {
+				// Contractually required ToC entry (e.g. bytes-proxy keys like 212).
+				orderedToc = append(orderedToc, tocEntry{p.Key, PropertyType(fieldIdx)})
+			} else if _, known := globalPropTypes[p.Key]; !known {
+				// Unknown property key — not in the compiled-in type table or
+				// contract allowlist. Include in ToC so a round-trip reader can
+				// decode it. This handles forward-compat for future/unknown typeKeys.
+				// PropertyTypeBytes (4) can't fit in 2-bit ToC encoding; use the
+				// string proxy (1) as the contract does for bytes keys.
+				ptype := p.Type
+				if ptype == PropertyTypeBytes {
+					ptype = PropertyTypeString
+				}
+				orderedToc = append(orderedToc, tocEntry{p.Key, ptype})
 			}
-			orderedToc = append(orderedToc, tocEntry{p.Key, PropertyType(fieldIdx)})
+			// Keys in globalPropTypes but not in ToCIncludeKeys: omit from ToC;
+			// the reader resolves their types from its compiled-in table.
 		}
 	}
 
