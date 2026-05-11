@@ -56,6 +56,7 @@ const FROMJSON_FILES: FileEntry[] = [
   { name: 'fromjson_star_path',  path: '/docs/preview/fromjson_star_path.riv',  anim: 'spin'  },
   { name: 'fromjson_bezier_leaf', path: '/docs/preview/fromjson_bezier_leaf.riv', anim: 'pulse' },
   { name: 'fromjson_path_morph', path: '/docs/preview/fromjson_path_morph.riv', anim: 'morph' },
+  { name: 'fromjson_hello_world', path: '/docs/preview/fromjson_hello_world.riv' },
 ];
 
 // ── helper ────────────────────────────────────────────────────────────────────
