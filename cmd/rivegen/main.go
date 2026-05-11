@@ -455,7 +455,17 @@ func generatePropTypeTable(all map[string]*Entry) ([]byte, error) {
 func main() {
 	defsDir := flag.String("defs", "internal/schema/defs", "path to dev/defs directory")
 	outDir := flag.String("out", "rive", "output directory for generated Go files")
+	contractPath := flag.String("contract", "", "path to format_contract.json (generates gen_format_rules.go)")
 	flag.Parse()
+
+	// -contract mode: generate gen_format_rules.go from format_contract.json
+	if *contractPath != "" {
+		if err := generateFormatRules(*contractPath, *outDir); err != nil {
+			log.Fatalf("generate format rules: %v", err)
+		}
+		log.Printf("wrote %s/gen_format_rules.go", *outDir)
+		return
+	}
 
 	all, err := loadDefs(*defsDir)
 	if err != nil {
