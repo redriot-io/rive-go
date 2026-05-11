@@ -135,11 +135,12 @@ test('fromjson_sm: blend_slider — mix input drives BlendState1D', async ({ pag
   expect(sum0, 'blend_slider: canvas blank at mix=0').toBeGreaterThan(0);
 
   // Set mix=1 (intense): ball should be at a different position in its cycle.
-  // We capture two sums 200ms apart at mix=1 to verify the animation is playing.
+  // Sample at t≈150ms and t≈600ms — deliberately asymmetric on the ease-in-out
+  // curve to avoid the t=0.4/0.6 symmetry trap (identical pixel sums).
   await setInput(page, 'BlendSM', 'mix', 1.0);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(150);
   const sum1a: number = await getPixelSum(page);
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(450);
   const sum1b: number = await getPixelSum(page);
 
   // Animation must be playing (pixels change over time)
@@ -148,12 +149,11 @@ test('fromjson_sm: blend_slider — mix input drives BlendState1D', async ({ pag
     `sum1a=${sum1a}  sum1b=${sum1b}`,
   ].join('\n')).not.toBe(sum1b);
 
-  // Also verify mix=0 and mix=1 produce different frame-averages
-  // (intense ball travels further, so RGBA distribution differs over time)
+  // Verify at mix=0 (gentle) the animation is also alive.
   await setInput(page, 'BlendSM', 'mix', 0.0);
-  await page.waitForTimeout(400);
+  await page.waitForTimeout(150);
   const sum0a: number = await getPixelSum(page);
-  await page.waitForTimeout(200);
+  await page.waitForTimeout(450);
   const sum0b: number = await getPixelSum(page);
 
   expect(sum0a, 'blend_slider: canvas frozen at mix=0').not.toBe(sum0b);
