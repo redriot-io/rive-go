@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Star",
+    "width": 300,
+    "height": 300,
+    "children": [
+      {
+        "type": "path",
+        "name": "star",
+        "x": 150,
+        "y": 150,
+        "closed": true,
+        "fill": {
+          "type": "linear_gradient",
+          "start": [0, -90],
+          "end": [0, 90],
+          "stops": [
+            {"position": 0.0, "color": "#FFD700"},
+            {"position": 1.0, "color": "#FF6B00"}
+          ]
+        },
+        "vertices": [
+          {"x": 0, "y": -90},
+          {"x": 21, "y": -29},
+          {"x": 86, "y": -28},
+          {"x": 34, "y": 11},
+          {"x": 53, "y": 75},
+          {"x": 0, "y": 36},
+          {"x": -53, "y": 75},
+          {"x": -34, "y": 11},
+          {"x": -86, "y": -28},
+          {"x": -21, "y": -29}
+        ]
+      }
+    ],
+    "animations": [
+      {
+        "name": "spin",
+        "duration": 3.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "star.rotation",
+            "keyframes": [
+              {"time": 0.0, "value": 0, "easing": "linear"},
+              {"time": 3.0, "value": 360, "easing": "linear"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

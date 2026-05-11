@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Leaf",
+    "width": 300,
+    "height": 300,
+    "children": [
+      {
+        "type": "path",
+        "name": "leaf",
+        "x": 150,
+        "y": 150,
+        "closed": true,
+        "fill": "#44CC44",
+        "vertices": [
+          {"x": 0, "y": -90, "in": [-5, -90], "out": [5, -90]},
+          {"x": 70, "y": 0, "in": [70, -60], "out": [70, 40]},
+          {"x": 0, "y": 80, "in": [40, 80], "out": [-40, 80]},
+          {"x": -70, "y": 0, "in": [-70, 40], "out": [-70, -60]}
+        ]
+      },
+      {
+        "type": "path",
+        "name": "stem",
+        "x": 150,
+        "y": 150,
+        "closed": false,
+        "stroke": {"color": "#226622", "width": 3},
+        "vertices": [
+          {"x": 0, "y": 80},
+          {"x": 0, "y": 120}
+        ]
+      }
+    ],
+    "animations": [
+      {
+        "name": "pulse",
+        "duration": 2.0,
+        "fps": 60,
+        "loop": "pingpong",
+        "tracks": [
+          {
+            "target": "leaf.fill.color",
+            "keyframes": [
+              {"time": 0.0, "value": "#44CC44"},
+              {"time": 1.0, "value": "#88FF44", "easing": "ease-in-out"},
+              {"time": 2.0, "value": "#44CC44", "easing": "ease-in-out"}
+            ]
+          },
+          {
+            "target": "leaf.scaleX",
+            "keyframes": [
+              {"time": 0.0, "value": 1.0, "easing": "ease-in-out"},
+              {"time": 1.0, "value": 1.1, "easing": "ease-in-out"},
+              {"time": 2.0, "value": 1.0, "easing": "ease-in-out"}
+            ]
+          },
+          {
+            "target": "leaf.scaleY",
+            "keyframes": [
+              {"time": 0.0, "value": 1.0, "easing": "ease-in-out"},
+              {"time": 1.0, "value": 1.1, "easing": "ease-in-out"},
+              {"time": 2.0, "value": 1.0, "easing": "ease-in-out"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

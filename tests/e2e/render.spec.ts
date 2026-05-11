@@ -53,6 +53,9 @@ const FROMJSON_FILES: FileEntry[] = [
   { name: 'fromjson_toggle_button_sm',  path: '/docs/preview/fromjson_toggle_button_sm.riv',  sm: 'ToggleSM' },
   { name: 'fromjson_multistate_nav_sm', path: '/docs/preview/fromjson_multistate_nav_sm.riv', sm: 'NavSM'    },
   { name: 'fromjson_blend_slider_sm',   path: '/docs/preview/fromjson_blend_slider_sm.riv',   sm: 'BlendSM'  },
+  { name: 'fromjson_star_path',  path: '/docs/preview/fromjson_star_path.riv',  anim: 'spin'  },
+  { name: 'fromjson_bezier_leaf', path: '/docs/preview/fromjson_bezier_leaf.riv', anim: 'pulse' },
+  { name: 'fromjson_path_morph', path: '/docs/preview/fromjson_path_morph.riv', anim: 'morph' },
 ];
 
 // ── helper ────────────────────────────────────────────────────────────────────

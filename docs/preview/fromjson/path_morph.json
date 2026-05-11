@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Morph",
+    "width": 300,
+    "height": 300,
+    "children": [
+      {
+        "type": "path",
+        "name": "diamond",
+        "x": 150,
+        "y": 150,
+        "closed": true,
+        "fill": "#FF1744",
+        "vertices": [
+          {"x": 0, "y": -80, "radius": 8},
+          {"x": 80, "y": 0, "radius": 8},
+          {"x": 0, "y": 80, "radius": 8},
+          {"x": -80, "y": 0, "radius": 8}
+        ]
+      },
+      {
+        "type": "path",
+        "name": "inner",
+        "x": 150,
+        "y": 150,
+        "closed": true,
+        "fill": "#FFFFFF",
+        "vertices": [
+          {"x": 0, "y": -35},
+          {"x": 35, "y": 0},
+          {"x": 0, "y": 35},
+          {"x": -35, "y": 0}
+        ]
+      }
+    ],
+    "animations": [
+      {
+        "name": "morph",
+        "duration": 2.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "diamond.fill.color",
+            "keyframes": [
+              {"time": 0.0, "value": "#FF1744"},
+              {"time": 0.5, "value": "#FF9100", "easing": "linear"},
+              {"time": 1.0, "value": "#FFEA00", "easing": "linear"},
+              {"time": 1.5, "value": "#00E5FF", "easing": "linear"},
+              {"time": 2.0, "value": "#FF1744", "easing": "linear"}
+            ]
+          },
+          {
+            "target": "diamond.rotation",
+            "keyframes": [
+              {"time": 0.0, "value": 0, "easing": "linear"},
+              {"time": 2.0, "value": 360, "easing": "linear"}
+            ]
+          },
+          {
+            "target": "inner.rotation",
+            "keyframes": [
+              {"time": 0.0, "value": 0, "easing": "linear"},
+              {"time": 2.0, "value": -360, "easing": "linear"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

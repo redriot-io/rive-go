@@ -27,6 +27,9 @@ const ANIM_FILES: AnimFile[] = [
   { name: 'fromjson_dots',   path: '/docs/preview/fromjson_dots.riv',            anim: 'bounce'     },
   { name: 'fromjson_color',  path: '/docs/preview/fromjson_color.riv'                              },
   { name: 'fromjson_autumn', path: '/docs/preview/fromjson_autumn.riv'                             },
+  { name: 'fromjson_star_path',   path: '/docs/preview/fromjson_star_path.riv',   anim: 'spin'  },
+  { name: 'fromjson_bezier_leaf', path: '/docs/preview/fromjson_bezier_leaf.riv', anim: 'pulse' },
+  { name: 'fromjson_path_morph',  path: '/docs/preview/fromjson_path_morph.riv',  anim: 'morph' },
 ];
 
 for (const entry of ANIM_FILES) {

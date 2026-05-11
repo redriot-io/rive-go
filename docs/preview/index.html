@@ -570,6 +570,27 @@ const fromjsonDemos = [
     stateMachines: ["BlendSM"],
     inputDriver: { inputName: "mix", smName: "BlendSM" },
   },
+  {
+    file: "fromjson_star_path.riv",
+    title: "★ Geometric Star (Path)",
+    desc: "10-vertex star built from StraightVertex via custom path. Linear gradient fill (gold→orange). Spins continuously. T-454 path demo.",
+    tags: ["fromjson", "path", "gradient", "loop"],
+    animations: ["spin"],
+  },
+  {
+    file: "fromjson_bezier_leaf.riv",
+    title: "🍃 Bezier Leaf (CubicVertex)",
+    desc: "Organic leaf shape from 4 CubicVertex (closed) + 2-vertex open stem. Fill color pulses green↔lime, shape scales in/out. Pingpong loop. T-454 path demo.",
+    tags: ["fromjson", "path", "cubic", "pingpong"],
+    animations: ["pulse"],
+  },
+  {
+    file: "fromjson_path_morph.riv",
+    title: "◆ Animated Diamond (Path+Color)",
+    desc: "Diamond with rounded StraightVertex (radius=8) cycling through 4 fill colors, spinning outer + counter-spinning inner diamond. T-454 path demo.",
+    tags: ["fromjson", "path", "color", "loop"],
+    animations: ["morph"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines, inputDriver }) => {
