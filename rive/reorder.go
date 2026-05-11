@@ -20,47 +20,52 @@ func getParentId(obj Object) uint64 {
 	return 0
 }
 
-// findFirstArtboard returns the global index of the first Artboard (typeKey=1),
-// or -1 if none is found.
-func findFirstArtboard(objects []Object) int {
+// findAllArtboards returns the global indices of all Artboard (typeKey=1) objects
+// in ascending order (preserving stream order).
+func findAllArtboards(objects []Object) []int {
+	var idxs []int
 	for i, obj := range objects {
 		if obj.TypeKey() == 1 {
-			return i
+			idxs = append(idxs, i)
 		}
 	}
-	return -1
+	return idxs
 }
 
-// buildParentMap constructs a mapping of object → parent object using the
-// CURRENT artboard-relative parentId values. Must be called before reordering.
-// Objects before the artboard (Backboard, FontAsset, etc.) are excluded.
-func buildParentMap(objects []Object, artboardGlobalIdx int) map[Object]Object {
-	artboard := objects[artboardGlobalIdx]
-	parentOf := make(map[Object]Object, len(objects))
-	for i := artboardGlobalIdx + 1; i < len(objects); i++ {
+// buildParentMapRange constructs a mapping of child → parent for the artboard at
+// artboardIdx, covering children in [artboardIdx+1, endIdx).
+// Must be called before any reordering so that parentId values are still valid.
+func buildParentMapRange(objects []Object, artboardIdx, endIdx int) map[Object]Object {
+	artboard := objects[artboardIdx]
+	parentOf := make(map[Object]Object, endIdx-artboardIdx)
+	for i := artboardIdx + 1; i < endIdx; i++ {
 		obj := objects[i]
 		pid := getParentId(obj)
 		if pid == 0 {
 			parentOf[obj] = artboard
 		} else {
-			parentOf[obj] = objects[artboardGlobalIdx+int(pid)]
+			ref := artboardIdx + int(pid)
+			if ref < len(objects) {
+				parentOf[obj] = objects[ref]
+			}
 		}
 	}
 	return parentOf
 }
 
-// fixParentIds recalculates artboard-relative parentId for every artboard child
-// using the supplied parent-child map (keyed by object pointer).
-func fixParentIds(objects []Object, artboardGlobalIdx int, parentOf map[Object]Object) {
-	artboard := objects[artboardGlobalIdx]
+// fixParentIdsRange recalculates artboard-relative parentId values for children of
+// the artboard at artboardIdx, in the range [artboardIdx+1, endIdx), using the
+// supplied parent-child map (built before reordering, keyed by object pointer).
+func fixParentIdsRange(objects []Object, artboardIdx, endIdx int, parentOf map[Object]Object) {
+	artboard := objects[artboardIdx]
 
-	// Current global index of every object (pointer → position)
+	// Resolve current global index of every object in the (possibly reordered) slice.
 	globalIdx := make(map[Object]int, len(objects))
 	for i, obj := range objects {
 		globalIdx[obj] = i
 	}
 
-	for i := artboardGlobalIdx + 1; i < len(objects); i++ {
+	for i := artboardIdx + 1; i < endIdx; i++ {
 		obj := objects[i]
 		parent, ok := parentOf[obj]
 		if !ok {
@@ -73,55 +78,73 @@ func fixParentIds(objects []Object, artboardGlobalIdx int, parentOf map[Object]O
 		if parent == artboard {
 			ps.setParentId(0)
 		} else {
-			ps.setParentId(uint64(globalIdx[parent] - artboardGlobalIdx))
+			ps.setParentId(uint64(globalIdx[parent] - artboardIdx))
 		}
 	}
 }
 
 // ReorderByContract reorders objects to match the official Rive encoder's
 // emission order derived from format_contract.json, then fixes all
-// artboard-relative parentId values.
+// artboard-relative parentId values for every artboard in the file.
 //
 // Currently enforces one conformance rule: SolidColor (typeKey=18) must appear
 // immediately before its parent Fill (typeKey=20) in the binary stream — a
 // forward reference that matches official Rive editor output.
+//
+// Supports files with multiple artboards: each artboard's children are processed
+// independently so parentId recalculation is scoped correctly.
 func ReorderByContract(objects []Object) []Object {
 	if len(objects) == 0 {
 		return objects
 	}
-	artboardGlobalIdx := findFirstArtboard(objects)
-	if artboardGlobalIdx < 0 {
+	artboardIdxs := findAllArtboards(objects)
+	if len(artboardIdxs) == 0 {
 		return objects
 	}
 
-	// Capture parent-child relationships from the correct pre-reorder parentIds.
-	parentOf := buildParentMap(objects, artboardGlobalIdx)
+	// Build parent maps for ALL artboards BEFORE any reordering.
+	parentMaps := make([]map[Object]Object, len(artboardIdxs))
+	for ai, abIdx := range artboardIdxs {
+		endIdx := len(objects)
+		if ai+1 < len(artboardIdxs) {
+			endIdx = artboardIdxs[ai+1]
+		}
+		parentMaps[ai] = buildParentMapRange(objects, abIdx, endIdx)
+	}
 
-	// Copy and apply the SolidColor-before-Fill swap.
+	// Copy and apply the SolidColor-before-Fill swap over the entire object list.
 	result := make([]Object, len(objects))
 	copy(result, objects)
-
 	for i := 0; i < len(result)-1; i++ {
 		if result[i].TypeKey() == 20 && result[i+1].TypeKey() == 18 {
-			// Fill at i, SolidColor at i+1 → swap: SolidColor at i, Fill at i+1.
+			// Fill at i, SolidColor at i+1 → swap to canonical order.
 			result[i], result[i+1] = result[i+1], result[i]
 		}
 	}
 
-	// Recalculate parentIds from the pre-reorder parent map.
-	fixParentIds(result, artboardGlobalIdx, parentOf)
+	// Recalculate parentIds for each artboard's children using the pre-reorder maps.
+	for ai, abIdx := range artboardIdxs {
+		endIdx := len(result)
+		if ai+1 < len(artboardIdxs) {
+			endIdx = artboardIdxs[ai+1]
+		}
+		fixParentIdsRange(result, abIdx, endIdx, parentMaps[ai])
+	}
 
 	return result
 }
 
 // FixParentIds recalculates artboard-relative parentId values for all objects
 // using their current parentId to reconstruct parent-child relationships.
-// Idempotent: safe to call on an already-correct list.
+// Handles multiple artboards. Idempotent: safe to call on an already-correct list.
 func FixParentIds(objects []Object) {
-	artboardGlobalIdx := findFirstArtboard(objects)
-	if artboardGlobalIdx < 0 {
-		return
+	artboardIdxs := findAllArtboards(objects)
+	for ai, abIdx := range artboardIdxs {
+		endIdx := len(objects)
+		if ai+1 < len(artboardIdxs) {
+			endIdx = artboardIdxs[ai+1]
+		}
+		parentOf := buildParentMapRange(objects, abIdx, endIdx)
+		fixParentIdsRange(objects, abIdx, endIdx, parentOf)
 	}
-	parentOf := buildParentMap(objects, artboardGlobalIdx)
-	fixParentIds(objects, artboardGlobalIdx, parentOf)
 }

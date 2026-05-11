@@ -1,0 +1,48 @@
+name: Format Conformance
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC — detects upstream rive-runtime format drift
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Clone rive-runtime (sparse)
+        run: |
+          git clone --depth=1 --filter=blob:none --sparse \
+            https://github.com/rive-app/rive-runtime /tmp/rive-runtime
+          cd /tmp/rive-runtime
+          git sparse-checkout set dev/defs tests/unit_tests/assets
+
+      - name: Update golden .riv files
+        run: cp /tmp/rive-runtime/tests/unit_tests/assets/*.riv rive/testdata/official/
+
+      - name: Regenerate format contract
+        run: |
+          go run ./cmd/rivtool analyze \
+            --assets rive/testdata/official/ \
+            --defs /tmp/rive-runtime/dev/defs/ \
+            -o rive/format_contract.json
+
+      - name: Regenerate format rules
+        run: go generate ./rive/...
+
+      - name: Check for drift
+        run: |
+          if ! git diff --exit-code rive/; then
+            echo "::error::Format contract drift detected — upstream rive-runtime changed!"
+            git diff --stat
+            exit 1
+          fi
+
+      - name: Run tests
+        run: go test ./...

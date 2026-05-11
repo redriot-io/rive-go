@@ -1,6 +1,9 @@
 package rive
 
-import "testing"
+import (
+	"sort"
+	"testing"
+)
 
 // TestDefaults_MatchContract verifies that Properties() suppresses fields that
 // are at their Rive runtime default (RiveDefault map) and emits fields that
@@ -174,4 +177,41 @@ func TestGenFormatRules_Sanity(t *testing.T) {
 	if phase.Phase != PhaseGlobal {
 		t.Errorf("TypePhase[23].Phase = %v, want PhaseGlobal", phase.Phase)
 	}
+}
+
+// TestConformance_DefaultMismatchReport logs all RiveDefault entries — properties
+// where the Rive runtime default differs from the Go zero value for that type.
+// This is an informational test: it always passes and outputs a human-readable
+// summary useful for auditing gen_*.go suppression logic.
+//
+// Each entry in RiveDefault represents a property where emitting the zero-value
+// would be incorrect; the gen_*.go Properties() method must suppress at the
+// Rive default, not at Go zero.
+func TestConformance_DefaultMismatchReport(t *testing.T) {
+	type entry struct {
+		key int
+		val interface{}
+	}
+
+	entries := make([]entry, 0, len(RiveDefault))
+	for k, v := range RiveDefault {
+		entries = append(entries, entry{int(k), v})
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].key < entries[j].key })
+
+	t.Logf("=== RiveDefault mismatch report: %d properties ===", len(entries))
+	t.Logf("  (all entries: Rive default ≠ Go zero — gen_*.go must suppress at Rive default)")
+	for _, e := range entries {
+		switch v := e.val.(type) {
+		case float64:
+			t.Logf("  key %4d  float64  rive_default=%-8g  go_zero=0.0", e.key, v)
+		case uint64:
+			t.Logf("  key %4d  uint64   rive_default=%-8d  go_zero=0", e.key, v)
+		case bool:
+			t.Logf("  key %4d  bool     rive_default=%-8v  go_zero=false", e.key, v)
+		default:
+			t.Logf("  key %4d  %T       rive_default=%v", e.key, v, v)
+		}
+	}
+	t.Logf("Total: %d RiveDefault entries requiring non-zero suppression", len(entries))
 }

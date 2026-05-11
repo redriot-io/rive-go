@@ -151,8 +151,8 @@ func TestConformance_OfficialFilesReadable(t *testing.T) {
 // produces a structurally identical file: same object count, same TypeKeys in
 // order, and same property key/type/value sets per object.
 //
-// Uses the small official files (ball_test.riv, blend_test.riv, hello_world.riv)
-// to exercise both font-free and font-embedded paths.
+// Covers all 5 official Rive files to exercise font-free, single-font, and
+// multi-font paths. ellipsis.riv and new_text.riv exercise large embedded fonts.
 func TestConformance_RoundTrip(t *testing.T) {
 	files := []struct {
 		path string
@@ -161,6 +161,8 @@ func TestConformance_RoundTrip(t *testing.T) {
 		{"testdata/official/ball_test.riv", "shapes + state machine, no font"},
 		{"testdata/official/blend_test.riv", "blend state machine, no font"},
 		{"testdata/official/hello_world.riv", "text + embedded font (bytes round-trip)"},
+		{"testdata/official/ellipsis.riv", "text overflow + ellipsis, embedded font"},
+		{"testdata/official/new_text.riv", "multi-style text, 5 fonts, animations"},
 	}
 
 	for _, f := range files {

@@ -421,3 +421,167 @@ ADDED:
 - `go test ./...` all green (GOTMPDIR=/app/workspace/tmp workaround for noexec /tmp)
 - Playwright cannot run locally — Alpine musl vs glibc chromium incompatibility; CI (ubuntu-latest) verifies browser tests
 - rivtool_bin was stale before T-455 changes; rebuilt with `go build -o rivtool_bin ./cmd/rivtool/` before compiling JSONs
+
+---
+[2026-05-11] PROJ_RIVE-GO_CODE_V1_COMPLETE — T-463/T-464: Text support MVP (Tier 3 Phase 2A)
+
+Commit: 337b9f3 (pushed to origin/main)
+
+What was built:
+- rive/builder/text.go: FontRef, TextRef, TextStyleRef — full builder API for text
+  - EmbedFont(name, bytes) → *FontRef
+  - Text(name) → *TextRef; .Position(x,y).Align(a).Sizing(s)
+  - TextRef.Style(font, size) → *TextStyleRef; .Fill(color).LineHeight(lh).LetterSpacing(ls)
+  - TextRef.Run(text, style) → *TextRef
+  - Emission order: FontAsset → FileAssetContents → Text → TextStyle → Fill → SolidColor → TextValueRun
+- rive/builder/builder.go: fonts []*FontRef field; EmbedFont(); emit() iterates fonts before children
+- rive/builder/props.go: PropTextAlign(281), PropFontSize(274), PropLetterSpacing(390), PropLineHeight(370), PropTextContent(268)
+- rive/fromjson/fromjson.go: "fonts" array, "type":"text" children, addText(), parseTextAlign()
+  - FromJSONFile(path) uses filepath.Dir for font resolution; FromJSON("") skips file loading
+  - ValidateJSON accepts "text" type
+- rive/reader.go: lookupPropType prefers globalPropTypes over ToC — critical fix for PropertyTypeBytes=4
+  (2-bit ToC encodes 4&3=0 as Uint; globalPropTypes correctly maps k212→Bytes)
+- cmd/rivtool/main.go: FromJSONFile for file args, FromJSON for stdin (--from -)
+- docs/preview/fromjson/hello_world.json: two-text demo scene
+- docs/preview/fromjson_hello_world.riv: compiled output (18 objects, 80662 bytes)
+
+Tests:
+- rive/builder/text_test.go: 12 tests (EmbedFont, FontBeforeText, Properties, StyleProperties,
+  FontAssetIdWiring, ValueRun, FillUnderStyle, StyleSpacing, MultipleRuns, SizingFixed,
+  MultipleFonts, RoundTripBytes) — all pass
+- rive/fromjson/text_fromjson_test.go: 14 tests (HelloWorld, FontAssetName, FontBytesPresent,
+  FontSize, RunContent, FillColor, ValidationMissingText, ValidationUnknownFont,
+  ValidationFontSizeZero, MixedChildren, AlignLeft, AlignRight, FileRefRequiresBaseDir,
+  RoundTrip) — all pass
+- Total suite: all packages green (go test ./...)
+
+Key fixes applied this session:
+- txt.FitFromBaseline = true (suppresses k703 emission, matches Rive default)
+- txt.TextRunListSource = ^uint64(0) (suppresses k932 emission, Rive sentinel value)
+
+────────────────────────────────────────────────────────────
+T-470 COMPLETE — rivtool dump + FORMAT_CONTRACT + round-trip test
+Commit: c9e31e0  (main)
+────────────────────────────────────────────────────────────
+Deliverables:
+  1. cmd/rivtool/main.go: `rivtool dump <file>` command
+     - Full structural decoder: header, ToC with field-index notes,
+       object stream with artboard-relative parentId resolution, summary
+  2. rive/testdata/official/STRUCTURE_DUMP.txt (1330 lines)
+     - Output of `rivtool dump` on all 5 official files
+  3. rive/testdata/official/FORMAT_CONTRACT.md (comprehensive encoding spec)
+     - ToC bit-pack algorithm, bytes proxy, emission order gap, typeKey gaps
+  4. rive/reader.go: TocEntries() accessor
+  5. rive/conformance_test.go: TestConformance_RoundTrip
+     - ReadBytes → WriteBytes → ReadBytes on 3 fixtures
+     - Asserts: object count, TypeKeys, property key/type/value equality
+     - ball_test.riv (89 obj, 995→1052 B), blend_test.riv (52 obj, 503→554 B),
+       hello_world.riv (19 obj, 33413→33439 B) — all PASS
+
+All packages green: go test ./...
+
+────────────────────────────────────────────────────────────
+T-471 COMPLETE — Builder conformance fixes (emission order + typeKey + fontAssetId)
+Commit: 00aaaa7  (main)
+────────────────────────────────────────────────────────────
+Root cause of WASM hang: 3 conformance bugs in builder text emission.
+
+Fix 1 — Emission order (builder.go Build()):
+  Before: Backboard → Artboard → FontAsset → FileAssetContents → Text ...
+  After:  Backboard → FontAsset → FileAssetContents → Artboard → Text ...
+  FontRef.idx now = 0-based font-asset-list index (was artboard-relative).
+
+Fix 2 — TypeKey (text.go emitObjects()):
+  Before: rive.TextStyle{} typeKey=573 (TextStyleFeature — wrong!)
+  After:  rive.TextStylePaint{} typeKey=137 (TextStylePaint — correct)
+  TextStylePaint embeds TextStyle with identical fields; only TypeKey() differs.
+
+Fix 3 — fontAssetId value:
+  Before: fontAssetId=1 (artboard-relative index of FontAsset after Artboard)
+  After:  fontAssetId=0 (0-based position in file's FontAsset list)
+
+Also committed in this pass (T-470 artifacts previously local-only):
+  - cmd/rivtool/main.go: 'rivtool dump' command
+  - rive/reader.go: TocEntries() accessor
+  - rive/testdata/official/FORMAT_CONTRACT.md
+  - rive/testdata/official/STRUCTURE_DUMP.txt
+
+Rebuilt: docs/preview/fromjson_hello_world.riv (80662 bytes)
+Verified dump shows: FontAsset→FileAssetContents→Artboard, typeKey=137, fontAssetId=0
+All packages: go test ./... PASS
+
+────────────────────────────────────────────────────────────
+T-472 COMPLETE — rivtool analyze + format_contract.json
+Commit: e9248c4  (main)
+────────────────────────────────────────────────────────────
+New files:
+  cmd/rivtool/analyze.go (~700 lines)
+    Parses official .riv assets + dev/defs JSON schemas
+    Outputs machine-readable format_contract.json
+    Flags: --assets <dir>, --defs <dir>, -o <file>
+
+  rive/format_contract.json (103KB)
+    Generated from 5 official .riv files + rive-runtime/dev/defs
+    350 type registry entries, 571 runtime property defaults
+    Sections: emission_order, toc_rules, defaults, parent_id_rules, type_registry
+
+  rive/format_contract_test.go
+    TestAnalyze_ContractValid: 7 assertions against known ground truth
+
+Key findings in format_contract.json:
+  - global_prefix = [23, 141, 106] (Backboard, FontAsset, FileAssetContents)
+  - bytes_proxy_keys = [212] (only key 212 observed in official files)
+  - 571 runtime properties with mismatch flags (opacity=true, fontSize=true, etc.)
+  - Backboard(23), FontAsset(141), FileAssetContents(106), Artboard(1) have no parentId
+
+dev/defs format notes (differs from task description):
+  - Properties is a map (not array)
+  - Default field is initialValue (not defaultValue)
+  - Some have initialValueRuntime for runtime-specific defaults
+  - runtime: false = editor-only (excluded from defaults section)
+  - Type values: double/uint/String/Color/bool/Bytes/Id (case varies)
+
+All packages: go test ./... PASS
+
+---
+[T-473] PROJ_RIVE-GO_CODE_V6_COMPLETE — rivegen -contract + gen_format_rules.go
+Commit: 7590e55
+
+Deliverables:
+- cmd/rivegen/format_rules.go: code generator reading format_contract.json
+- cmd/rivegen/main.go: -contract flag + early-exit path
+- rive/gen_format_rules.go: generated 590-line Go file with EmissionPhase
+  consts, TypePhase (44), ToCIncludeKeys (28, key 212→1 bytes-proxy),
+  RiveDefault (~210 mismatch entries), FormatParentIdRules (44)
+- rive/generate.go: //go:generate directive
+- rive/gen_format_rules_test.go: TestGenFormatRules_Sanity (4 assertions)
+
+All tests green. Committed and pushed to main.
+
+---
+[T-474] PROJ_RIVE-GO_CODE_V7_COMPLETE — builder reorder + ToC filtering
+Commit: d2166d6
+
+Change 1 (builder reorder):
+  rive/reorder.go: ReorderByContract (SolidColor before Fill), FixParentIds
+  builder.Build() calls both after emit loop
+  parentSetter interface + Component.setParentId in reorder.go (no gen file edits)
+
+Change 2 (defaults):
+  gen_*.go defaults validated against RiveDefault via TestDefaults_MatchContract
+  All tested keys correct; no codegen re-run required
+
+Change 3 (writer ToC):
+  rive/writer.go: ToC now only includes ToCIncludeKeys (28 keys)
+  Bytes-proxy rule baked in. Reader's globalPropTypes covers all excluded keys.
+
+Test updates:
+  builder_test.go: TestBuilder_RectangleWithFill (objects[4]=SolidColor, [5]=Fill)
+  fromjson_test.go: TestFromJSON_MinimalRect, TestFromJSON_ColorFormats (find by type)
+
+New tests:
+  reorder_test.go: TestReorder_HelloWorld, TestReorder_ShapeWithFill,
+    TestReorder_GradientUnchanged, TestFixParentIds_Idempotent
+  gen_format_rules_test.go: TestDefaults_MatchContract (6 property keys)
+
+All 10 test packages green.

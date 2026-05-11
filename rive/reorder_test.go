@@ -1,6 +1,7 @@
 package rive_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/redriot-io/rive-go/rive"
@@ -210,4 +211,94 @@ func TestFixParentIds_Idempotent(t *testing.T) {
 				i, o.TypeKey(), before[i], after)
 		}
 	}
+}
+
+// TestReorder_MultiArtboard verifies that ReorderByContract correctly handles
+// files with multiple artboards, preserving parentId values for each artboard's
+// children independently. Uses ball_test.riv which has 4 artboards.
+//
+// Official ball_test.riv already has SolidColor before Fill in all artboards,
+// so no swaps occur — but parentId recalculation must be scoped per-artboard.
+//
+// Known parentId forward-refs in ball_test.riv (from rivtool dump):
+//
+//	Artboard 2 (global [18]): SC[22] parentId=7→Fill[25], SC[23] parentId=8→Fill[26]
+//	Artboard 3 (global [45]): SC[49] parentId=7→Fill[52], SC[51] parentId=8→Fill[53]
+//	Artboard 4 (global [72]): SC[76] parentId=6→Fill[78]
+func TestReorder_MultiArtboard(t *testing.T) {
+	data, err := os.ReadFile("testdata/official/ball_test.riv")
+	if err != nil {
+		t.Skip("testdata/official/ball_test.riv not available")
+	}
+	f, err := rive.ReadBytes(data)
+	if err != nil {
+		t.Fatalf("parse ball_test.riv: %v", err)
+	}
+	if len(f.Objects) != 89 {
+		t.Fatalf("expected 89 objects in ball_test.riv, got %d", len(f.Objects))
+	}
+
+	result := rive.ReorderByContract(f.Objects)
+
+	if len(result) != len(f.Objects) {
+		t.Fatalf("object count changed: %d → %d", len(f.Objects), len(result))
+	}
+
+	// Verify no typeKeys changed (official already has correct SC-before-Fill order).
+	for i := range f.Objects {
+		if result[i].TypeKey() != f.Objects[i].TypeKey() {
+			t.Errorf("objects[%d] typeKey changed: %d → %d", i, f.Objects[i].TypeKey(), result[i].TypeKey())
+		}
+	}
+
+	// Verify parentIds are preserved for all artboards' SolidColor forward-refs.
+	checks := []struct {
+		globalIdx    int
+		wantParentId uint64
+		desc         string
+	}{
+		{6, 6, "SC[6] in AB1"},
+		{22, 7, "SC[22] in AB2"},
+		{23, 8, "SC[23] in AB2"},
+		{49, 7, "SC[49] in AB3"},
+		{51, 8, "SC[51] in AB3"},
+		{76, 6, "SC[76] in AB4"},
+	}
+	for _, c := range checks {
+		obj := result[c.globalIdx]
+		if obj.TypeKey() != 18 {
+			t.Errorf("objects[%d] typeKey=%d, want 18 (SolidColor) for %s",
+				c.globalIdx, obj.TypeKey(), c.desc)
+			continue
+		}
+		gotParentId := uint64(0)
+		for _, p := range obj.Properties() {
+			if p.Key == 5 {
+				gotParentId = p.Value.(uint64)
+				break
+			}
+		}
+		if gotParentId != c.wantParentId {
+			t.Errorf("%s: parentId=%d, want %d", c.desc, gotParentId, c.wantParentId)
+		}
+	}
+
+	// Write and re-read to verify the result is a valid .riv file.
+	written, err := rive.WriteBytes(result,
+		rive.WithMajorVersion(f.MajorVersion),
+		rive.WithMinorVersion(f.MinorVersion),
+		rive.WithFileID(f.FileID),
+	)
+	if err != nil {
+		t.Fatalf("WriteBytes: %v", err)
+	}
+	f2, err := rive.ReadBytes(written)
+	if err != nil {
+		t.Fatalf("ReadBytes after ReorderByContract: %v", err)
+	}
+	if len(f2.Objects) != len(f.Objects) {
+		t.Fatalf("round-trip count: %d → %d", len(f.Objects), len(f2.Objects))
+	}
+	t.Logf("multi-artboard ok: %d objects across 4 artboards, %d→%d bytes",
+		len(result), len(data), len(written))
 }
