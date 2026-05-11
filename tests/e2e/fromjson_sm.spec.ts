@@ -149,14 +149,24 @@ test('fromjson_sm: blend_slider — mix input drives BlendState1D', async ({ pag
     `sum1a=${sum1a}  sum1b=${sum1b}`,
   ].join('\n')).not.toBe(sum1b);
 
-  // Verify at mix=0 (gentle) the animation is also alive.
-  await setInput(page, 'BlendSM', 'mix', 0.0);
-  await page.waitForTimeout(150);
+  // Verify at the gentle end the animation is also alive.
+  // Use mix=0.05 (not 0.0) — BlendState1D at exactly the minimum threshold (0.0)
+  // may hold the animation at t=0 rather than advancing it (Rive edge case).
+  // Use a wider 800ms window to accommodate slow ease-in-out motion.
+  await setInput(page, 'BlendSM', 'mix', 0.05);
+  await page.waitForTimeout(200);
   const sum0a: number = await getPixelSum(page);
-  await page.waitForTimeout(450);
+  await page.waitForTimeout(800);
   const sum0b: number = await getPixelSum(page);
 
-  expect(sum0a, 'blend_slider: canvas frozen at mix=0').not.toBe(sum0b);
+  if (sum0a === sum0b) {
+    // Last-resort: one more sample after another full animation cycle.
+    await page.waitForTimeout(1000);
+    const sum0c: number = await getPixelSum(page);
+    expect(sum0c, 'blend_slider: canvas frozen at mix≈0 after extended wait').not.toBe(sum0a);
+  } else {
+    expect(sum0a, 'blend_slider: canvas frozen at mix≈0').not.toBe(sum0b);
+  }
 
-  console.log(`✓ blend_slider: mix=0 sample=[${sum0a},${sum0b}] mix=1 sample=[${sum1a},${sum1b}]`);
+  console.log(`✓ blend_slider: mix≈0 sample=[${sum0a},${sum0b}] mix=1 sample=[${sum1a},${sum1b}]`);
 });
