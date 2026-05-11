@@ -1,0 +1,4904 @@
+{
+  "generated_at": "2026-05-11T06:21:33Z",
+  "sources": {
+    "asset_files": [
+      "ball_test.riv",
+      "blend_test.riv",
+      "ellipsis.riv",
+      "hello_world.riv",
+      "new_text.riv"
+    ],
+    "defs_dir": "../../../tmp/rive-runtime-sparse/dev/defs/"
+  },
+  "emission_order": {
+    "global_prefix": [
+      23,
+      141,
+      106
+    ],
+    "artboard_phase": [
+      1
+    ],
+    "type_phase_priority": {
+      "1": {
+        "phase": "artboard",
+        "priority": 0
+      },
+      "106": {
+        "phase": "global",
+        "priority": 2
+      },
+      "114": {
+        "phase": "animation",
+        "priority": 2
+      },
+      "128": {
+        "phase": "children",
+        "priority": 0
+      },
+      "134": {
+        "phase": "children",
+        "priority": 17
+      },
+      "135": {
+        "phase": "children",
+        "priority": 20
+      },
+      "137": {
+        "phase": "children",
+        "priority": 18
+      },
+      "138": {
+        "phase": "children",
+        "priority": 5
+      },
+      "141": {
+        "phase": "global",
+        "priority": 1
+      },
+      "142": {
+        "phase": "children",
+        "priority": 24
+      },
+      "144": {
+        "phase": "children",
+        "priority": 19
+      },
+      "168": {
+        "phase": "state_machine",
+        "priority": 7
+      },
+      "171": {
+        "phase": "children",
+        "priority": 8
+      },
+      "18": {
+        "phase": "paint",
+        "priority": 0
+      },
+      "19": {
+        "phase": "children",
+        "priority": 21
+      },
+      "20": {
+        "phase": "paint",
+        "priority": 1
+      },
+      "22": {
+        "phase": "paint",
+        "priority": 2
+      },
+      "23": {
+        "phase": "global",
+        "priority": 0
+      },
+      "24": {
+        "phase": "children",
+        "priority": 23
+      },
+      "25": {
+        "phase": "children",
+        "priority": 6
+      },
+      "26": {
+        "phase": "children",
+        "priority": 7
+      },
+      "28": {
+        "phase": "children",
+        "priority": 11
+      },
+      "3": {
+        "phase": "children",
+        "priority": 3
+      },
+      "30": {
+        "phase": "children",
+        "priority": 9
+      },
+      "31": {
+        "phase": "animation",
+        "priority": 1
+      },
+      "4": {
+        "phase": "children",
+        "priority": 4
+      },
+      "42": {
+        "phase": "children",
+        "priority": 22
+      },
+      "420": {
+        "phase": "children",
+        "priority": 2
+      },
+      "53": {
+        "phase": "state_machine",
+        "priority": 0
+      },
+      "56": {
+        "phase": "children",
+        "priority": 12
+      },
+      "57": {
+        "phase": "state_machine",
+        "priority": 1
+      },
+      "61": {
+        "phase": "state_machine",
+        "priority": 2
+      },
+      "62": {
+        "phase": "state_machine",
+        "priority": 3
+      },
+      "63": {
+        "phase": "state_machine",
+        "priority": 5
+      },
+      "64": {
+        "phase": "state_machine",
+        "priority": 4
+      },
+      "65": {
+        "phase": "state_machine",
+        "priority": 6
+      },
+      "7": {
+        "phase": "children",
+        "priority": 10
+      },
+      "73": {
+        "phase": "state_machine",
+        "priority": 8
+      },
+      "75": {
+        "phase": "children",
+        "priority": 16
+      },
+      "76": {
+        "phase": "children",
+        "priority": 14
+      },
+      "77": {
+        "phase": "children",
+        "priority": 13
+      },
+      "78": {
+        "phase": "children",
+        "priority": 15
+      },
+      "92": {
+        "phase": "children",
+        "priority": 1
+      },
+      "95": {
+        "phase": "animation",
+        "priority": 0
+      }
+    },
+    "notes": [
+      "global_prefix: types observed before first Artboard(1) in all files where they appear",
+      "paint ordering: SolidColor(18) appears before its parent Fill(20) in official files — forward-reference parentId pattern",
+      "fontAssetId (key 279): 0-based index into file-level FontAsset list, not artboard-relative",
+      "bytes in ToC proxied as field_index=1 (PropertyTypeString) — wire encoding identical, but ToC 2-bit field cannot represent PropertyTypeBytes=4"
+    ]
+  },
+  "toc_rules": {
+    "include_keys": {
+      "160": {
+        "field_index": 0,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "165": {
+        "field_index": 0,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "166": {
+        "field_index": 2,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "167": {
+        "field_index": 0,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "168": {
+        "field_index": 0,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "171": {
+        "field_index": 0,
+        "seen_in": [
+          "blend_test.riv"
+        ]
+      },
+      "197": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "198": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "203": {
+        "field_index": 1,
+        "seen_in": [
+          "ellipsis.riv"
+        ]
+      },
+      "204": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "212": {
+        "field_index": 1,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ],
+        "note": "bytes_proxy"
+      },
+      "224": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "225": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "236": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv",
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "268": {
+        "field_index": 1,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "272": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "274": {
+        "field_index": 2,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "279": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv",
+          "hello_world.riv",
+          "new_text.riv"
+        ]
+      },
+      "280": {
+        "field_index": 1,
+        "seen_in": [
+          "new_text.riv"
+        ]
+      },
+      "284": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv",
+          "new_text.riv"
+        ]
+      },
+      "285": {
+        "field_index": 2,
+        "seen_in": [
+          "ellipsis.riv",
+          "new_text.riv"
+        ]
+      },
+      "286": {
+        "field_index": 2,
+        "seen_in": [
+          "ellipsis.riv",
+          "new_text.riv"
+        ]
+      },
+      "287": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv",
+          "new_text.riv"
+        ]
+      },
+      "288": {
+        "field_index": 2,
+        "seen_in": [
+          "ellipsis.riv"
+        ]
+      },
+      "289": {
+        "field_index": 0,
+        "seen_in": [
+          "ellipsis.riv"
+        ]
+      },
+      "389": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "399": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      },
+      "494": {
+        "field_index": 0,
+        "seen_in": [
+          "ball_test.riv"
+        ]
+      }
+    },
+    "bytes_proxy_keys": [
+      212
+    ]
+  },
+  "defaults": {
+    "100": {
+      "name": "tx",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "1000": {
+      "name": "isToggled",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1001": {
+      "name": "isRequired",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1002": {
+      "name": "isDisabled",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1003": {
+      "name": "isFocused",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1004": {
+      "name": "isHidden",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1005": {
+      "name": "isLiveRegion",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1006": {
+      "name": "isReadOnly",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1007": {
+      "name": "isModal",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1008": {
+      "name": "isObscured",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "1009": {
+      "name": "isMultiline",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "101": {
+      "name": "ty",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "1010": {
+      "name": "actionType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "1011": {
+      "name": "traversalKind",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "102": {
+      "name": "values",
+      "type": "uint",
+      "rive_default": 255,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "103": {
+      "name": "indices",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "104": {
+      "name": "xx",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "105": {
+      "name": "yx",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "106": {
+      "name": "xy",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "107": {
+      "name": "yy",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "108": {
+      "name": "tx",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "109": {
+      "name": "ty",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "11": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "110": {
+      "name": "inValues",
+      "type": "uint",
+      "rive_default": 255,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "111": {
+      "name": "inIndices",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "112": {
+      "name": "outValues",
+      "type": "uint",
+      "rive_default": 255,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "113": {
+      "name": "outIndices",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "114": {
+      "name": "start",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "115": {
+      "name": "end",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "116": {
+      "name": "offset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "117": {
+      "name": "modeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "119": {
+      "name": "drawableId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "12": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "120": {
+      "name": "placementValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "121": {
+      "name": "drawTargetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "122": {
+      "name": "value",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "123": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "124": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "125": {
+      "name": "points",
+      "type": "uint",
+      "rive_default": 5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "126": {
+      "name": "cornerRadius",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "127": {
+      "name": "innerRadius",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "128": {
+      "name": "pathFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "129": {
+      "name": "drawableFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "13": {
+      "name": "x",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "138": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "14": {
+      "name": "y",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "140": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "141": {
+      "name": "value",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "149": {
+      "name": "animationId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "15": {
+      "name": "rotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "151": {
+      "name": "stateToId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "152": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "155": {
+      "name": "inputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "156": {
+      "name": "opValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "157": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "158": {
+      "name": "duration",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "16": {
+      "name": "scaleX",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "160": {
+      "name": "exitTime",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "161": {
+      "name": "cornerRadiusTR",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "162": {
+      "name": "cornerRadiusBL",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "163": {
+      "name": "cornerRadiusBR",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "164": {
+      "name": "linkCornerRadius",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "165": {
+      "name": "animationId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "166": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "167": {
+      "name": "inputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "168": {
+      "name": "inputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "17": {
+      "name": "scaleY",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "171": {
+      "name": "exitBlendAnimationId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "172": {
+      "name": "strength",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "173": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "174": {
+      "name": "invertDirection",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "175": {
+      "name": "parentBoneCount",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "177": {
+      "name": "distance",
+      "type": "float",
+      "rive_default": 100,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "178": {
+      "name": "modeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "179": {
+      "name": "sourceSpaceValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "18": {
+      "name": "opacity",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "180": {
+      "name": "destSpaceValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "181": {
+      "name": "value",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "182": {
+      "name": "copyFactor",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "183": {
+      "name": "minValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "184": {
+      "name": "maxValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "185": {
+      "name": "copyFactorY",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "186": {
+      "name": "minValueY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "187": {
+      "name": "maxValueY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "188": {
+      "name": "offset",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "189": {
+      "name": "doesCopy",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "190": {
+      "name": "min",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "191": {
+      "name": "max",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "192": {
+      "name": "doesCopyY",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "193": {
+      "name": "minY",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "194": {
+      "name": "maxY",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "195": {
+      "name": "minMaxSpaceValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "196": {
+      "name": "clip",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "197": {
+      "name": "artboardId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "198": {
+      "name": "animationId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "199": {
+      "name": "speed",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "20": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "200": {
+      "name": "mix",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "201": {
+      "name": "isPlaying",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "202": {
+      "name": "time",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "203": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "204": {
+      "name": "assetId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "206": {
+      "name": "assetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "207": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "208": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "21": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "212": {
+      "name": "bytes",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "215": {
+      "name": "u",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "216": {
+      "name": "v",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "219": {
+      "name": "fromId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "220": {
+      "name": "toId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "223": {
+      "name": "triangleIndexBytes",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "224": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "225": {
+      "name": "listenerTypeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "227": {
+      "name": "inputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "228": {
+      "name": "value",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "229": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "23": {
+      "name": "blendModeValue",
+      "type": "uint",
+      "rive_default": 3,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "236": {
+      "name": "defaultStateMachineId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "237": {
+      "name": "inputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "238": {
+      "name": "nestedValue",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "239": {
+      "name": "nestedValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "24": {
+      "name": "x",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "240": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "243": {
+      "name": "propertyValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "245": {
+      "name": "propertyValue",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "246": {
+      "name": "propertyValue",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "248": {
+      "name": "url",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "249": {
+      "name": "targetValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "25": {
+      "name": "y",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "26": {
+      "name": "radius",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "268": {
+      "name": "text",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "272": {
+      "name": "styleId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "274": {
+      "name": "fontSize",
+      "type": "float",
+      "rive_default": 12,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "279": {
+      "name": "fontAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "280": {
+      "name": "value",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "281": {
+      "name": "alignValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "284": {
+      "name": "sizingValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "285": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "286": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "287": {
+      "name": "overflowValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "288": {
+      "name": "axisValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "289": {
+      "name": "tag",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "292": {
+      "name": "speed",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "296": {
+      "name": "activeComponentId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "297": {
+      "name": "mixValue",
+      "type": "float",
+      "rive_default": 100,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "298": {
+      "name": "blendSource",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "299": {
+      "name": "x",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "300": {
+      "name": "y",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "301": {
+      "name": "xId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "302": {
+      "name": "yId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "303": {
+      "name": "posX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "304": {
+      "name": "posY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "305": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 100,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "306": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 100,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "307": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "308": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "31": {
+      "name": "cornerRadiusTL",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "312": {
+      "name": "joystickFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "313": {
+      "name": "handleSourceId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "316": {
+      "name": "unitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "317": {
+      "name": "falloffFrom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "318": {
+      "name": "falloffTo",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "319": {
+      "name": "offset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "32": {
+      "name": "isClosed",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "320": {
+      "name": "axisTag",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "321": {
+      "name": "axisValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "322": {
+      "name": "x",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "323": {
+      "name": "y",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "324": {
+      "name": "opacity",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "325": {
+      "name": "typeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "326": {
+      "name": "modeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "327": {
+      "name": "modifyFrom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "328": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "329": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "33": {
+      "name": "startY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "330": {
+      "name": "scaleX",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "331": {
+      "name": "scaleY",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "332": {
+      "name": "rotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "333": {
+      "name": "clamp",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "334": {
+      "name": "strength",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "335": {
+      "name": "modifierFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "336": {
+      "name": "modifyTo",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "337": {
+      "name": "x1",
+      "type": "float",
+      "rive_default": 0.42,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "338": {
+      "name": "y1",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "339": {
+      "name": "x2",
+      "type": "float",
+      "rive_default": 0.58,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "34": {
+      "name": "endX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "340": {
+      "name": "y2",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "349": {
+      "name": "interpolationType",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "35": {
+      "name": "endY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "350": {
+      "name": "interpolatorId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "356": {
+      "name": "tag",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "357": {
+      "name": "featureValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "359": {
+      "name": "cdnUuid",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "362": {
+      "name": "cdnBaseUrl",
+      "type": "string",
+      "rive_default": "https://public.rive.app/cdn/uuid",
+      "go_zero": "",
+      "mismatch": true
+    },
+    "363": {
+      "name": "distance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "364": {
+      "name": "orient",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "365": {
+      "name": "offset",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "366": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "367": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "37": {
+      "name": "colorValue",
+      "type": "color",
+      "rive_default": 4285822068,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "370": {
+      "name": "lineHeight",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "371": {
+      "name": "paragraphSpacing",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "372": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "373": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "376": {
+      "name": "quantize",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "377": {
+      "name": "originValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "378": {
+      "name": "runId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "38": {
+      "name": "colorValue",
+      "type": "color",
+      "rive_default": 4294967295,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "380": {
+      "name": "originX",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "381": {
+      "name": "originY",
+      "type": "float",
+      "rive_default": 0.5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "389": {
+      "name": "eventId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "39": {
+      "name": "position",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "390": {
+      "name": "letterSpacing",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "392": {
+      "name": "eventId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "393": {
+      "name": "occursValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "399": {
+      "name": "eventId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "4": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "40": {
+      "name": "fillRule",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "400": {
+      "name": "nestedInputId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "405": {
+      "name": "easingValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "406": {
+      "name": "amplitude",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "407": {
+      "name": "period",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "408": {
+      "name": "assetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "41": {
+      "name": "isVisible",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "42": {
+      "name": "startX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "46": {
+      "name": "opacity",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "47": {
+      "name": "thickness",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "48": {
+      "name": "cap",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "49": {
+      "name": "join",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "494": {
+      "name": "styleId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "498": {
+      "name": "gapHorizontal",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "499": {
+      "name": "gapVertical",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "5": {
+      "name": "parentId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "50": {
+      "name": "transformAffectsStroke",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "500": {
+      "name": "maxWidth",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "501": {
+      "name": "maxHeight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "502": {
+      "name": "minWidth",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "503": {
+      "name": "minHeight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "504": {
+      "name": "borderLeft",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "505": {
+      "name": "borderRight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "506": {
+      "name": "borderTop",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "507": {
+      "name": "borderBottom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "508": {
+      "name": "marginLeft",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "509": {
+      "name": "marginRight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "51": {
+      "name": "objectId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "510": {
+      "name": "marginTop",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "511": {
+      "name": "marginBottom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "512": {
+      "name": "paddingLeft",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "513": {
+      "name": "paddingRight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "514": {
+      "name": "paddingTop",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "515": {
+      "name": "paddingBottom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "516": {
+      "name": "positionLeft",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "517": {
+      "name": "positionRight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "518": {
+      "name": "positionTop",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "519": {
+      "name": "positionBottom",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "520": {
+      "name": "flex",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "521": {
+      "name": "flexGrow",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "522": {
+      "name": "flexShrink",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "523": {
+      "name": "flexBasis",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "524": {
+      "name": "aspectRatio",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "530": {
+      "name": "volume",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "536": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "537": {
+      "name": "randomWeight",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "538": {
+      "name": "fit",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "541": {
+      "name": "preserveOffset",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "549": {
+      "name": "viewModelId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "55": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "550": {
+      "name": "viewModelInstanceId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "554": {
+      "name": "viewModelPropertyId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "555": {
+      "name": "propertyValue",
+      "type": "color",
+      "rive_default": 4278190080,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "557": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "56": {
+      "name": "fps",
+      "type": "uint",
+      "rive_default": 60,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "560": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "561": {
+      "name": "propertyValue",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "565": {
+      "name": "viewModelReferenceId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "566": {
+      "name": "viewModelId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "57": {
+      "name": "duration",
+      "type": "uint",
+      "rive_default": 60,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "572": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "574": {
+      "name": "enumId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "575": {
+      "name": "propertyValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "577": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "578": {
+      "name": "key",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "579": {
+      "name": "value",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "58": {
+      "name": "speed",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "582": {
+      "name": "dataBindPathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "583": {
+      "name": "viewModelId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "587": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "588": {
+      "name": "sourcePathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "589": {
+      "name": "animationStyleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "59": {
+      "name": "loopValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "590": {
+      "name": "interpolationType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "591": {
+      "name": "interpolatorId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "592": {
+      "name": "interpolationTime",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "593": {
+      "name": "propertyValue",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "596": {
+      "name": "displayValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "597": {
+      "name": "positionTypeValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "598": {
+      "name": "flexDirectionValue",
+      "type": "uint",
+      "rive_default": 2,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "599": {
+      "name": "directionValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "60": {
+      "name": "workStart",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "600": {
+      "name": "alignContentValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "601": {
+      "name": "alignItemsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "602": {
+      "name": "alignSelfValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "603": {
+      "name": "justifyContentValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "604": {
+      "name": "flexWrapValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "605": {
+      "name": "overflowValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "606": {
+      "name": "intrinsicallySizedValue",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "607": {
+      "name": "widthUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "608": {
+      "name": "heightUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "609": {
+      "name": "borderLeftUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "61": {
+      "name": "workEnd",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "610": {
+      "name": "borderRightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "611": {
+      "name": "borderTopUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "612": {
+      "name": "borderBottomUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "613": {
+      "name": "marginLeftUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "614": {
+      "name": "marginRightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "615": {
+      "name": "marginTopUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "616": {
+      "name": "marginBottomUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "617": {
+      "name": "paddingLeftUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "618": {
+      "name": "paddingRightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "619": {
+      "name": "paddingTopUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "62": {
+      "name": "enableWorkArea",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "620": {
+      "name": "paddingBottomUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "621": {
+      "name": "positionLeftUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "622": {
+      "name": "positionRightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "623": {
+      "name": "positionTopUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "624": {
+      "name": "positionBottomUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "625": {
+      "name": "gapHorizontalUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "626": {
+      "name": "gapVerticalUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "627": {
+      "name": "minWidthUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "628": {
+      "name": "minHeightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "629": {
+      "name": "maxWidthUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "63": {
+      "name": "x1",
+      "type": "float",
+      "rive_default": 0.42,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "630": {
+      "name": "maxHeightUnitsValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "631": {
+      "name": "value",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "632": {
+      "name": "layoutAlignmentType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "634": {
+      "name": "propertyValue",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "635": {
+      "name": "propertyValue",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "636": {
+      "name": "propertyValue",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "637": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "638": {
+      "name": "propertyValue",
+      "type": "color",
+      "rive_default": 4280098077,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "639": {
+      "name": "linkCornerRadius",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "64": {
+      "name": "y1",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "640": {
+      "name": "cornerRadiusTL",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "641": {
+      "name": "cornerRadiusTR",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "642": {
+      "name": "cornerRadiusBL",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "643": {
+      "name": "cornerRadiusBR",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "644": {
+      "name": "alignmentX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "645": {
+      "name": "alignmentY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "647": {
+      "name": "value",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "65": {
+      "name": "x2",
+      "type": "float",
+      "rive_default": 0.58,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "650": {
+      "name": "opValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "651": {
+      "name": "value",
+      "type": "color",
+      "rive_default": 4280098077,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "652": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "653": {
+      "name": "value",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "654": {
+      "name": "value",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "655": {
+      "name": "layoutWidthScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "656": {
+      "name": "layoutHeightScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "66": {
+      "name": "y2",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "660": {
+      "name": "converterId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "662": {
+      "name": "name",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "663": {
+      "name": "instanceWidth",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "664": {
+      "name": "instanceHeight",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "665": {
+      "name": "instanceWidthUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "666": {
+      "name": "instanceHeightUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "667": {
+      "name": "instanceWidthScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "668": {
+      "name": "instanceHeightScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "669": {
+      "name": "decimals",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "67": {
+      "name": "frame",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "672": {
+      "name": "patchIndex",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "673": {
+      "name": "style",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "675": {
+      "name": "offset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "676": {
+      "name": "normalized",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "677": {
+      "name": "propertyType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "679": {
+      "name": "converterId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "68": {
+      "name": "interpolationType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "681": {
+      "name": "operationValue",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "682": {
+      "name": "operationType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "683": {
+      "name": "wrapValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "685": {
+      "name": "verticalAlignValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "686": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "687": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "689": {
+      "name": "value",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "69": {
+      "name": "interpolatorId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "690": {
+      "name": "offset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "691": {
+      "name": "offsetIsPercentage",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "692": {
+      "name": "length",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "693": {
+      "name": "lengthIsPercentage",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "697": {
+      "name": "initialWidth",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "698": {
+      "name": "initialHeight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "699": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "7": {
+      "name": "width",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "70": {
+      "name": "value",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "700": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "703": {
+      "name": "fitFromBaseline",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "705": {
+      "name": "flexBasisUnitsValue",
+      "type": "uint",
+      "rive_default": 3,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "706": {
+      "name": "fractionalWidth",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "707": {
+      "name": "fractionalHeight",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "708": {
+      "name": "enumType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "709": {
+      "name": "enumType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "711": {
+      "name": "sourcePathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "713": {
+      "name": "interpolationType",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "714": {
+      "name": "interpolatorId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "715": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "716": {
+      "name": "minInput",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "717": {
+      "name": "maxInput",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "718": {
+      "name": "minOutput",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "719": {
+      "name": "maxOutput",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "722": {
+      "name": "directionValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "724": {
+      "name": "snap",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "725": {
+      "name": "scrollConstraintId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "726": {
+      "name": "physicsId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "727": {
+      "name": "physicsTypeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "728": {
+      "name": "friction",
+      "type": "float",
+      "rive_default": 8,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "729": {
+      "name": "speedMultiplier",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "730": {
+      "name": "elasticFactor",
+      "type": "float",
+      "rive_default": 0.66,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "731": {
+      "name": "constraintId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "734": {
+      "name": "autoSize",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "743": {
+      "name": "length",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "744": {
+      "name": "text",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "745": {
+      "name": "padType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "746": {
+      "name": "trimType",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "747": {
+      "name": "blendModeValue",
+      "type": "uint",
+      "rive_default": 127,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "748": {
+      "name": "spaceValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "749": {
+      "name": "strength",
+      "type": "float",
+      "rive_default": 12,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "750": {
+      "name": "offsetX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "751": {
+      "name": "offsetY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "752": {
+      "name": "inner",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "756": {
+      "name": "duration",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "757": {
+      "name": "interpolationType",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "758": {
+      "name": "interpolatorId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "759": {
+      "name": "scrollOffsetX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "760": {
+      "name": "scrollOffsetY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "761": {
+      "name": "scrollPercentX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "762": {
+      "name": "scrollPercentY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "763": {
+      "name": "scrollIndex",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "764": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "765": {
+      "name": "decimals",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "766": {
+      "name": "colorFormat",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "770": {
+      "name": "isHole",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "775": {
+      "name": "operationType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "776": {
+      "name": "functionType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "777": {
+      "name": "operationValue",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "778": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "779": {
+      "name": "radial",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "781": {
+      "name": "length",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "782": {
+      "name": "orient",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "783": {
+      "name": "start",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "784": {
+      "name": "end",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "785": {
+      "name": "strength",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "786": {
+      "name": "offset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "79": {
+      "name": "rotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "8": {
+      "name": "height",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "80": {
+      "name": "inDistance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "800": {
+      "name": "listSource",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "806": {
+      "name": "computedLocalX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "807": {
+      "name": "computedLocalY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "808": {
+      "name": "computedWorldX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "809": {
+      "name": "computedWorldY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "81": {
+      "name": "outDistance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "810": {
+      "name": "computedWidth",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "811": {
+      "name": "computedHeight",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "814": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "816": {
+      "name": "viewModelId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "817": {
+      "name": "text",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "818": {
+      "name": "selectionRadius",
+      "type": "float",
+      "rive_default": 5,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "82": {
+      "name": "rotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "823": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "824": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "83": {
+      "name": "distance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "835": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "836": {
+      "name": "propertyValue",
+      "type": "color",
+      "rive_default": 4280098077,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "84": {
+      "name": "inRotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "846": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "848": {
+      "name": "scriptAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "85": {
+      "name": "inDistance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "850": {
+      "name": "virtualize",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "851": {
+      "name": "infinite",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "856": {
+      "name": "instanceWidthUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "858": {
+      "name": "artboardId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "859": {
+      "name": "instanceWidth",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "86": {
+      "name": "outRotation",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "860": {
+      "name": "instanceHeight",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "861": {
+      "name": "instanceHeightUnitsValue",
+      "type": "uint",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "862": {
+      "name": "instanceWidthScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "863": {
+      "name": "instanceHeightScaleType",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "864": {
+      "name": "computedRootX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "865": {
+      "name": "computedRootY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "866": {
+      "name": "dataBindPathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "868": {
+      "name": "viewModelPathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "87": {
+      "name": "outDistance",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "870": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "871": {
+      "name": "viewModelPathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "872": {
+      "name": "propertyValue",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "873": {
+      "name": "enumId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "874": {
+      "name": "listSource",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "875": {
+      "name": "symbolTypeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "876": {
+      "name": "artboardId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "88": {
+      "name": "value",
+      "type": "color",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "887": {
+      "name": "randomModeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "888": {
+      "name": "distanceEnd",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "889": {
+      "name": "distanceOffset",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "89": {
+      "name": "length",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "891": {
+      "name": "interactive",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "892": {
+      "name": "scriptAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "893": {
+      "name": "generatorFunctionRef",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "894": {
+      "name": "threshold",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "895": {
+      "name": "isPaused",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "90": {
+      "name": "x",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "907": {
+      "name": "speed",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "908": {
+      "name": "quantize",
+      "type": "float",
+      "rive_default": -1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "91": {
+      "name": "y",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "911": {
+      "name": "signature",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "912": {
+      "name": "scriptAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "914": {
+      "name": "isModule",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "92": {
+      "name": "sourceId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "920": {
+      "name": "path",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "921": {
+      "name": "isRelative",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "922": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "926": {
+      "name": "folderPath",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "93": {
+      "name": "fillRule",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "930": {
+      "name": "scriptAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "931": {
+      "name": "scriptAssetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "932": {
+      "name": "textRunListSource",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "934": {
+      "name": "artboardId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "935": {
+      "name": "viewModelId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "94": {
+      "name": "isVisible",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "95": {
+      "name": "boneId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "951": {
+      "name": "isStateful",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "952": {
+      "name": "targetId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "953": {
+      "name": "canFocus",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "954": {
+      "name": "canTouch",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "955": {
+      "name": "canTraverse",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "956": {
+      "name": "edgeBehaviorValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "957": {
+      "name": "componentProps",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "96": {
+      "name": "xx",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "962": {
+      "name": "eventId",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "963": {
+      "name": "viewModelPathIds",
+      "type": "bytes",
+      "rive_default": null,
+      "go_zero": null,
+      "mismatch": true
+    },
+    "965": {
+      "name": "listenerTypeValue",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "966": {
+      "name": "listSource",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "97": {
+      "name": "yx",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "971": {
+      "name": "keyType",
+      "type": "uint",
+      "rive_default": 18446744073709551615,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "972": {
+      "name": "keyPhase",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "973": {
+      "name": "modifiers",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "974": {
+      "name": "fit",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "975": {
+      "name": "alignmentX",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "976": {
+      "name": "alignmentY",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "977": {
+      "name": "objectId",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "978": {
+      "name": "propertyKey",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "979": {
+      "name": "multiline",
+      "type": "bool",
+      "rive_default": true,
+      "go_zero": false,
+      "mismatch": true
+    },
+    "98": {
+      "name": "xy",
+      "type": "float",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "980": {
+      "name": "flags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "982": {
+      "name": "role",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "983": {
+      "name": "label",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "984": {
+      "name": "value",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "985": {
+      "name": "hint",
+      "type": "string",
+      "rive_default": "",
+      "go_zero": "",
+      "mismatch": false
+    },
+    "986": {
+      "name": "headingLevel",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "987": {
+      "name": "traitFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "988": {
+      "name": "stateFlags",
+      "type": "uint",
+      "rive_default": 0,
+      "go_zero": 0,
+      "mismatch": false
+    },
+    "989": {
+      "name": "isExpandable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "99": {
+      "name": "yy",
+      "type": "float",
+      "rive_default": 1,
+      "go_zero": 0,
+      "mismatch": true
+    },
+    "990": {
+      "name": "isSelectable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "991": {
+      "name": "isCheckable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "992": {
+      "name": "isToggleable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "993": {
+      "name": "isRequirable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "994": {
+      "name": "isEnablable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "995": {
+      "name": "isFocusable",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "996": {
+      "name": "isExpanded",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "997": {
+      "name": "isSelected",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "998": {
+      "name": "isChecked",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    },
+    "999": {
+      "name": "isMixed",
+      "type": "bool",
+      "rive_default": false,
+      "go_zero": false,
+      "mismatch": false
+    }
+  },
+  "parent_id_rules": {
+    "1": {
+      "has_parent_id": false
+    },
+    "106": {
+      "has_parent_id": false
+    },
+    "114": {
+      "has_parent_id": false
+    },
+    "128": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "134": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "135": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "137": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "138": {
+      "has_parent_id": false
+    },
+    "141": {
+      "has_parent_id": false
+    },
+    "142": {
+      "has_parent_id": false
+    },
+    "144": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "168": {
+      "has_parent_id": false
+    },
+    "171": {
+      "has_parent_id": false
+    },
+    "18": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "19": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "20": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "22": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "23": {
+      "has_parent_id": false
+    },
+    "24": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "25": {
+      "has_parent_id": false
+    },
+    "26": {
+      "has_parent_id": false
+    },
+    "28": {
+      "has_parent_id": false
+    },
+    "3": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "30": {
+      "has_parent_id": false
+    },
+    "31": {
+      "has_parent_id": false
+    },
+    "4": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "42": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "420": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "53": {
+      "has_parent_id": false
+    },
+    "56": {
+      "has_parent_id": false
+    },
+    "57": {
+      "has_parent_id": false
+    },
+    "61": {
+      "has_parent_id": false
+    },
+    "62": {
+      "has_parent_id": false
+    },
+    "63": {
+      "has_parent_id": false
+    },
+    "64": {
+      "has_parent_id": false
+    },
+    "65": {
+      "has_parent_id": false
+    },
+    "7": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "73": {
+      "has_parent_id": false
+    },
+    "75": {
+      "has_parent_id": false
+    },
+    "76": {
+      "has_parent_id": false
+    },
+    "77": {
+      "has_parent_id": false
+    },
+    "78": {
+      "has_parent_id": false
+    },
+    "92": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    },
+    "95": {
+      "has_parent_id": true,
+      "relative_to": "artboard"
+    }
+  },
+  "type_registry": {
+    "1": "Artboard",
+    "10": "Component",
+    "100": "Image",
+    "102": "Folder",
+    "103": "FileAsset",
+    "104": "DrawableAsset",
+    "105": "ImageAsset",
+    "106": "FileAssetContents",
+    "107": "Vertex",
+    "108": "MeshVertex",
+    "109": "Mesh",
+    "11": "ContainerComponent",
+    "111": "ContourMeshVertex",
+    "112": "ForcedEdge",
+    "114": "StateMachineListenerSingle",
+    "115": "ListenerTriggerChange",
+    "116": "ListenerInputChange",
+    "117": "ListenerBoolChange",
+    "118": "ListenerNumberChange",
+    "119": "LayeredAsset",
+    "12": "Path",
+    "120": "LayerImageAsset",
+    "121": "NestedInput",
+    "122": "NestedTrigger",
+    "123": "NestedBool",
+    "124": "NestedNumber",
+    "125": "ListenerAction",
+    "126": "ListenerAlignTarget",
+    "127": "CustomPropertyNumber",
+    "128": "Event",
+    "129": "CustomPropertyBoolean",
+    "13": "Drawable",
+    "130": "CustomPropertyString",
+    "131": "OpenUrlEvent",
+    "132": "SVGAsset",
+    "133": "LottieAsset",
+    "134": "Text",
+    "135": "TextValueRun",
+    "137": "TextStylePaint",
+    "138": "CubicValueInterpolator",
+    "139": "CubicInterpolator",
+    "14": "PathVertex",
+    "140": "Guide",
+    "141": "FontAsset",
+    "142": "KeyFrameString",
+    "143": "AnimationFolder",
+    "144": "TextStyleAxis",
+    "145": "AdvanceableState",
+    "146": "ClipboardHeader",
+    "147": "Solo",
+    "148": "Joystick",
+    "149": "StateMachineInputFolder",
+    "15": "ParametricPath",
+    "150": "StateMachineListenerFolder",
+    "151": "StateMachineComponentFolder",
+    "158": "TextModifierRange",
+    "159": "TextModifierGroup",
+    "16": "PointsPath",
+    "160": "TextModifier",
+    "161": "TextShapeModifier",
+    "162": "TextVariationModifier",
+    "163": "CubicInterpolatorComponent",
+    "164": "TextStyleFeature",
+    "165": "FollowPathConstraint",
+    "166": "Tag",
+    "167": "CustomProperty",
+    "168": "ListenerFireEvent",
+    "169": "StateMachineFireEvent",
+    "17": "RadialGradient",
+    "170": "InterpolatingKeyFrame",
+    "171": "KeyFrameCallback",
+    "172": "StateMachineComponentNestedArtboard",
+    "173": "StateMachineNestedInput",
+    "174": "ElasticInterpolator",
+    "175": "KeyFrameInterpolator",
+    "18": "SolidColor",
+    "19": "GradientStop",
+    "2": "Node",
+    "20": "Fill",
+    "21": "ShapePaint",
+    "22": "LinearGradient",
+    "23": "Backboard",
+    "24": "Stroke",
+    "25": "KeyedObject",
+    "26": "KeyedProperty",
+    "27": "Animation",
+    "28": "CubicEaseInterpolator",
+    "29": "KeyFrame",
+    "3": "Shape",
+    "30": "KeyFrameDouble",
+    "31": "LinearAnimation",
+    "34": "CubicAsymmetricVertex",
+    "35": "CubicMirroredVertex",
+    "36": "CubicVertex",
+    "37": "KeyFrameColor",
+    "38": "TransformComponent",
+    "39": "SkeletalComponent",
+    "4": "Ellipse",
+    "40": "Bone",
+    "406": "AudioAsset",
+    "407": "AudioEvent",
+    "409": "LayoutComponent",
+    "41": "RootBone",
+    "42": "ClippingShape",
+    "420": "LayoutComponentStyle",
+    "422": "ExportAudio",
+    "426": "ViewModelInstanceColor",
+    "427": "ViewModelInstanceListItem",
+    "428": "ViewModelInstanceValue",
+    "429": "ViewModelComponent",
+    "43": "Skin",
+    "430": "ViewModelProperty",
+    "431": "ViewModelPropertyNumber",
+    "432": "ViewModelInstanceEnum",
+    "433": "ViewModelInstanceString",
+    "434": "ViewModelPropertyList",
+    "435": "ViewModel",
+    "436": "ViewModelPropertyViewModel",
+    "437": "ViewModelInstance",
+    "438": "DataEnumCustom",
+    "439": "ViewModelPropertyEnumCustom",
+    "44": "Tendon",
+    "440": "ViewModelPropertyColor",
+    "441": "ViewModelInstanceList",
+    "442": "ViewModelInstanceNumber",
+    "443": "ViewModelPropertyString",
+    "444": "ViewModelInstanceViewModel",
+    "445": "DataEnumValue",
+    "446": "DataBind",
+    "447": "DataBindContext",
+    "448": "ViewModelPropertyBoolean",
+    "449": "ViewModelInstanceBoolean",
+    "45": "Weight",
+    "450": "KeyFrameUint",
+    "451": "NestedArtboardLeaf",
+    "452": "NestedArtboardLayout",
+    "46": "CubicWeight",
+    "47": "TrimPath",
+    "471": "BindablePropertyString",
+    "472": "BindablePropertyBoolean",
+    "473": "BindablePropertyNumber",
+    "474": "BindablePropertyEnum",
+    "475": "BindablePropertyColor",
+    "476": "TransitionCondition",
+    "477": "TransitionComparator",
+    "478": "TransitionPropertyComparator",
+    "479": "TransitionPropertyViewModelComparator",
+    "48": "DrawTarget",
+    "480": "TransitionValueComparator",
+    "481": "TransitionValueBooleanComparator",
+    "482": "TransitionViewModelCondition",
+    "483": "TransitionValueColorComparator",
+    "484": "TransitionValueNumberComparator",
+    "485": "TransitionValueEnumComparator",
+    "486": "TransitionValueStringComparator",
+    "487": "ListenerViewModelChange",
+    "488": "DataConverter",
+    "489": "DataConverterRounder",
+    "49": "DrawRules",
+    "490": "DataConverterToString",
+    "491": "NSlicerTileMode",
+    "492": "Axis",
+    "493": "NSlicer",
+    "494": "AxisY",
+    "495": "AxisX",
+    "496": "TransitionPropertyArtboardComparator",
+    "497": "TransitionArtboardCondition",
+    "498": "DataConverterGroupItem",
+    "499": "DataConverterGroup",
+    "5": "StraightVertex",
+    "50": "KeyFrameId",
+    "500": "DataConverterOperationValue",
+    "501": "ViewModelInstanceTrigger",
+    "502": "ViewModelPropertyTrigger",
+    "503": "BindablePropertyTrigger",
+    "504": "DataConverterTrigger",
+    "505": "TransitionValueTriggerComparator",
+    "506": "DashPath",
+    "507": "Dash",
+    "508": "NSlicedNode",
+    "509": "ViewModelPropertyEnum",
+    "51": "Polygon",
+    "510": "DataEnum",
+    "511": "ViewModelPropertyEnumSystem",
+    "512": "DataEnumSystem",
+    "513": "ForegroundLayoutDrawable",
+    "514": "DataConverterSystemDegsToRads",
+    "515": "DataConverterSystemNormalizer",
+    "516": "DataConverterOperation",
+    "517": "DataConverterOperationViewModel",
+    "519": "DataConverterRangeMapper",
+    "52": "Star",
+    "520": "DraggableConstraint",
+    "521": "ScrollConstraint",
+    "522": "ScrollBarConstraint",
+    "523": "ScrollPhysics",
+    "524": "ClampedScrollPhysics",
+    "525": "ElasticScrollPhysics",
+    "527": "BlendState1D",
+    "528": "BlendState1DViewModel",
+    "529": "ScriptAsset",
+    "53": "StateMachine",
+    "530": "DataConverterStringPad",
+    "531": "DataConverterStringRemoveZeros",
+    "532": "DataConverterStringTrim",
+    "533": "Feather",
+    "534": "DataConverterInterpolator",
+    "535": "DataConverterBooleanNegate",
+    "536": "DataConverterFormula",
+    "537": "FormulaToken",
+    "538": "FormulaTokenArgumentSeparator",
+    "539": "FormulaTokenParenthesis",
+    "54": "StateMachineComponent",
+    "540": "FormulaTokenParenthesisClose",
+    "541": "FormulaTokenOperation",
+    "542": "FormulaTokenFunction",
+    "543": "FormulaTokenValue",
+    "544": "FormulaTokenParenthesisOpen",
+    "545": "FormulaTokenInput",
+    "546": "TextTargetModifier",
+    "547": "TextFollowPathModifier",
+    "548": "CustomPropertyGroup",
+    "55": "StateMachineInput",
+    "550": "LinearAnimationResolver",
+    "551": "StateMachineResolver",
+    "559": "ArtboardComponentList",
+    "56": "StateMachineNumber",
+    "563": "ViewModelPropertySymbol",
+    "564": "ViewModelPropertySymbolListIndex",
+    "565": "ViewModelInstanceSymbol",
+    "566": "ViewModelInstanceSymbolListIndex",
+    "567": "BindablePropertyInteger",
+    "568": "DataConverterNumberToList",
+    "569": "TextInput",
+    "57": "StateMachineLayer",
+    "570": "TextInputDrawable",
+    "571": "TextInputCursor",
+    "572": "TextInputText",
+    "573": "TextStyle",
+    "574": "TextInputSelection",
+    "575": "TextInputSelectedText",
+    "58": "StateMachineTrigger",
+    "584": "ViewModelPropertyAsset",
+    "585": "ViewModelPropertyAssetImage",
+    "586": "ViewModelInstanceAsset",
+    "587": "ViewModelInstanceAssetImage",
+    "588": "BindablePropertyAsset",
+    "59": "StateMachineBool",
+    "590": "BindablePropertyList",
+    "591": "DataConverterListToLength",
+    "592": "CustomPropertyColor",
+    "593": "TransitionSelfComparator",
+    "596": "BindablePropertyId",
+    "597": "BindablePropertyArtboard",
+    "598": "ViewModelPropertyArtboard",
+    "599": "ViewModelInstanceArtboard",
+    "6": "CubicDetachedVertex",
+    "60": "LayerState",
+    "601": "TransitionValueIdComparator",
+    "602": "TransitionValueAssetComparator",
+    "603": "ScriptedDrawable",
+    "606": "ArtboardComponentListOverride",
+    "61": "AnimationState",
+    "611": "ScriptInputNumber",
+    "612": "ScriptInputViewModelProperty",
+    "613": "CustomPropertyTrigger",
+    "614": "StateMachineFireTrigger",
+    "615": "StateMachineFireAction",
+    "616": "CustomPropertyEnum",
+    "617": "DataConverterToNumber",
+    "618": "ScriptInputTrigger",
+    "619": "ListPath",
+    "62": "AnyState",
+    "620": "PointsCommonPath",
+    "621": "ScriptInputArtboard",
+    "625": "ListFollowPathConstraint",
+    "626": "ScriptInputColor",
+    "627": "ScriptInputString",
+    "629": "ScriptedDataConverter",
+    "63": "EntryState",
+    "630": "TransitionValueArtboardComparator",
+    "631": "ScriptInputBoolean",
+    "637": "ScriptedLayout",
+    "64": "ExitState",
+    "640": "ScriptedPathEffect",
+    "642": "ManifestAsset",
+    "643": "DataBindPath",
+    "644": "TargetEffect",
+    "645": "GroupEffect",
+    "646": "ScriptedListenerAction",
+    "647": "ScriptedTransitionCondition",
+    "648": "ArtboardListMapRule",
+    "649": "BlobAsset",
+    "65": "StateTransition",
+    "651": "ProfilerAsset",
+    "652": "FocusActionTarget",
+    "653": "FocusData",
+    "654": "StateMachineListener",
+    "658": "ListenerInputType",
+    "659": "ListenerInputTypeEvent",
+    "66": "StateMachineLayerComponent",
+    "660": "ListenerInputTypeViewModel",
+    "662": "BindablePropertyViewModel",
+    "663": "UserInput",
+    "664": "KeyboardInput",
+    "665": "ListenerInputTypeKeyboard",
+    "666": "ListenerInputTypeText",
+    "667": "TransitionPropertyComponentComparator",
+    "668": "SemanticData",
+    "669": "ListenerInputTypeSemantic",
+    "67": "TransitionInputCondition",
+    "670": "SemanticInput",
+    "671": "FocusAction",
+    "672": "FocusActionTraversal",
+    "68": "TransitionTriggerCondition",
+    "69": "TransitionValueCondition",
+    "7": "Rectangle",
+    "70": "TransitionNumberCondition",
+    "71": "TransitionBoolCondition",
+    "72": "BlendState",
+    "73": "BlendStateDirect",
+    "74": "BlendAnimation",
+    "75": "BlendAnimation1D",
+    "76": "BlendState1DInput",
+    "77": "BlendAnimationDirect",
+    "78": "BlendStateTransition",
+    "79": "Constraint",
+    "8": "Triangle",
+    "80": "TargetedConstraint",
+    "81": "IKConstraint",
+    "82": "DistanceConstraint",
+    "83": "TransformConstraint",
+    "84": "KeyFrameBool",
+    "85": "TransformComponentConstraint",
+    "86": "TransformComponentConstraintY",
+    "87": "TranslationConstraint",
+    "88": "ScaleConstraint",
+    "89": "RotationConstraint",
+    "9": "BindableProperty",
+    "90": "TransformSpaceConstraint",
+    "91": "WorldTransformComponent",
+    "92": "NestedArtboard",
+    "93": "NestedAnimation",
+    "95": "NestedStateMachine",
+    "96": "NestedSimpleAnimation",
+    "97": "NestedLinearAnimation",
+    "970": "ShaderAsset",
+    "971": "TextAsset",
+    "98": "NestedRemapAnimation",
+    "99": "Asset"
+  }
+}

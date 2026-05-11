@@ -74,6 +74,8 @@ func main() {
 			os.Exit(1)
 		}
 		cmdDump(os.Args[2])
+	case "analyze":
+		cmdAnalyze(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n", os.Args[1])
 		usage()
@@ -92,6 +94,9 @@ Commands:
   create   --from <scene.json>           build .riv from JSON scene, write to stdout
   create   --from <scene.json> --output <out.riv>
   create   --from -                      read JSON from stdin
+  dump     <file.riv>                    full structural decoder with parentId resolution
+  analyze  --assets <dir> [--defs <dir>] [-o <file.json>]
+                                         extract format_contract.json from .riv assets + dev/defs
   generate                               regenerate docs/preview/examples/
 
 JSON Scene format (version 1):
