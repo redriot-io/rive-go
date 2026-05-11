@@ -69,6 +69,13 @@ func (b *Builder) Build() ([]rive.Object, error) {
 			return nil, err
 		}
 	}
+
+	// Phase 2: Reorder per format contract (SolidColor before Fill).
+	objects = rive.ReorderByContract(objects)
+	// Phase 3: Recompute parentIds after reorder (idempotent; ReorderByContract
+	// already fixes them, but called explicitly per spec for clarity).
+	rive.FixParentIds(objects)
+
 	return objects, nil
 }
 

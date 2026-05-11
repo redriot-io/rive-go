@@ -120,7 +120,8 @@ func TestBuilder_RectangleWithFill(t *testing.T) {
 	data := mustBuild(t, b)
 	f := mustReadBytes(t, data)
 
-	// Expected: Backboard, Artboard, Shape, Rectangle, Fill, SolidColor
+	// Expected: Backboard, Artboard, Shape, Rectangle, SolidColor, Fill
+	// (official encoder: SolidColor before its parent Fill — forward reference)
 	if len(f.Objects) != 6 {
 		t.Fatalf("want 6 objects, got %d", len(f.Objects))
 	}
@@ -132,13 +133,13 @@ func TestBuilder_RectangleWithFill(t *testing.T) {
 	if f.Objects[3].TypeKey() != 7 {
 		t.Errorf("objects[3] typeKey=%d, want 7 (Rectangle)", f.Objects[3].TypeKey())
 	}
-	// Fill typeKey=20
-	if f.Objects[4].TypeKey() != 20 {
-		t.Errorf("objects[4] typeKey=%d, want 20 (Fill)", f.Objects[4].TypeKey())
+	// SolidColor typeKey=18 (reordered before its parent Fill)
+	if f.Objects[4].TypeKey() != 18 {
+		t.Errorf("objects[4] typeKey=%d, want 18 (SolidColor)", f.Objects[4].TypeKey())
 	}
-	// SolidColor typeKey=18
-	if f.Objects[5].TypeKey() != 18 {
-		t.Errorf("objects[5] typeKey=%d, want 18 (SolidColor)", f.Objects[5].TypeKey())
+	// Fill typeKey=20
+	if f.Objects[5].TypeKey() != 20 {
+		t.Errorf("objects[5] typeKey=%d, want 20 (Fill)", f.Objects[5].TypeKey())
 	}
 
 	// Verify shape x/y

@@ -89,9 +89,10 @@ func TestFromJSON_MinimalRect(t *testing.T) {
 		t.Fatalf("want 6 objects, got %d", len(f.Objects))
 	}
 	// SolidColor should have colorValue = 0xFFFF0000
-	sc := f.Objects[5]
+	// (reordered before its parent Fill: objects[4]=SolidColor, objects[5]=Fill)
+	sc := f.Objects[4]
 	if sc.TypeKey() != 18 {
-		t.Fatalf("objects[5] typeKey=%d, want 18 (SolidColor)", sc.TypeKey())
+		t.Fatalf("objects[4] typeKey=%d, want 18 (SolidColor)", sc.TypeKey())
 	}
 	props := propsByKey(sc.Properties())
 	if v, ok := props[37]; !ok {
@@ -133,8 +134,12 @@ func TestFromJSON_ColorFormats(t *testing.T) {
 			tc.color + `"}]}}`
 		data := mustFromJSON(t, j)
 		f := mustRead(t, data)
-		// SolidColor is last object
-		sc := f.Objects[len(f.Objects)-1]
+		// SolidColor is reordered before Fill; find it by type.
+		scs := collectType(f.Objects, 18)
+		if len(scs) == 0 {
+			t.Fatalf("color %s: no SolidColor found", tc.color)
+		}
+		sc := scs[0]
 		props := propsByKey(sc.Properties())
 		got := uint32(props[37].Value.(uint64))
 		if got != tc.want {

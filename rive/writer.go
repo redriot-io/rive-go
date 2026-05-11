@@ -86,18 +86,16 @@ func writeRiv(bw *encoding.BinaryWriter, objects []Object, cfg *writeConfig) err
 				continue
 			}
 			seenKey[p.Key] = true
-			// PropertyTypeBytes (4) cannot be represented in the 2-bit ToC packing
-			// (only values 0-3 fit). The official rive-cpp encoder uses field-index 1
-			// (PropertyTypeString) as a proxy for bytes properties in the ToC. This
-			// works because both string and bytes share identical wire encoding
-			// (varuint length + payload), letting forward-compat readers skip unknown
-			// bytes blobs correctly. Clients with CoreRegistry always use their
-			// compiled-in type regardless of the ToC hint.
-			tocType := p.Type
-			if tocType == PropertyTypeBytes {
-				tocType = PropertyTypeString
+			// Only include keys from the format contract's ToC allowlist.
+			// CoreRegistry-known keys (the vast majority) are excluded from the ToC;
+			// the runtime resolves their types from its compiled-in table.
+			// ToCIncludeKeys encodes the field index directly, including the
+			// bytes-proxy rule (key 212 → field_index=1 instead of 4).
+			fieldIdx, include := ToCIncludeKeys[p.Key]
+			if !include {
+				continue
 			}
-			orderedToc = append(orderedToc, tocEntry{p.Key, tocType})
+			orderedToc = append(orderedToc, tocEntry{p.Key, PropertyType(fieldIdx)})
 		}
 	}
 
