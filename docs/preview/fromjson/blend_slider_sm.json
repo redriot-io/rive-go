@@ -34,15 +34,39 @@
           {
             "target": "ball.y",
             "keyframes": [
-              { "time": 0.0,  "value": 150, "easing": "ease-in-out" },
-              { "time": 0.5,  "value": 120, "easing": "ease-in-out" },
-              { "time": 1.0,  "value": 150 }
+              {
+                "time": 0.0,
+                "value": 150,
+                "easing": "ease-in-out"
+              },
+              {
+                "time": 0.5,
+                "value": 120,
+                "easing": "ease-in-out"
+              },
+              {
+                "time": 1.0,
+                "value": 150
+              }
             ]
           },
           {
             "target": "ball.fill.color",
             "keyframes": [
-              { "time": 0.0, "value": "#FFFF6F00" }
+              {
+                "time": 0.0,
+                "value": "#FFFF6F00"
+              },
+              {
+                "time": 0.5,
+                "value": "#FFFFFFFF",
+                "easing": "linear"
+              },
+              {
+                "time": 1.0,
+                "value": "#FFFF6F00",
+                "easing": "linear"
+              }
             ]
           }
         ]
@@ -56,15 +80,39 @@
           {
             "target": "ball.y",
             "keyframes": [
-              { "time": 0.0,  "value": 150, "easing": "ease-in-out" },
-              { "time": 0.5,  "value": 50,  "easing": "ease-in-out" },
-              { "time": 1.0,  "value": 150 }
+              {
+                "time": 0.0,
+                "value": 150,
+                "easing": "ease-in-out"
+              },
+              {
+                "time": 0.5,
+                "value": 50,
+                "easing": "ease-in-out"
+              },
+              {
+                "time": 1.0,
+                "value": 150
+              }
             ]
           },
           {
             "target": "ball.fill.color",
             "keyframes": [
-              { "time": 0.0, "value": "#FFFF1744" }
+              {
+                "time": 0.0,
+                "value": "#FFFF1744"
+              },
+              {
+                "time": 0.5,
+                "value": "#FF000000",
+                "easing": "linear"
+              },
+              {
+                "time": 1.0,
+                "value": "#FFFF1744",
+                "easing": "linear"
+              }
             ]
           }
         ]
@@ -74,7 +122,11 @@
       {
         "name": "BlendSM",
         "inputs": [
-          { "name": "mix", "type": "number", "default": 0 }
+          {
+            "name": "mix",
+            "type": "number",
+            "default": 0
+          }
         ],
         "layers": [
           {
@@ -85,13 +137,22 @@
                 "type": "blend_1d",
                 "input": "mix",
                 "blends": [
-                  { "animation": "gentle",  "threshold": 0.0 },
-                  { "animation": "intense", "threshold": 1.0 }
+                  {
+                    "animation": "gentle",
+                    "threshold": 0.0
+                  },
+                  {
+                    "animation": "intense",
+                    "threshold": 1.0
+                  }
                 ]
               }
             ],
             "transitions": [
-              { "from": "ExitState", "to": "Blend" }
+              {
+                "from": "ExitState",
+                "to": "Blend"
+              }
             ]
           }
         ]
