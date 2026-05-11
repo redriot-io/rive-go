@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "ToggleButton",
+    "width": 400,
+    "height": 200,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "btn",
+        "x": 200,
+        "y": 100,
+        "width": 280,
+        "height": 80,
+        "corner_radius": 14,
+        "fill": "#1565C0"
+      },
+      {
+        "type": "rectangle",
+        "name": "label_off",
+        "x": 200,
+        "y": 100,
+        "width": 16,
+        "height": 16,
+        "fill": "#FFFFFFFF"
+      },
+      {
+        "type": "ellipse",
+        "name": "knob",
+        "x": 160,
+        "y": 100,
+        "width": 28,
+        "height": 28,
+        "fill": "#FFFFFFFF"
+      }
+    ],
+    "animations": [
+      {
+        "name": "idle_off",
+        "duration": 0.033,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "btn.fill.color",
+            "keyframes": [
+              { "time": 0.0, "value": "#FF1565C0" }
+            ]
+          },
+          {
+            "target": "knob.x",
+            "keyframes": [
+              { "time": 0.0, "value": 160 }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "idle_on",
+        "duration": 0.033,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "btn.fill.color",
+            "keyframes": [
+              { "time": 0.0, "value": "#FF2E7D32" }
+            ]
+          },
+          {
+            "target": "knob.x",
+            "keyframes": [
+              { "time": 0.0, "value": 240 }
+            ]
+          }
+        ]
+      }
+    ],
+    "state_machines": [
+      {
+        "name": "ToggleSM",
+        "inputs": [
+          { "name": "active", "type": "bool", "default": false }
+        ],
+        "layers": [
+          {
+            "name": "Main",
+            "states": [
+              { "name": "Off", "animation": "idle_off" },
+              { "name": "On",  "animation": "idle_on"  }
+            ],
+            "transitions": [
+              { "from": "Off", "to": "On",  "duration_ms": 150, "conditions": [{ "input": "active", "value": true  }] },
+              { "from": "On",  "to": "Off", "duration_ms": 150, "conditions": [{ "input": "active", "value": false }] }
+            ]
+          }
+        ],
+        "listeners": [
+          {
+            "target": "btn",
+            "event": "pointer_down",
+            "actions": [{ "type": "set_bool", "input": "active", "value": true }]
+          },
+          {
+            "target": "btn",
+            "event": "pointer_up",
+            "actions": [{ "type": "set_bool", "input": "active", "value": false }]
+          }
+        ]
+      }
+    ]
+  }
+}

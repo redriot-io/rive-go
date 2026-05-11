@@ -547,9 +547,32 @@ const fromjsonDemos = [
     tagClass: "ref",
     animations: ["shuffle"],
   },
+  {
+    file: "fromjson_toggle_button_sm.riv",
+    title: "◎ Toggle Button (FromJSON SM)",
+    desc: "Click to toggle ON (green) / OFF (blue). Bool input driven by PointerDown/Up listeners. Entire SM authored in JSON — no Go code. Phase 4D demo.",
+    tags: ["fromjson", "state-machine", "interactive", "bool"],
+    stateMachines: ["ToggleSM"],
+  },
+  {
+    file: "fromjson_multistate_nav_sm.riv",
+    title: "● Multi-State Nav (FromJSON SM)",
+    desc: "Three nav dots — move pointer left/right to select page A, B, or C. Number input drives transitions at thresholds 0.34 and 0.67. Phase 4D demo.",
+    tags: ["fromjson", "state-machine", "interactive", "number"],
+    stateMachines: ["NavSM"],
+    inputDriver: { inputName: "page", smName: "NavSM" },
+  },
+  {
+    file: "fromjson_blend_slider_sm.riv",
+    title: "▲ Blend Slider (FromJSON SM)",
+    desc: "Move pointer left → gentle bounce (orange). Move right → intense bounce (red). BlendState1D continuously blends two looping animations via a number input. Phase 4D demo.",
+    tags: ["fromjson", "state-machine", "blend", "interactive"],
+    stateMachines: ["BlendSM"],
+    inputDriver: { inputName: "mix", smName: "BlendSM" },
+  },
 ];
 
-const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines }) => {
+const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, stateMachines, inputDriver }) => {
   const card = document.createElement('div');
   card.className = 'card';
 
@@ -603,10 +626,10 @@ const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, animations, 
   card.appendChild(body);
   document.getElementById('fromjson-grid').appendChild(card);
 
-  return { file, canvas, dot, loadingMsg, errMsg, animations, stateMachines };
+  return { file, canvas, dot, loadingMsg, errMsg, animations, stateMachines, inputDriver };
 });
 
-fromjsonCards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachines }) => {
+fromjsonCards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stateMachines, inputDriver }) => {
   queue = queue.then(() => new Promise(resolve => {
     dot.classList.add('loading');
     loadingMsg.textContent = 'loading…';
@@ -647,6 +670,21 @@ fromjsonCards.forEach(({ file, canvas, dot, loadingMsg, errMsg, animations, stat
             r.play();
           }
         } catch (_) { /* runtime will play default */ }
+        if (inputDriver) {
+          try {
+            const smInputs = r.stateMachineInputs(inputDriver.smName);
+            if (smInputs) {
+              const inp = smInputs.find(i => i.name === inputDriver.inputName);
+              if (inp) {
+                canvas.addEventListener('pointermove', ev => {
+                  const rect = canvas.getBoundingClientRect();
+                  inp.value = Math.max(0, Math.min(1, (ev.clientX - rect.left) / rect.width));
+                });
+                canvas.style.cursor = 'ew-resize';
+              }
+            }
+          } catch (_) {}
+        }
         settle(true);
       },
       onLoadError: (e) => {

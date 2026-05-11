@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "BlendSlider",
+    "width": 400,
+    "height": 200,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "bg",
+        "x": 200,
+        "y": 100,
+        "width": 400,
+        "height": 200,
+        "fill": "#FF1A237E"
+      },
+      {
+        "type": "ellipse",
+        "name": "ball",
+        "x": 200,
+        "y": 150,
+        "width": 50,
+        "height": 50,
+        "fill": "#FFFF6F00"
+      }
+    ],
+    "animations": [
+      {
+        "name": "gentle",
+        "duration": 1.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "ball.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 150, "easing": "ease-in-out" },
+              { "time": 0.5,  "value": 120, "easing": "ease-in-out" },
+              { "time": 1.0,  "value": 150 }
+            ]
+          },
+          {
+            "target": "ball.fill.color",
+            "keyframes": [
+              { "time": 0.0, "value": "#FFFF6F00" }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "intense",
+        "duration": 1.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "ball.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 150, "easing": "ease-in-out" },
+              { "time": 0.5,  "value": 50,  "easing": "ease-in-out" },
+              { "time": 1.0,  "value": 150 }
+            ]
+          },
+          {
+            "target": "ball.fill.color",
+            "keyframes": [
+              { "time": 0.0, "value": "#FFFF1744" }
+            ]
+          }
+        ]
+      }
+    ],
+    "state_machines": [
+      {
+        "name": "BlendSM",
+        "inputs": [
+          { "name": "mix", "type": "number", "default": 0 }
+        ],
+        "layers": [
+          {
+            "name": "Main",
+            "states": [
+              {
+                "name": "Blend",
+                "type": "blend_1d",
+                "input": "mix",
+                "blends": [
+                  { "animation": "gentle",  "threshold": 0.0 },
+                  { "animation": "intense", "threshold": 1.0 }
+                ]
+              }
+            ],
+            "transitions": [
+              { "from": "ExitState", "to": "Blend" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

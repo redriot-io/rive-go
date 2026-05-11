@@ -102,6 +102,7 @@
           if (smName) { r.play([smName]); }
           else        { r.play(); }
         } catch (_) {}
+        window.__riveInstance = r;
         window.__riveLoaded = true;
         statusEl.textContent = 'loaded: ' + filePath + (smName ? ' [' + smName + ']' : '');
       },

@@ -50,6 +50,9 @@ const FROMJSON_FILES: FileEntry[] = [
   { name: 'fromjson_card_shuffle',    path: '/docs/preview/fromjson_card_shuffle.riv'                   },
   { name: 'fromjson_draw_order',      path: '/docs/preview/fromjson_draw_order.riv'                     },
   { name: 'fromjson_draw_order_anim', path: '/docs/preview/fromjson_draw_order_anim.riv'                },
+  { name: 'fromjson_toggle_button_sm',  path: '/docs/preview/fromjson_toggle_button_sm.riv',  sm: 'ToggleSM' },
+  { name: 'fromjson_multistate_nav_sm', path: '/docs/preview/fromjson_multistate_nav_sm.riv', sm: 'NavSM'    },
+  { name: 'fromjson_blend_slider_sm',   path: '/docs/preview/fromjson_blend_slider_sm.riv',   sm: 'BlendSM'  },
 ];
 
 // ── helper ────────────────────────────────────────────────────────────────────

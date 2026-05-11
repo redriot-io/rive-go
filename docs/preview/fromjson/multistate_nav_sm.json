@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "MultistateNav",
+    "width": 400,
+    "height": 200,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "track",
+        "x": 200,
+        "y": 100,
+        "width": 240,
+        "height": 12,
+        "corner_radius": 6,
+        "fill": "#FF37474F"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot_a",
+        "x": 120,
+        "y": 100,
+        "width": 36,
+        "height": 36,
+        "fill": "#FFFFFFFF"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot_b",
+        "x": 200,
+        "y": 100,
+        "width": 36,
+        "height": 36,
+        "fill": "#FF546E7A"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot_c",
+        "x": 280,
+        "y": 100,
+        "width": 36,
+        "height": 36,
+        "fill": "#FF546E7A"
+      }
+    ],
+    "animations": [
+      {
+        "name": "page_a",
+        "duration": 0.033,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          { "target": "dot_a.fill.color", "keyframes": [{ "time": 0.0, "value": "#FFFFFFFF" }] },
+          { "target": "dot_a.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.3 }] },
+          { "target": "dot_a.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.3 }] },
+          { "target": "dot_b.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_b.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_b.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_c.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_c.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_c.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] }
+        ]
+      },
+      {
+        "name": "page_b",
+        "duration": 0.033,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          { "target": "dot_a.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_a.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_a.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_b.fill.color", "keyframes": [{ "time": 0.0, "value": "#FFFFFFFF" }] },
+          { "target": "dot_b.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.3 }] },
+          { "target": "dot_b.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.3 }] },
+          { "target": "dot_c.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_c.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_c.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] }
+        ]
+      },
+      {
+        "name": "page_c",
+        "duration": 0.033,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          { "target": "dot_a.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_a.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_a.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_b.fill.color", "keyframes": [{ "time": 0.0, "value": "#FF546E7A" }] },
+          { "target": "dot_b.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_b.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.0 }] },
+          { "target": "dot_c.fill.color", "keyframes": [{ "time": 0.0, "value": "#FFFFFFFF" }] },
+          { "target": "dot_c.scaleX",     "keyframes": [{ "time": 0.0, "value": 1.3 }] },
+          { "target": "dot_c.scaleY",     "keyframes": [{ "time": 0.0, "value": 1.3 }] }
+        ]
+      }
+    ],
+    "state_machines": [
+      {
+        "name": "NavSM",
+        "inputs": [
+          { "name": "page", "type": "number", "default": 0 }
+        ],
+        "layers": [
+          {
+            "name": "Nav",
+            "states": [
+              { "name": "A", "animation": "page_a" },
+              { "name": "B", "animation": "page_b" },
+              { "name": "C", "animation": "page_c" }
+            ],
+            "transitions": [
+              { "from": "A", "to": "B", "duration_ms": 200, "conditions": [{ "input": "page", "op": ">=", "value": 0.34 }] },
+              { "from": "B", "to": "A", "duration_ms": 200, "conditions": [{ "input": "page", "op": "<",  "value": 0.34 }] },
+              { "from": "B", "to": "C", "duration_ms": 200, "conditions": [{ "input": "page", "op": ">=", "value": 0.67 }] },
+              { "from": "C", "to": "B", "duration_ms": 200, "conditions": [{ "input": "page", "op": "<",  "value": 0.67 }] }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

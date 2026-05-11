@@ -190,17 +190,30 @@ func cmdValidateSchema(path string) {
 		os.Exit(1)
 	}
 
-	errs := fromjson.ValidateJSON(data)
-	if len(errs) == 0 {
+	all := fromjson.ValidateJSON(data)
+	var warns, fatal []error
+	for _, e := range all {
+		if fromjson.IsWarning(e) {
+			warns = append(warns, e)
+		} else {
+			fatal = append(fatal, e)
+		}
+	}
+	for _, w := range warns {
+		fmt.Printf("⚠ %v\n", w)
+	}
+	if len(fatal) == 0 {
 		fmt.Println("✓ JSON schema valid")
 		fmt.Println("Result: VALID")
+		if len(warns) > 0 {
+			fmt.Printf("  (%d warning(s))\n", len(warns))
+		}
 		return
 	}
-
-	for _, e := range errs {
+	for _, e := range fatal {
 		fmt.Printf("✗ %v\n", e)
 	}
-	fmt.Printf("Result: INVALID (%d error(s))\n", len(errs))
+	fmt.Printf("Result: INVALID (%d error(s))\n", len(fatal))
 	os.Exit(1)
 }
 
