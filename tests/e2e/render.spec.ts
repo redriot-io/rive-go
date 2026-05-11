@@ -56,12 +56,7 @@ const FROMJSON_FILES: FileEntry[] = [
   { name: 'fromjson_star_path',  path: '/docs/preview/fromjson_star_path.riv',  anim: 'spin'  },
   { name: 'fromjson_bezier_leaf', path: '/docs/preview/fromjson_bezier_leaf.riv', anim: 'pulse' },
   { name: 'fromjson_path_morph', path: '/docs/preview/fromjson_path_morph.riv', anim: 'morph' },
-  // fromjson_hello_world.riv contains an 80KB embedded TTF (codicon). The Rive
-  // WASM runtime hangs processing this font in headless Chromium — neither
-  // onLoad nor onLoadError fires within 30s. Text format correctness is fully
-  // covered by Go unit tests (rive/builder/text_test.go +
-  // rive/fromjson/text_fromjson_test.go, 26 tests). Skipping browser render
-  // until a font-subsetting step is added to the build pipeline.
+  { name: 'fromjson_hello_world', path: '/docs/preview/fromjson_hello_world.riv' },
 ];
 
 // ── helper ────────────────────────────────────────────────────────────────────

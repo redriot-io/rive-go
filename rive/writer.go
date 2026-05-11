@@ -82,10 +82,20 @@ func writeRiv(bw *encoding.BinaryWriter, objects []Object, cfg *writeConfig) err
 
 	for _, obj := range objects {
 		for _, p := range obj.Properties() {
-			if !seenKey[p.Key] {
-				seenKey[p.Key] = true
-				orderedToc = append(orderedToc, tocEntry{p.Key, p.Type})
+			if seenKey[p.Key] {
+				continue
 			}
+			seenKey[p.Key] = true
+			// PropertyTypeBytes (4) cannot be represented in the 2-bit ToC packing
+			// (values 0-3 only). Truncation to 0 (uint) causes the Rive C++ runtime
+			// to misparse bytes blobs as LEB128, hanging indefinitely. The runtime
+			// uses its compiled-in CoreRegistry for bytes properties and never reads
+			// them from the ToC, so omitting them here is correct and matches the
+			// rive-rs/rive-cpp encoder behavior.
+			if p.Type == PropertyTypeBytes {
+				continue
+			}
+			orderedToc = append(orderedToc, tocEntry{p.Key, p.Type})
 		}
 	}
 
