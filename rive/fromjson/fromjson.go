@@ -50,6 +50,10 @@ type Child struct {
 	Fill      json.RawMessage `json:"fill,omitempty"`
 	Stroke    *StrokeDef      `json:"stroke,omitempty"`
 	DrawRules []DrawRuleDef   `json:"draw_rules,omitempty"`
+	// path-specific fields
+	Vertices []VertexDef    `json:"vertices,omitempty"`
+	Closed   bool           `json:"closed,omitempty"`
+	Clip     string         `json:"clip,omitempty"` // name of a path child to use as clip source
 }
 
 // DrawRuleDef describes one draw-order constraint on a shape.
@@ -81,6 +85,15 @@ type fillObj struct {
 type gradientStop struct {
 	Position float64 `json:"position"`
 	Color    string  `json:"color"`
+}
+
+// VertexDef describes one vertex in a custom path.
+type VertexDef struct {
+	X      float64   `json:"x"`
+	Y      float64   `json:"y"`
+	Radius float64   `json:"radius,omitempty"` // straight vertex corner radius
+	In     []float64 `json:"in,omitempty"`     // [inX, inY] cubic in-handle (absolute coords)
+	Out    []float64 `json:"out,omitempty"`    // [outX, outY] cubic out-handle (absolute coords)
 }
 
 // AnimationDef describes a linear animation.
@@ -286,10 +299,45 @@ func ValidateJSON(data []byte) []error {
 		}
 		switch strings.ToLower(child.Type) {
 		case "rectangle", "ellipse":
+			// no extra validation
+		case "path":
+			if child.Closed && len(child.Vertices) < 3 {
+				errs = append(errs, &ParseError{Field: field + ".vertices", Message: fmt.Sprintf("closed path requires at least 3 vertices, got %d", len(child.Vertices))})
+			}
+			for vi, v := range child.Vertices {
+				vf := fmt.Sprintf("%s.vertices[%d]", field, vi)
+				if (v.In != nil) != (v.Out != nil) {
+					errs = append(errs, &ParseError{Field: vf, Message: "cubic vertex must have both 'in' and 'out' control points"})
+				}
+				if v.In != nil && len(v.In) != 2 {
+					errs = append(errs, &ParseError{Field: vf + ".in", Message: "must be [x, y] (2 elements)"})
+				}
+				if v.Out != nil && len(v.Out) != 2 {
+					errs = append(errs, &ParseError{Field: vf + ".out", Message: "must be [x, y] (2 elements)"})
+				}
+			}
 		case "":
 			errs = append(errs, &ParseError{Field: field + ".type", Message: "required"})
 		default:
-			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse)", child.Type)})
+			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse|path)", child.Type)})
+		}
+	}
+
+	// Validate clip references (second pass: all path names now collected)
+	pathNames := map[string]bool{}
+	for _, child := range ab.Children {
+		if strings.ToLower(child.Type) == "path" && child.Name != "" {
+			pathNames[child.Name] = true
+		}
+	}
+	for i, child := range ab.Children {
+		if child.Clip == "" {
+			continue
+		}
+		if strings.ToLower(child.Type) == "path" {
+			errs = append(errs, &ParseError{Field: fmt.Sprintf("artboard.children[%d].clip", i), Message: "path children cannot be clipped (only rectangle/ellipse)"})
+		} else if !pathNames[child.Clip] {
+			errs = append(errs, &ParseError{Field: fmt.Sprintf("artboard.children[%d].clip", i), Message: fmt.Sprintf("clip source %q not found or not a path", child.Clip)})
 		}
 	}
 
@@ -430,21 +478,55 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 	b := builder.New()
 	artboard := b.Artboard(ab.Name, ab.Width, ab.Height)
 
-	// Add shapes, tracking name → ShapeRef for animation targeting.
-	nameMap := map[string]*builder.ShapeRef{}
+	// shapeMap: name → *ShapeRef for rect/ellipse children (draw rules, listeners, drawOrderKF)
+	// pathMap:  name → *PathRef for path children (clip sources)
+	// animMap:  name → AnimTarget for all children (animation targeting)
+	shapeMap := map[string]*builder.ShapeRef{}
+	pathMap  := map[string]*builder.PathRef{}
+	animMap  := map[string]builder.AnimTarget{}
+
 	for i, child := range ab.Children {
 		cf := fmt.Sprintf("artboard.children[%d]", i)
 		if child.Name == "" {
 			return nil, &ParseError{Field: cf + ".name", Message: "required"}
 		}
-		if _, dup := nameMap[child.Name]; dup {
+		if _, dup := animMap[child.Name]; dup {
 			return nil, &ParseError{Field: cf + ".name", Message: fmt.Sprintf("duplicate name %q", child.Name)}
 		}
-		ref, err := addChild(artboard, &child)
-		if err != nil {
-			return nil, err
+		switch strings.ToLower(child.Type) {
+		case "rectangle", "ellipse":
+			ref, err := addChild(artboard, &child)
+			if err != nil {
+				return nil, err
+			}
+			shapeMap[child.Name] = ref
+			animMap[child.Name] = ref
+		case "path":
+			ref, err := addPath(artboard, &child)
+			if err != nil {
+				return nil, err
+			}
+			pathMap[child.Name] = ref
+			animMap[child.Name] = ref
+		default:
+			return nil, &ParseError{Field: cf + ".type", Message: fmt.Sprintf("unknown shape type %q (rectangle|ellipse|path)", child.Type)}
 		}
-		nameMap[child.Name] = ref
+	}
+
+	// Resolve clipping: apply after all children added so pathMap is fully populated.
+	for i, child := range ab.Children {
+		if child.Clip == "" {
+			continue
+		}
+		src, ok := shapeMap[child.Name]
+		if !ok {
+			return nil, &ParseError{Field: fmt.Sprintf("artboard.children[%d].clip", i), Message: "only rectangle/ellipse children can be clipped"}
+		}
+		clipPath, ok := pathMap[child.Clip]
+		if !ok {
+			return nil, &ParseError{Field: fmt.Sprintf("artboard.children[%d].clip", i), Message: fmt.Sprintf("clip source %q not found or not a path", child.Clip)}
+		}
+		src.ClipWith(clipPath)
 	}
 
 	// Add animations.
@@ -474,7 +556,7 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 
 		for ti, track := range anim.Tracks {
 			tf := fmt.Sprintf("animations[%q].tracks[%d]", anim.Name, ti)
-			ref, propKey, isColor, err := resolveTarget(track.Target, nameMap)
+			ref, propKey, isColor, err := resolveTarget(track.Target, animMap)
 			if err != nil {
 				return nil, &ParseError{Field: tf + ".target", Message: err.Error()}
 			}
@@ -525,7 +607,7 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 		ab2 := animBuilders[ai]
 		for ti, dot := range anim.DrawOrderTracks {
 			dof := fmt.Sprintf("animations[%q].draw_order_tracks[%d]", anim.Name, ti)
-			src, ok := nameMap[dot.Shape]
+			src, ok := shapeMap[dot.Shape]
 			if !ok {
 				return nil, &ParseError{
 					Field:   dof + ".shape",
@@ -541,7 +623,7 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 				var targetRef *builder.ShapeRef
 				var placement uint64
 				if kf.Target != "" {
-					t, ok2 := nameMap[kf.Target]
+					t, ok2 := shapeMap[kf.Target]
 					if !ok2 {
 						return nil, &ParseError{
 							Field:   fmt.Sprintf("%s.keyframes[%d].target", dof, ki),
@@ -567,10 +649,10 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 		if len(child.DrawRules) == 0 {
 			continue
 		}
-		ref := nameMap[child.Name]
+		ref := shapeMap[child.Name]
 		cf := fmt.Sprintf("artboard.children[%d].draw_rules", i)
 		for j, rule := range child.DrawRules {
-			target, ok := nameMap[rule.Target]
+			target, ok := shapeMap[rule.Target]
 			if !ok {
 				return nil, &ParseError{
 					Field:   fmt.Sprintf("%s[%d].target", cf, j),
@@ -809,7 +891,7 @@ func buildScene(scene *Scene) (*builder.Builder, error) {
 		// Listeners
 		for li, ld := range sm.Listeners {
 			lf := fmt.Sprintf("state_machines[%q].listeners[%d]", sm.Name, li)
-			shapeRef, ok := nameMap[ld.Target]
+			shapeRef, ok := shapeMap[ld.Target]
 			if !ok {
 				return nil, &ParseError{
 					Field:   lf + ".target",
@@ -909,6 +991,139 @@ func addChild(artboard *builder.ArtboardBuilder, child *Child) (*builder.ShapeRe
 	return ref, nil
 }
 
+// addPath adds one custom path shape to the artboard and returns its PathRef.
+func addPath(artboard *builder.ArtboardBuilder, child *Child) (*builder.PathRef, error) {
+	if len(child.Vertices) == 0 {
+		return nil, &ParseError{Field: fmt.Sprintf("children[%q].vertices", child.Name), Message: "path requires at least one vertex"}
+	}
+	if child.Closed && len(child.Vertices) < 3 {
+		return nil, &ParseError{Field: fmt.Sprintf("children[%q].vertices", child.Name), Message: fmt.Sprintf("closed path requires at least 3 vertices, got %d", len(child.Vertices))}
+	}
+
+	ref := artboard.Path(child.X, child.Y)
+	ref.Name(child.Name)
+
+	for vi, v := range child.Vertices {
+		vf := fmt.Sprintf("children[%q].vertices[%d]", child.Name, vi)
+		if v.In != nil || v.Out != nil {
+			// Cubic vertex: both in and out control points required
+			if len(v.In) != 2 {
+				return nil, &ParseError{Field: vf + ".in", Message: "cubic vertex requires in=[x,y] with exactly 2 elements"}
+			}
+			if len(v.Out) != 2 {
+				return nil, &ParseError{Field: vf + ".out", Message: "cubic vertex requires out=[x,y] with exactly 2 elements"}
+			}
+			ref.CubicTo(v.X, v.Y, v.In[0], v.In[1], v.Out[0], v.Out[1])
+		} else if v.Radius != 0 {
+			ref.LineToR(v.X, v.Y, v.Radius)
+		} else {
+			ref.LineTo(v.X, v.Y)
+		}
+	}
+
+	if child.Closed {
+		ref.Close()
+	}
+
+	if child.Rotation != 0 {
+		ref.Rotation(child.Rotation)
+	}
+	if child.ScaleX != 0 || child.ScaleY != 0 {
+		sx, sy := child.ScaleX, child.ScaleY
+		if sx == 0 {
+			sx = 1.0
+		}
+		if sy == 0 {
+			sy = 1.0
+		}
+		ref.Scale(sx, sy)
+	}
+	if child.Opacity > 0 && child.Opacity < 1.0 {
+		ref.Opacity(child.Opacity)
+	}
+
+	if len(child.Fill) > 0 {
+		if err := applyFillPath(ref, child.Fill); err != nil {
+			return nil, err
+		}
+	}
+	if child.Stroke != nil {
+		color, err := parseColor(child.Stroke.Color)
+		if err != nil {
+			return nil, &ParseError{Field: fmt.Sprintf("children[%q].stroke.color", child.Name), Message: err.Error()}
+		}
+		ref.Stroke(child.Stroke.Width, color)
+	}
+
+	return ref, nil
+}
+
+// applyFillPath parses a fill JSON value and applies it to a PathRef.
+func applyFillPath(ref *builder.PathRef, raw json.RawMessage) error {
+	var colorStr string
+	if err := json.Unmarshal(raw, &colorStr); err == nil {
+		color, err := parseColor(colorStr)
+		if err != nil {
+			return &ParseError{Field: "fill", Message: err.Error()}
+		}
+		ref.Fill(color)
+		return nil
+	}
+
+	var fill fillObj
+	if err := json.Unmarshal(raw, &fill); err != nil {
+		return &ParseError{Field: "fill", Message: fmt.Sprintf("invalid fill: must be \"#RRGGBB\" or {type, color, ...}: %v", err)}
+	}
+
+	switch strings.ToLower(fill.Type) {
+	case "solid", "":
+		if fill.Color == "" {
+			return &ParseError{Field: "fill.color", Message: "required for solid fill"}
+		}
+		color, err := parseColor(fill.Color)
+		if err != nil {
+			return &ParseError{Field: "fill.color", Message: err.Error()}
+		}
+		ref.Fill(color)
+
+	case "linear_gradient":
+		if len(fill.Stops) < 2 {
+			return &ParseError{Field: "fill.stops", Message: "linear_gradient requires at least 2 stops"}
+		}
+		stops := make([]builder.GradientStop, len(fill.Stops))
+		for i, s := range fill.Stops {
+			color, err := parseColor(s.Color)
+			if err != nil {
+				return &ParseError{Field: fmt.Sprintf("fill.stops[%d].color", i), Message: err.Error()}
+			}
+			stops[i] = builder.GradientStop{Position: s.Position, Color: color}
+		}
+		ref.FillGradient(fill.Start[0], fill.Start[1], fill.End[0], fill.End[1], stops...)
+
+	case "radial_gradient":
+		if len(fill.Stops) < 2 {
+			return &ParseError{Field: "fill.stops", Message: "radial_gradient requires at least 2 stops"}
+		}
+		if fill.Radius <= 0 {
+			return &ParseError{Field: "fill.radius", Message: "radial_gradient requires a positive radius"}
+		}
+		stops := make([]builder.GradientStop, len(fill.Stops))
+		for i, s := range fill.Stops {
+			color, err := parseColor(s.Color)
+			if err != nil {
+				return &ParseError{Field: fmt.Sprintf("fill.stops[%d].color", i), Message: err.Error()}
+			}
+			stops[i] = builder.GradientStop{Position: s.Position, Color: color}
+		}
+		cx, cy := fill.Center[0], fill.Center[1]
+		ref.FillRadialGradient(cx, cy, cx+fill.Radius, cy, stops...)
+
+	default:
+		return &ParseError{Field: "fill.type", Message: fmt.Sprintf("unknown fill type %q (solid|linear_gradient|radial_gradient)", fill.Type)}
+	}
+	return nil
+}
+
 // applyFill parses a fill JSON value (string "#RRGGBB" or object) and applies it to ref.
 func applyFill(ref *builder.ShapeRef, raw json.RawMessage) error {
 	// Try string shorthand: "#RRGGBB"
@@ -998,8 +1213,9 @@ func parseListenerEvent(event string) (builder.ListenerType, error) {
 	}
 }
 
-// resolveTarget maps a dot-path target string to the ShapeRef and property info.
-func resolveTarget(path string, names map[string]*builder.ShapeRef) (ref *builder.ShapeRef, propKey uint32, isColor bool, err error) {
+// resolveTarget maps a dot-path target string to the AnimTarget and property info.
+// Accepts animMap (all shapes + paths). For vertex animation use "name.vN.x" form.
+func resolveTarget(path string, names map[string]builder.AnimTarget) (ref builder.AnimTarget, propKey uint32, isColor bool, err error) {
 	dot := strings.Index(path, ".")
 	if dot < 0 {
 		return nil, 0, false, fmt.Errorf("expected dot-path (e.g. shapeName.x), got %q", path)
