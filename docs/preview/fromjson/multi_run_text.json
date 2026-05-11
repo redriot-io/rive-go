@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "MultiRunText",
+    "width": 400,
+    "height": 200,
+    "fonts": [
+      { "name": "Abel", "file": "test.ttf" }
+    ],
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "bg",
+        "x": 200, "y": 100,
+        "width": 400, "height": 200,
+        "fill": "#F5F5F5"
+      },
+      {
+        "type": "text",
+        "name": "mixed",
+        "x": 30, "y": 40,
+        "align": "left",
+        "styles": [
+          { "name": "heading", "font": "Abel", "fontSize": 32, "fill": "#111111" },
+          { "name": "body",    "font": "Abel", "fontSize": 16, "fill": "#666666" },
+          { "name": "accent",  "font": "Abel", "fontSize": 18, "fill": "#2A00FF" }
+        ],
+        "runs": [
+          { "text": "Multi-Run Text\n", "style": "heading" },
+          { "text": "Normal body text, then ", "style": "body" },
+          { "text": "accented", "style": "accent" },
+          { "text": " text continues.", "style": "body" }
+        ]
+      }
+    ]
+  }
+}

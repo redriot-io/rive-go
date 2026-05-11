@@ -6,7 +6,245 @@ import (
 	"testing"
 
 	"github.com/redriot-io/rive-go/rive"
+	"github.com/redriot-io/rive-go/rive/builder"
+	"github.com/redriot-io/rive-go/rive/fromjson"
 )
+
+// TestConformance_NewText validates multi-run text emission against the
+// structural patterns observed in the official new_text.riv (T-490).
+//
+// Ground truth from new_text.riv (see testdata/official/new_text_structure.txt):
+//   Text[15]: Style1 → Run1 → Run2(fwd-styleId) → Run3 → Style2
+//   Text[22]: Run1(fwd-styleId) → Style1 → Style2 → Run2 → Run3
+//
+// Our builder uses "styles-first" ordering: all TextStyles, then all TextValueRuns.
+// This is structurally different from the official ordering but functionally equivalent
+// because styleId is a pure artboard-relative index — forward references are valid.
+//
+// This test asserts:
+//  1. Builder multi-run: correct typeKey sequence, parentId hierarchy, styleId refs
+//  2. FromJSON `runs` array: same structure via JSON-driven build
+func TestConformance_NewText(t *testing.T) {
+	// ── Step 1: Verify official new_text.riv parses and has expected multi-run objects ──
+	t.Run("official_parse", func(t *testing.T) {
+		data, err := os.ReadFile("testdata/official/new_text.riv")
+		if err != nil {
+			t.Skip("new_text.riv not available")
+		}
+		f, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("parse: %v", err)
+		}
+
+		// Count TextValueRun and TextStyle objects.
+		var tvrs, tss int
+		for _, o := range f.Objects {
+			switch o.TypeKey() {
+			case 135:
+				tvrs++
+			case 137:
+				tss++
+			}
+		}
+		if tvrs < 3 {
+			t.Errorf("expected ≥3 TextValueRuns in new_text.riv, got %d", tvrs)
+		}
+		if tss < 2 {
+			t.Errorf("expected ≥2 TextStyles in new_text.riv, got %d", tss)
+		}
+		t.Logf("new_text.riv: %d objects, %d TextValueRuns, %d TextStyles",
+			len(f.Objects), tvrs, tss)
+	})
+
+	// ── Step 2: Builder multi-run structural verification ──
+	t.Run("builder_multi_run", func(t *testing.T) {
+		b := builder.New()
+		ab := b.Artboard("MultiRun", 400, 200)
+		fontA := ab.EmbedFont("FontA", []byte("FAKE-TTF-A"))
+		fontB := ab.EmbedFont("FontB", []byte("FAKE-TTF-B"))
+
+		txt := ab.Text("mixed")
+		sA := txt.Style(fontA, 24).Fill(0xFF000000)
+		sB := txt.Style(fontB, 16).Fill(0xFF666666)
+		txt.Run("here is ", sA)
+		txt.Run("some", sB)
+		txt.Run(" new text", sA)
+
+		objects, err := b.Build()
+		if err != nil {
+			t.Fatalf("Build: %v", err)
+		}
+
+		// Expected typeKey sequence (styles-first ordering):
+		// [0]BB [1]FA_A [2]FAC_A [3]FA_B [4]FAC_B [5]AB
+		// [6]Text [7]TSP_A [8]SC_A [9]Fill_A [10]TSP_B [11]SC_B [12]Fill_B
+		// [13]TVR1 [14]TVR2 [15]TVR3
+		wantKeys := []uint32{
+			23, 141, 106, 141, 106, 1,         // preamble
+			134,                               // Text
+			137, 18, 20,                       // StyleA + Fill chain
+			137, 18, 20,                       // StyleB + Fill chain
+			135, 135, 135,                     // 3 TextValueRuns
+		}
+		if len(objects) != len(wantKeys) {
+			t.Fatalf("object count: got %d want %d\n  got:  %v\n  want: %v",
+				len(objects), len(wantKeys), typeKeys(objects), wantKeys)
+		}
+		for i, want := range wantKeys {
+			if objects[i].TypeKey() != want {
+				t.Errorf("objects[%d] typeKey=%d, want %d", i, objects[i].TypeKey(), want)
+			}
+		}
+
+		// Artboard is at global[5]; artboard-relative base = 5.
+		const abIdx = 5
+
+		// Verify parentId hierarchy for text subtree.
+		// parentId=0 is the default (artboard itself) and is NOT emitted; return abIdx.
+		parentGlobal := func(i int) int {
+			for _, p := range objects[i].Properties() {
+				if p.Key == 5 {
+					if v, ok := p.Value.(uint64); ok {
+						return abIdx + int(v)
+					}
+				}
+			}
+			return abIdx // no parentId property → parentId=0 → Artboard
+		}
+		getUint := func(i int, key uint32) (uint64, bool) {
+			for _, p := range objects[i].Properties() {
+				if p.Key == key {
+					if v, ok := p.Value.(uint64); ok {
+						return v, true
+					}
+				}
+			}
+			return 0, false
+		}
+
+		// Text[6] → Artboard[5] (parentId=0)
+		if pg := parentGlobal(6); pg != abIdx {
+			t.Errorf("Text[6].parent=global[%d], want global[%d] (Artboard)", pg, abIdx)
+		}
+		// StyleA[7] → Text[6]
+		if pg := parentGlobal(7); pg != 6 {
+			t.Errorf("StyleA[7].parent=global[%d], want global[6] (Text)", pg)
+		}
+		// SolidColor_A[8] → Fill_A[9] (forward ref)
+		if pg := parentGlobal(8); pg != 9 {
+			t.Errorf("SC_A[8].parent=global[%d], want global[9] (Fill_A forward ref)", pg)
+		}
+		// Fill_A[9] → StyleA[7]
+		if pg := parentGlobal(9); pg != 7 {
+			t.Errorf("Fill_A[9].parent=global[%d], want global[7] (StyleA)", pg)
+		}
+		// StyleB[10] → Text[6]
+		if pg := parentGlobal(10); pg != 6 {
+			t.Errorf("StyleB[10].parent=global[%d], want global[6] (Text)", pg)
+		}
+		// SolidColor_B[11] → Fill_B[12] (forward ref)
+		if pg := parentGlobal(11); pg != 12 {
+			t.Errorf("SC_B[11].parent=global[%d], want global[12] (Fill_B forward ref)", pg)
+		}
+		// Fill_B[12] → StyleB[10]
+		if pg := parentGlobal(12); pg != 10 {
+			t.Errorf("Fill_B[12].parent=global[%d], want global[10] (StyleB)", pg)
+		}
+
+		// TVR1[13] → Text[6], styleId → StyleA[7] (artboard-rel = 7-5 = 2)
+		if pg := parentGlobal(13); pg != 6 {
+			t.Errorf("TVR1[13].parent=global[%d], want global[6] (Text)", pg)
+		}
+		if sid, ok := getUint(13, 272); !ok || int(abIdx)+int(sid) != 7 {
+			t.Errorf("TVR1[13].styleId=%d resolves to global[%d], want global[7] (StyleA)", sid, int(abIdx)+int(sid))
+		}
+
+		// TVR2[14] → Text[6], styleId → StyleB[10] (artboard-rel = 10-5 = 5)
+		if sid, ok := getUint(14, 272); !ok || int(abIdx)+int(sid) != 10 {
+			t.Errorf("TVR2[14].styleId=%d resolves to global[%d], want global[10] (StyleB)", sid, int(abIdx)+int(sid))
+		}
+
+		// TVR3[15] → Text[6], styleId → StyleA[7] (same as TVR1)
+		if sid, ok := getUint(15, 272); !ok || int(abIdx)+int(sid) != 7 {
+			t.Errorf("TVR3[15].styleId=%d resolves to global[%d], want global[7] (StyleA)", sid, int(abIdx)+int(sid))
+		}
+
+		t.Logf("builder multi-run ok: %v", typeKeys(objects))
+	})
+
+	// ── Step 3: FromJSON `runs` array multi-run ──
+	t.Run("fromjson_runs_array", func(t *testing.T) {
+		scene := `{
+			"version": 1,
+			"artboard": {
+				"name": "MultiRunJSON",
+				"width": 400,
+				"height": 200,
+				"fonts": [
+					{"name": "FontA", "file": "FAKE_A"},
+					{"name": "FontB", "file": "FAKE_B"}
+				],
+				"children": [{
+					"type": "text",
+					"name": "mixed",
+					"x": 200, "y": 100,
+					"styles": [
+						{"name": "styleA", "font": "FontA", "fontSize": 24, "fill": "#000000"},
+						{"name": "styleB", "font": "FontB", "fontSize": 16, "fill": "#666666"}
+					],
+					"runs": [
+						{"text": "here is ", "style": "styleA"},
+						{"text": "some",     "style": "styleB"},
+						{"text": " new text","style": "styleA"}
+					]
+				}]
+			}
+		}`
+		// Inject fake font bytes so fromjson doesn't try to open files.
+		fakeBytes := map[string][]byte{
+			"FAKE_A": []byte("FAKE-TTF-A"),
+			"FAKE_B": []byte("FAKE-TTF-B"),
+		}
+		b, err := fromjson.FromJSONWithFonts([]byte(scene), fakeBytes)
+		if err != nil {
+			t.Fatalf("FromJSONWithFonts: %v", err)
+		}
+		objects, err := b.Bytes()
+		if err != nil {
+			t.Fatalf("Bytes: %v", err)
+		}
+		f, err := rive.ReadBytes(objects)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+
+		var tvrs, tss int
+		for _, o := range f.Objects {
+			switch o.TypeKey() {
+			case 135:
+				tvrs++
+			case 137:
+				tss++
+			}
+		}
+		if tvrs != 3 {
+			t.Errorf("want 3 TextValueRuns, got %d", tvrs)
+		}
+		if tss != 2 {
+			t.Errorf("want 2 TextStyles, got %d", tss)
+		}
+		t.Logf("fromjson runs: %d TVRs, %d TextStyles", tvrs, tss)
+	})
+}
+
+// typeKeys returns a slice of TypeKey values for display in test output.
+func typeKeys(objects []rive.Object) []uint32 {
+	out := make([]uint32, len(objects))
+	for i, o := range objects {
+		out[i] = o.TypeKey()
+	}
+	return out
+}
 
 // TestConformance_OfficialToC inspects official Rive editor exports to determine
 // how bytes-typed properties (key 212, 223) appear in the ToC.

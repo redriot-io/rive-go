@@ -1,0 +1,78 @@
+new_text.riv — structure snapshot (T-490)
+File: 392885 bytes, Major=7, Minor=0, FileID=9377
+Objects: 118
+5 FontAsset+FileAssetContents pairs (fonts at global[1..10])
+Artboard at global[11]: "New Artboard" 500×500
+
+=== TEXT SUBTREES ===
+
+--- Text[12]: single-run, single-style ---
+  [12] Text         (artboard-rel=1)  parentId=0→[11]Artboard
+  [13] TextStyle    (ar=2)  parentId=1→Text[12], fontAssetId=0
+  [14] TextValueRun (ar=3)  parentId=1→Text[12], styleId=2→TextStyle[13], text="re"
+  PATTERN: Text → Style → Run  (styles-first, official single-run)
+
+--- Text[15]: single-style, multi-run, with FORWARD styleId reference ---
+  [15] Text         (ar=4)  parentId=0→[11]Artboard
+  [16] TextStyle1   (ar=5)  parentId=4→Text[15], fontAssetId=4
+  [17] TextValueRun (ar=6)  parentId=4→Text[15], styleId=5→TextStyle1[16], text="te"
+  [18] TextValueRun (ar=7)  parentId=4→Text[15], styleId=9→TextStyle2[20] **FORWARD REF**
+  [19] TextValueRun (ar=8)  parentId=4→Text[15], styleId=5→TextStyle1[16], text="t"
+  [20] TextStyle2   (ar=9)  parentId=4→Text[15], fontSize=21.0, fontAssetId=4
+  PATTERN: Style1 → Run1 → Run2(fwd) → Run3 → Style2
+  KEY FINDING: Runs CAN precede their referenced style (styleId forward reference is valid)
+
+--- Text[22]: two-style, three-run, FIRST run before first style ---
+  [22] Text         (ar=11) parentId=0→[11]Artboard
+  [23] TextValueRun (ar=12) parentId=11→Text[22], styleId=13→TextStyle1[24] **FORWARD REF**, text="here is "
+  [24] TextStyle1   (ar=13) parentId=11→Text[22], fontAssetId=1, name="Text Style"
+  [25] TextStyle2   (ar=14) parentId=11→Text[22], fontAssetId=3, name="Text Style"
+  [26] TextValueRun (ar=15) parentId=11→Text[22], styleId=14→TextStyle2[25], text="some"
+  [27] TextValueRun (ar=16) parentId=11→Text[22], styleId=13→TextStyle1[24], text=" new text"
+  PATTERN: Run1(fwd) → Style1 → Style2 → Run2 → Run3
+  KEY FINDING: TVR can appear before ANY of its referenced TextStyles
+
+--- Text[32]: two-style, three-run, with gradient fills ---
+  [32] Text         (ar=21) parentId=0→[11]Artboard, sizingValue=1, width=100, height=200
+  [33] TextStyle1   (ar=22) parentId=21→Text[32], fontAssetId=0, name="Hi"
+  [34] LinearGradient, [35-37] GradientStops (children of Fill[70])
+  [38] TextValueRun (ar=27) parentId=21→Text[32], styleId=22→TextStyle1[33], text="text is "
+  [39] TextStyle2   (ar=28) parentId=21→Text[32], fontSize=24, fontAssetId=2
+  [40-41] SolidColors (children of Strokes under TextStyle2)
+  [42-44] LinearGradient+GradientStops
+  [45] TextValueRun (ar=34) parentId=21→Text[32], styleId=28→TextStyle2[39], text="ok"
+  [46] TextValueRun (ar=35) parentId=21→Text[32], styleId=22→TextStyle1[33], text=" now?"
+  PATTERN: Style1 → Gradient → Run1 → Style2 → Strokes → Run2 → Run3
+
+--- Text[47]: complex multi-style, many runs, with sizing, clipping ---
+  [47] Text (ar=36) parentId=0→[11]Artboard, rotation, sizingValue=2(fixed), k287=2
+  Many TextStyle + TextValueRun children with interleaved emission
+  ClippingShape at [66]
+
+=== OFFICIAL EMISSION PATTERN SUMMARY ===
+
+The official encoder does NOT enforce a fixed Style/Run ordering.
+Runs can precede, follow, or interleave with Styles.
+The styleId field is a pure artboard-relative index — forward references work.
+
+=== OUR BUILDER EMISSION PATTERN ===
+
+Our builder uses: Styles first (all styles), then Runs (all runs).
+  Text → Style1(+Fill1) → Style2(+Fill2) → Run1 → Run2 → Run3
+
+This is structurally correct and different from the official ordering,
+but functionally identical since styleId resolution is index-based.
+
+=== TOC KEYS PRESENT ===
+key 204 (assetId)      — uint
+key 212 (bytes)        — string/bytes proxy
+key 236 (defaultSMId)  — uint
+key 268 (text)         — string/bytes proxy
+key 272 (styleId)      — uint
+key 274 (fontSize)     — float
+key 279 (fontAssetId)  — uint
+key 280 (value)        — string/bytes proxy (KeyFrameString for text animation)
+key 284 (sizingValue)  — uint
+key 285 (width)        — float
+key 286 (height)       — float
+key 287 (unknown)      — uint
