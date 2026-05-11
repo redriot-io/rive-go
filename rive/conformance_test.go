@@ -2,6 +2,7 @@ package rive_test
 
 import (
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/redriot-io/rive-go/rive"
@@ -142,6 +143,90 @@ func TestConformance_OfficialFilesReadable(t *testing.T) {
 				t.Error("no objects parsed")
 			}
 			t.Logf("ok: %d objects, major=%d", len(f.Objects), f.MajorVersion)
+		})
+	}
+}
+
+// TestConformance_RoundTrip verifies that ReadBytes → WriteBytes → ReadBytes
+// produces a structurally identical file: same object count, same TypeKeys in
+// order, and same property key/type/value sets per object.
+//
+// Uses the small official files (ball_test.riv, blend_test.riv, hello_world.riv)
+// to exercise both font-free and font-embedded paths.
+func TestConformance_RoundTrip(t *testing.T) {
+	files := []struct {
+		path string
+		desc string
+	}{
+		{"testdata/official/ball_test.riv", "shapes + state machine, no font"},
+		{"testdata/official/blend_test.riv", "blend state machine, no font"},
+		{"testdata/official/hello_world.riv", "text + embedded font (bytes round-trip)"},
+	}
+
+	for _, f := range files {
+		f := f
+		t.Run(f.path, func(t *testing.T) {
+			data, err := os.ReadFile(f.path)
+			if err != nil {
+				t.Skipf("not available: %v", err)
+			}
+
+			f1, err := rive.ReadBytes(data)
+			if err != nil {
+				t.Fatalf("parse: %v", err)
+			}
+
+			data2, err := rive.WriteBytes(f1.Objects,
+				rive.WithMajorVersion(f1.MajorVersion),
+				rive.WithMinorVersion(f1.MinorVersion),
+				rive.WithFileID(f1.FileID),
+			)
+			if err != nil {
+				t.Fatalf("write: %v", err)
+			}
+
+			f2, err := rive.ReadBytes(data2)
+			if err != nil {
+				t.Fatalf("re-read: %v", err)
+			}
+
+			if len(f2.Objects) != len(f1.Objects) {
+				t.Fatalf("object count: got %d, want %d", len(f2.Objects), len(f1.Objects))
+			}
+
+			for i := range f1.Objects {
+				o1, o2 := f1.Objects[i], f2.Objects[i]
+
+				if o2.TypeKey() != o1.TypeKey() {
+					t.Errorf("object[%d]: TypeKey got %d, want %d", i, o2.TypeKey(), o1.TypeKey())
+					continue
+				}
+
+				p1, p2 := o1.Properties(), o2.Properties()
+				if len(p2) != len(p1) {
+					t.Errorf("object[%d] (typeKey=%d): prop count got %d, want %d",
+						i, o1.TypeKey(), len(p2), len(p1))
+					continue
+				}
+
+				for j := range p1 {
+					if p2[j].Key != p1[j].Key {
+						t.Errorf("object[%d] prop[%d]: key got %d, want %d",
+							i, j, p2[j].Key, p1[j].Key)
+					}
+					if p2[j].Type != p1[j].Type {
+						t.Errorf("object[%d] prop[%d] (key=%d): type got %d, want %d",
+							i, j, p1[j].Key, p2[j].Type, p1[j].Type)
+					}
+					if !reflect.DeepEqual(p2[j].Value, p1[j].Value) {
+						t.Errorf("object[%d] prop[%d] (key=%d, type=%d): value mismatch",
+							i, j, p1[j].Key, p1[j].Type)
+					}
+				}
+			}
+
+			t.Logf("ok: %d objects, %d bytes → %d bytes (%s)",
+				len(f1.Objects), len(data), len(data2), f.desc)
 		})
 	}
 }
