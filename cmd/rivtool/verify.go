@@ -3,12 +3,15 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/redriot-io/rive-go/rive"
 )
 
 // cmdVerify runs structural checks on a .riv file and exits 0 iff all pass.
-func cmdVerify(path string) bool {
+// When deep is true, also parses embedded font cmap tables and verifies that
+// every TextValueRun's text is covered by its assigned font's glyphs.
+func cmdVerify(path string, deep bool) bool {
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		fmt.Printf("✗ Cannot read file: %v\n", err)
@@ -24,6 +27,20 @@ func cmdVerify(path string) bool {
 	}
 
 	passes, errs := verifyRiv(f)
+
+	if deep {
+		fp, fe := verifyFonts(f)
+		passes = append(passes, fp...)
+		for _, e := range fe {
+			if strings.HasPrefix(e, "⚠") {
+				// partial coverage — print as warning, not a hard failure
+				fmt.Printf("%s\n", e)
+			} else {
+				errs = append(errs, e)
+			}
+		}
+	}
+
 	for _, p := range passes {
 		fmt.Printf("✓ %s\n", p)
 	}

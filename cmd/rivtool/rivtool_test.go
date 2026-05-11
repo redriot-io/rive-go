@@ -225,6 +225,95 @@ func TestValidate_RivFile_StillWorks(t *testing.T) {
 	}
 }
 
+// ── font glyph coverage (T-489) ──────────────────────────────────────────────
+
+// TestCreate_ValidFont_Succeeds verifies that rivtool create succeeds when the
+// embedded font (Abel) has full glyph coverage for the text content.
+func TestCreate_ValidFont_Succeeds(t *testing.T) {
+	bin := buildRivtool(t)
+	dir, err := os.MkdirTemp(execDir, "rivtool-fontok-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	out := filepath.Join(dir, "text_valid.riv")
+	_, stderr, code := run(t, bin, "create",
+		"--from", "testdata/fromjson/text_valid.json",
+		"--output", out)
+	if code != 0 {
+		t.Fatalf("expected exit 0 for valid font, got %d\nstderr: %s", code, stderr)
+	}
+	data, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatalf("read output: %v", err)
+	}
+	if string(data[:4]) != "RIVE" {
+		t.Fatal("output is not a .riv file")
+	}
+}
+
+// TestCreate_IconFont_Fails verifies that rivtool create exits 1 and prints a
+// clear error when the embedded font (Codicon, PUA-only) has zero glyph
+// coverage for the Latin text content — the root cause of T-488.
+func TestCreate_IconFont_Fails(t *testing.T) {
+	bin := buildRivtool(t)
+	dir, err := os.MkdirTemp(execDir, "rivtool-fontbad-*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { os.RemoveAll(dir) })
+	out := filepath.Join(dir, "text_icon.riv")
+	_, stderr, code := run(t, bin, "create",
+		"--from", "testdata/fromjson/text_icon_font.json",
+		"--output", out)
+	if code != 1 {
+		t.Fatalf("expected exit 1 for icon font, got %d\nstderr: %s", code, stderr)
+	}
+	if !strings.Contains(string(stderr), "zero glyph coverage") {
+		t.Errorf("expected 'zero glyph coverage' in stderr, got: %s", stderr)
+	}
+	// Output file must not be written on error.
+	if _, err := os.Stat(out); err == nil {
+		t.Error("output file should not exist when create fails")
+	}
+}
+
+// TestVerifyDeep_HelloWorld verifies that rivtool verify --deep passes on the
+// fromjson_hello_world.riv (rebuilt in T-488 with Abel font).
+func TestVerifyDeep_HelloWorld(t *testing.T) {
+	bin := buildRivtool(t)
+	stdout, stderr, code := run(t, bin, "verify", "--deep", "../../docs/preview/fromjson_hello_world.riv")
+	if code != 0 {
+		t.Fatalf("expected exit 0, got %d\nstdout: %s\nstderr: %s", code, stdout, stderr)
+	}
+	out := string(stdout)
+	if !strings.Contains(out, "full coverage") {
+		t.Errorf("expected 'full coverage' in output, got: %s", out)
+	}
+	if !strings.Contains(out, "PASS") {
+		t.Errorf("expected PASS in output, got: %s", out)
+	}
+}
+
+// TestVerifyDeep_AllPreviewFiles runs rivtool verify --deep on every .riv in
+// docs/preview/ and expects all to pass.  Files without text have no font
+// checks and trivially pass; fromjson_hello_world.riv must pass the font check.
+func TestVerifyDeep_AllPreviewFiles(t *testing.T) {
+	bin := buildRivtool(t)
+	entries, err := filepath.Glob("../../docs/preview/*.riv")
+	if err != nil || len(entries) == 0 {
+		t.Skip("no .riv files found in docs/preview/")
+	}
+	for _, path := range entries {
+		t.Run(filepath.Base(path), func(t *testing.T) {
+			stdout, stderr, code := run(t, bin, "verify", "--deep", path)
+			if code != 0 {
+				t.Fatalf("verify --deep FAIL\nstdout: %s\nstderr: %s", stdout, stderr)
+			}
+		})
+	}
+}
+
 // ── helper ────────────────────────────────────────────────────────────────────
 
 func min(a, b int) int {

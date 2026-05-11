@@ -58,11 +58,21 @@ func main() {
 	case "create":
 		cmdCreate(os.Args[2:])
 	case "verify":
-		if len(os.Args) < 3 {
+		// rivtool verify [--deep] <file.riv>
+		deep := false
+		var verifyPath string
+		for _, a := range os.Args[2:] {
+			if a == "--deep" {
+				deep = true
+			} else {
+				verifyPath = a
+			}
+		}
+		if verifyPath == "" {
 			fmt.Fprintln(os.Stderr, "verify requires a file argument")
 			os.Exit(1)
 		}
-		ok := cmdVerify(os.Args[2])
+		ok := cmdVerify(verifyPath, deep)
 		if !ok {
 			os.Exit(1)
 		}
@@ -91,6 +101,7 @@ Commands:
   validate <file.riv>                    check well-formedness of a .riv file
   validate --schema <scene.json>         validate a JSON scene file (no build)
   verify   <file.riv>                    structural wiring checks (SM, listeners, refs)
+  verify   --deep <file.riv>            also parse embedded font cmaps and check glyph coverage
   create   --from <scene.json>           build .riv from JSON scene, write to stdout
   create   --from <scene.json> --output <out.riv>
   create   --from -                      read JSON from stdin
@@ -494,6 +505,24 @@ func cmdCreate(args []string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "create: build error: %v\n", err)
 		os.Exit(1)
+	}
+
+	// Font glyph coverage check — hard error on zero coverage, warning on partial.
+	if rivFile, parseErr := rive.ReadBytes(rivBytes); parseErr == nil {
+		_, fontErrs := verifyFonts(rivFile)
+		hardErrs := 0
+		for _, e := range fontErrs {
+			if strings.HasPrefix(e, "⚠") {
+				fmt.Fprintf(os.Stderr, "create: %s\n", e)
+			} else {
+				fmt.Fprintf(os.Stderr, "create: font coverage error: %s\n", e)
+				hardErrs++
+			}
+		}
+		if hardErrs > 0 {
+			fmt.Fprintln(os.Stderr, "create: aborting — embed a font that contains glyphs for the text content")
+			os.Exit(1)
+		}
 	}
 
 	// Write output

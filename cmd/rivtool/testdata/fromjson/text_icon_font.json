@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "IconFont",
+    "width": 200,
+    "height": 100,
+    "fonts": [{ "name": "codicon", "file": "codicon.ttf" }],
+    "children": [
+      {
+        "type": "text",
+        "name": "lbl",
+        "x": 100, "y": 50,
+        "style": { "font": "codicon", "fontSize": 24, "fill": "#000000" },
+        "text": "Hello World"
+      }
+    ]
+  }
+}
