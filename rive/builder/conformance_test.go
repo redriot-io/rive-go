@@ -346,10 +346,13 @@ func TestBuilder_ShapeAndTextMixed(t *testing.T) {
 		t.Fatalf("Build: %v", err)
 	}
 
+	// Builder emits children in REVERSE declaration order (last-declared first).
+	// Rectangle declared first (index 0), Text declared second (index 1).
+	// Reverse: Text emits first, Shape emits second.
 	// Expected typeKey sequence:
-	//   [0]BB [1]FA [2]FAC [3]AB [4]Shape [5]Rect [6]SC_s [7]Fill_s
-	//   [8]Text [9]TSP [10]SC_t [11]Fill_t [12]TVR
-	wantKeys := []uint32{23, 141, 106, 1, 3, 7, 18, 20, 134, 137, 18, 20, 135}
+	//   [0]BB [1]FA [2]FAC [3]AB [4]Text [5]TSP [6]SC_t [7]Fill_t [8]TVR
+	//   [9]Shape [10]Rect [11]SC_s [12]Fill_s
+	wantKeys := []uint32{23, 141, 106, 1, 134, 137, 18, 20, 135, 3, 7, 18, 20}
 	if len(objects) != len(wantKeys) {
 		t.Fatalf("object count: got %d, want %d\n  got:  %v\n  want: %v",
 			len(objects), len(wantKeys), typeKeyList(objects), wantKeys)
@@ -364,60 +367,60 @@ func TestBuilder_ShapeAndTextMixed(t *testing.T) {
 	const abIdx = 3
 	nodes := buildObjectTree(objects)
 
-	// ── Shape subtree ────────────────────────────────────────────────────────
-	// Shape [4] → parent = Artboard [3]
+	// ── Text subtree ─────────────────────────────────────────────────────────
+	// Text [4] → parent = Artboard [3]
 	if nodes[4].parentGlobal != abIdx {
-		t.Errorf("Shape[4].parent=global[%d], want global[%d] (Artboard)", nodes[4].parentGlobal, abIdx)
+		t.Errorf("Text[4].parent=global[%d], want global[%d] (Artboard)", nodes[4].parentGlobal, abIdx)
 	}
-	// Rectangle [5] → parent = Shape [4]
+	// TextStylePaint [5] → parent = Text [4]
 	if nodes[5].parentGlobal != 4 {
-		t.Errorf("Rectangle[5].parent=global[%d], want global[4] (Shape)", nodes[5].parentGlobal)
+		t.Errorf("TextStylePaint[5].parent=global[%d], want global[4] (Text)", nodes[5].parentGlobal)
 	}
-	// SolidColor_shape [6] → parentId forward-ref to Fill_shape [7]
+	// SolidColor_text [6] → parentId forward-ref to Fill_text [7]
 	if nodes[6].parentGlobal != 7 {
-		t.Errorf("SC_shape[6].parent=global[%d], want global[7] (Fill_shape forward ref)", nodes[6].parentGlobal)
+		t.Errorf("SC_text[6].parent=global[%d], want global[7] (Fill_text forward ref)", nodes[6].parentGlobal)
 	}
-	// Fill_shape [7] → parent = Shape [4]
-	if nodes[7].parentGlobal != 4 {
-		t.Errorf("Fill_shape[7].parent=global[%d], want global[4] (Shape)", nodes[7].parentGlobal)
+	// Fill_text [7] → parent = TextStylePaint [5]
+	if nodes[7].parentGlobal != 5 {
+		t.Errorf("Fill_text[7].parent=global[%d], want global[5] (TextStylePaint)", nodes[7].parentGlobal)
+	}
+	// TextValueRun [8] → parent = Text [4]
+	if nodes[8].parentGlobal != 4 {
+		t.Errorf("TextValueRun[8].parent=global[%d], want global[4] (Text)", nodes[8].parentGlobal)
 	}
 
-	// ── Text subtree ─────────────────────────────────────────────────────────
-	// Text [8] → parent = Artboard [3]
-	if nodes[8].parentGlobal != abIdx {
-		t.Errorf("Text[8].parent=global[%d], want global[%d] (Artboard)", nodes[8].parentGlobal, abIdx)
+	// ── Shape subtree ────────────────────────────────────────────────────────
+	// Shape [9] → parent = Artboard [3]
+	if nodes[9].parentGlobal != abIdx {
+		t.Errorf("Shape[9].parent=global[%d], want global[%d] (Artboard)", nodes[9].parentGlobal, abIdx)
 	}
-	// TextStylePaint [9] → parent = Text [8]
-	if nodes[9].parentGlobal != 8 {
-		t.Errorf("TextStylePaint[9].parent=global[%d], want global[8] (Text)", nodes[9].parentGlobal)
+	// Rectangle [10] → parent = Shape [9]
+	if nodes[10].parentGlobal != 9 {
+		t.Errorf("Rectangle[10].parent=global[%d], want global[9] (Shape)", nodes[10].parentGlobal)
 	}
-	// SolidColor_text [10] → parentId forward-ref to Fill_text [11]
-	if nodes[10].parentGlobal != 11 {
-		t.Errorf("SC_text[10].parent=global[%d], want global[11] (Fill_text forward ref)", nodes[10].parentGlobal)
+	// SolidColor_shape [11] → parentId forward-ref to Fill_shape [12]
+	if nodes[11].parentGlobal != 12 {
+		t.Errorf("SC_shape[11].parent=global[%d], want global[12] (Fill_shape forward ref)", nodes[11].parentGlobal)
 	}
-	// Fill_text [11] → parent = TextStylePaint [9]
-	if nodes[11].parentGlobal != 9 {
-		t.Errorf("Fill_text[11].parent=global[%d], want global[9] (TextStylePaint)", nodes[11].parentGlobal)
-	}
-	// TextValueRun [12] → parent = Text [8]
-	if nodes[12].parentGlobal != 8 {
-		t.Errorf("TextValueRun[12].parent=global[%d], want global[8] (Text)", nodes[12].parentGlobal)
+	// Fill_shape [12] → parent = Shape [9]
+	if nodes[12].parentGlobal != 9 {
+		t.Errorf("Fill_shape[12].parent=global[%d], want global[9] (Shape)", nodes[12].parentGlobal)
 	}
 
 	// ── Cross-contamination checks ────────────────────────────────────────────
-	// Shape's SolidColor [6] must NOT point into the text subtree (global >= 8).
-	if nodes[6].parentGlobal >= 8 {
-		t.Errorf("SC_shape[6].parent=global[%d] — points into text subtree (cross-contamination)",
+	// Text's SolidColor [6] must NOT point into the shape subtree (global >= 9).
+	if nodes[6].parentGlobal >= 9 {
+		t.Errorf("SC_text[6].parent=global[%d] — points into shape subtree (cross-contamination)",
 			nodes[6].parentGlobal)
 	}
-	// Text's SolidColor [10] must NOT point into the shape subtree (global <= 7).
-	if nodes[10].parentGlobal <= 7 {
-		t.Errorf("SC_text[10].parent=global[%d] — points into shape subtree (cross-contamination)",
-			nodes[10].parentGlobal)
+	// Shape's SolidColor [11] must NOT point into the text subtree (global <= 8).
+	if nodes[11].parentGlobal <= 8 {
+		t.Errorf("SC_shape[11].parent=global[%d] — points into text subtree (cross-contamination)",
+			nodes[11].parentGlobal)
 	}
 	// The two Fill objects have different parents.
-	if nodes[7].parentGlobal == nodes[11].parentGlobal {
-		t.Errorf("Fill_shape and Fill_text both have parent=global[%d] — cross-contamination",
+	if nodes[7].parentGlobal == nodes[12].parentGlobal {
+		t.Errorf("Fill_text and Fill_shape both have parent=global[%d] — cross-contamination",
 			nodes[7].parentGlobal)
 	}
 

@@ -37,9 +37,12 @@ func TestReorder_HierarchyAware(t *testing.T) {
 			t.Fatalf("Build: %v", err)
 		}
 
-		// Expected: Backboard FontAsset FAC Artboard Shape Rect SC_shape Fill_shape
-		//           Text TextStylePaint SC_text Fill_text TextValueRun
-		wantKeys := []uint32{23, 141, 106, 1, 3, 7, 18, 20, 134, 137, 18, 20, 135}
+		// Builder emits children in REVERSE declaration order (last-declared first).
+		// Rectangle declared first (index 0), Text declared second (index 1).
+		// Reverse: Text emits first → global[4..8], Shape emits second → global[9..12].
+		// Expected: Backboard FontAsset FAC Artboard Text TSP SC_text Fill_text TVR
+		//           Shape Rect SC_shape Fill_shape
+		wantKeys := []uint32{23, 141, 106, 1, 134, 137, 18, 20, 135, 3, 7, 18, 20}
 		if len(objects) != len(wantKeys) {
 			t.Fatalf("object count: got %d, want %d — %v", len(objects), len(wantKeys), typeKeySeq(objects))
 		}
@@ -49,49 +52,49 @@ func TestReorder_HierarchyAware(t *testing.T) {
 			}
 		}
 
-		// Artboard at global[3]. Shape subtree: SC_shape at [6] ar=3, Fill_shape at [7] ar=4.
-		// SC_shape.parentId must be a forward ref to Fill_shape (ar=4).
-		scShape, ok := objects[6].(*rive.SolidColor)
+		// Artboard at global[3]. Text subtree: SC_text at [6] ar=3, Fill_text at [7] ar=4.
+		// TSP at [5] ar=2.
+		// SC_text.parentId must be a forward ref to Fill_text (ar=4).
+		scText, ok := objects[6].(*rive.SolidColor)
 		if !ok {
 			t.Fatalf("objects[6] is not *rive.SolidColor, got %T", objects[6])
 		}
-		if scShape.ParentId != 4 {
-			t.Errorf("shape SC.parentId=%d, want 4 (Fill_shape ar-rel)", scShape.ParentId)
+		if scText.ParentId != 4 {
+			t.Errorf("text SC.parentId=%d, want 4 (Fill_text ar-rel)", scText.ParentId)
 		}
-		fillShape, ok := objects[7].(*rive.Fill)
+		fillText, ok := objects[7].(*rive.Fill)
 		if !ok {
 			t.Fatalf("objects[7] is not *rive.Fill, got %T", objects[7])
 		}
-		if fillShape.ParentId != 1 {
-			t.Errorf("shape Fill.parentId=%d, want 1 (Shape ar-rel)", fillShape.ParentId)
+		if fillText.ParentId != 2 {
+			t.Errorf("text Fill.parentId=%d, want 2 (TextStylePaint ar-rel)", fillText.ParentId)
 		}
 
-		// Text subtree: SC_text at [10] ar=7, Fill_text at [11] ar=8.
-		// TextStylePaint at [9] ar=6.
-		// SC_text.parentId must be forward ref to Fill_text (ar=8).
-		scText, ok := objects[10].(*rive.SolidColor)
+		// Shape subtree: SC_shape at [11] ar=8, Fill_shape at [12] ar=9.
+		// Shape at [9] ar=6.
+		// SC_shape.parentId must be forward ref to Fill_shape (ar=9).
+		scShape, ok := objects[11].(*rive.SolidColor)
 		if !ok {
-			t.Fatalf("objects[10] is not *rive.SolidColor, got %T", objects[10])
+			t.Fatalf("objects[11] is not *rive.SolidColor, got %T", objects[11])
 		}
-		if scText.ParentId != 8 {
-			t.Errorf("text SC.parentId=%d, want 8 (Fill_text ar-rel)", scText.ParentId)
+		if scShape.ParentId != 9 {
+			t.Errorf("shape SC.parentId=%d, want 9 (Fill_shape ar-rel)", scShape.ParentId)
 		}
-		fillText, ok := objects[11].(*rive.Fill)
+		fillShape, ok := objects[12].(*rive.Fill)
 		if !ok {
-			t.Fatalf("objects[11] is not *rive.Fill, got %T", objects[11])
+			t.Fatalf("objects[12] is not *rive.Fill, got %T", objects[12])
 		}
-		if fillText.ParentId != 6 {
-			t.Errorf("text Fill.parentId=%d, want 6 (TextStylePaint ar-rel)", fillText.ParentId)
+		if fillShape.ParentId != 6 {
+			t.Errorf("shape Fill.parentId=%d, want 6 (Shape ar-rel)", fillShape.ParentId)
 		}
 
-		// Verify no cross-contamination: shape's SC parentId doesn't point to text objects.
-		// ar=4 (shape Fill) is NOT in the text subtree (text starts at ar=5).
-		if scShape.ParentId >= 5 {
-			t.Errorf("shape SC.parentId=%d points into text subtree (ar>=5)", scShape.ParentId)
+		// Verify no cross-contamination.
+		// Text subtree occupies ar=[1..5]; shape subtree ar=[6..9].
+		if scText.ParentId >= 6 {
+			t.Errorf("text SC.parentId=%d points into shape subtree (ar>=6)", scText.ParentId)
 		}
-		// text SC parentId=8 → text Fill (ar=8), which is in text subtree ar=[5..9].
-		if scText.ParentId < 5 {
-			t.Errorf("text SC.parentId=%d points into shape subtree (ar<5)", scText.ParentId)
+		if scShape.ParentId < 6 {
+			t.Errorf("shape SC.parentId=%d points into text subtree (ar<6)", scShape.ParentId)
 		}
 	})
 

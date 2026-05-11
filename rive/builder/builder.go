@@ -186,10 +186,10 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	a.ViewModelId = ^uint64(0)
 	*objects = append(*objects, a)
 
-	// Emit children in FORWARD declaration order.
-	// Rive uses painter's algorithm: first-emitted = back layer, last-emitted = front layer.
-	// JSON children[0] declared first = emitted first = rendered at the back.
-	for i := 0; i < len(ab.children); i++ {
+	// Emit children in REVERSE declaration order.
+	// The Rive runtime renders first-emitted children IN FRONT (not painter's algorithm).
+	// Reversing here means JSON children[0] (declared first) emits last → renders at the back.
+	for i := len(ab.children) - 1; i >= 0; i-- {
 		ab.children[i].emitObjects(objects, 0, artboardOffset)
 	}
 

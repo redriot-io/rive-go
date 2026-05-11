@@ -41,14 +41,15 @@ func TestDrawAbove_EmitsCorrectObjects(t *testing.T) {
 	if dt.PlacementValue != builder.PlacementAbove {
 		t.Errorf("DrawTarget.PlacementValue = %d, want %d (above)", dt.PlacementValue, builder.PlacementAbove)
 	}
-	// top is declared first; in forward-emit order it's emitted first, shapeIdx=1.
-	// bottom is declared second, shapeIdx=5 (each rectangle emits 4 objects: Shape + path + SolidColor + Fill).
-	if dt.DrawableId != 5 {
-		t.Errorf("DrawTarget.DrawableId = %d, want 5 (bottom shapeIdx)", dt.DrawableId)
+	// Builder emits children in REVERSE declaration order (last-declared first).
+	// bottom is declared second (index 1) → emitted first → shapeIdx=1.
+	// top is declared first (index 0) → emitted second → shapeIdx=5.
+	if dt.DrawableId != 1 {
+		t.Errorf("DrawTarget.DrawableId = %d, want 1 (bottom shapeIdx, emitted first in reverse order)", dt.DrawableId)
 	}
 
 	// DrawRules.ParentId must equal top.shapeIdx
-	// top is declared first; emitted second (reverse order), so top.shapeIdx = 1+N where N=objects for bottom shape
+	// top is emitted second (reverse order), so top.shapeIdx = 1+N where N=objects emitted by bottom shape
 	dr := drs[0].(*rive.DrawRules)
 	if dr.ParentId == 0 {
 		t.Errorf("DrawRules.ParentId is 0 — should be source shape's artboard-relative index")

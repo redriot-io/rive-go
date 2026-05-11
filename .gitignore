@@ -3,3 +3,8 @@
 tests/e2e/node_modules/
 tests/e2e/playwright-report/
 tests/e2e/test-results/
+/builder_test_bin
+/fromjson_test_bin
+/rive_test_bin
+/rivtool_bin
+/validate_test_bin
