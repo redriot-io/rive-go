@@ -18,6 +18,7 @@ Read, write, and build [Rive](https://rive.app) `.riv` files entirely in Go — 
 - **Fluent builder API** — construct scenes, animations, and state machines programmatically
 - **350 generated types** — full coverage of Rive runtime property definitions (shapes, paths, animations, state machines, layouts, …)
 - **Text support** (Phase 2B) — embedded fonts, multi-run styled text, alignment/overflow/sizing, animated text properties
+- **Text polish** (Phase 2C) — variable font axes (wght/wdth/etc.), OpenType feature toggles (liga/kern/etc.), text modifier groups (range-based TextVariationModifier for per-character axis animation)
 - **Image support** (Phase 3-3) — PNG/JPEG embedding via builder + FromJSON; rivtool --deep image validation
 - **Audio support** (Phase 3-5) — WAV/MP3/OGG embedding via builder + FromJSON; rivtool --deep audio validation; AudioEvent(407) triggers
 - **Bone support** (Phase 3-4) — RootBone/Bone hierarchy, skin binding; IK, Distance, and Transform constraints; bone rotation/translation/scale keyframe animation

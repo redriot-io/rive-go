@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "TextAdvancedDemo",
+    "width": 500,
+    "height": 300,
+    "fonts": [
+      {"name": "Abel", "file": "abel.ttf"}
+    ],
+    "children": [
+      {
+        "type": "text",
+        "name": "styled_text",
+        "x": 250,
+        "y": 150,
+        "style": {
+          "font": "Abel",
+          "fontSize": 48,
+          "fill": "#1a1a2e",
+          "fontVariations": [
+            {"tag": "wght", "value": 700}
+          ],
+          "features": [
+            {"tag": "liga", "value": 1},
+            {"tag": "kern", "value": 1}
+          ]
+        },
+        "text": "Hello Rive",
+        "modifiers": [
+          {
+            "name": "weight_mod",
+            "ranges": [
+              {"modifyFrom": 0.0, "modifyTo": 1.0, "strength": 1.0}
+            ],
+            "variations": [
+              {"tag": "wght", "value": 900}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
