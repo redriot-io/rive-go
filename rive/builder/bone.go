@@ -45,6 +45,12 @@ func (ab *ArtboardBuilder) RootBone(name string, opts ...BoneOption) *BoneRef {
 	return b
 }
 
+// animIdx implements AnimTarget — returns the bone's artboard-relative index.
+func (b *BoneRef) animIdx() uint64 { return b.idx }
+
+// animColorIdx implements AnimTarget — bones have no color animation target.
+func (b *BoneRef) animColorIdx() (uint64, bool) { return 0, false }
+
 // Bone adds a child Bone to the given parent (RootBone or Bone) and returns its ref.
 func (ab *ArtboardBuilder) Bone(parent *BoneRef, name string, opts ...BoneOption) *BoneRef {
 	b := &BoneRef{name: name, parent: parent}
