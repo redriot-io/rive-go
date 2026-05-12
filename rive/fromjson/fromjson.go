@@ -44,6 +44,12 @@ type AudioDef struct {
 	Volume float64 `json:"volume,omitempty"` // playback volume 0–1 (default 1.0)
 }
 
+// FeatureDef is one OpenType feature override (e.g. "liga" enabled).
+type FeatureDef struct {
+	Tag   string `json:"tag"`             // 4-char OT feature tag, e.g. "liga"
+	Value uint64 `json:"value,omitempty"` // 1 = on (default), 0 = off
+}
+
 // FontVariationDef is one variable-font axis override (e.g. "wght" 700).
 type FontVariationDef struct {
 	Tag   string  `json:"tag"`
@@ -58,6 +64,7 @@ type TextStyleDef struct {
 	LineHeight     float64            `json:"lineHeight,omitempty"`     // 0 = auto
 	LetterSpacing  float64            `json:"letterSpacing,omitempty"`
 	FontVariations []FontVariationDef `json:"fontVariations,omitempty"` // variable font axes
+	Features       []FeatureDef       `json:"features,omitempty"`       // OpenType feature overrides
 }
 
 // NamedStyleDef is one entry in the multi-run `"styles"` array.
@@ -70,6 +77,7 @@ type NamedStyleDef struct {
 	LineHeight     float64            `json:"lineHeight,omitempty"`
 	LetterSpacing  float64            `json:"letterSpacing,omitempty"`
 	FontVariations []FontVariationDef `json:"fontVariations,omitempty"`
+	Features       []FeatureDef       `json:"features,omitempty"` // OpenType feature overrides
 }
 
 // RunDef is one text span in the multi-run `"runs"` array.
@@ -1770,6 +1778,13 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 			for _, fv := range sd.FontVariations {
 				s.FontVariation(fv.Tag, fv.Value)
 			}
+			for _, ft := range sd.Features {
+				val := ft.Value
+				if val == 0 {
+					val = 1 // default: enable the feature
+				}
+				s.Feature(ft.Tag, val)
+			}
 			styleRefs[sd.Name] = s
 		}
 
@@ -1826,6 +1841,13 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 	}
 	for _, fv := range child.Style.FontVariations {
 		style.FontVariation(fv.Tag, fv.Value)
+	}
+	for _, ft := range child.Style.Features {
+		val := ft.Value
+		if val == 0 {
+			val = 1 // default: enable the feature
+		}
+		style.Feature(ft.Tag, val)
 	}
 
 	ref.Run(child.Text, style)

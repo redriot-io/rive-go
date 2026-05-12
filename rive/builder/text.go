@@ -49,6 +49,12 @@ type FontRef struct {
 
 // TextStyleRef is a handle to a TextStyle under a Text object.
 // Configure it with Fill, LetterSpacing, LineHeight before using in a Run.
+// featureConfig stores one OpenType feature override (e.g. "liga" enabled).
+type featureConfig struct {
+	tag   string
+	value uint64 // 1 = on, 0 = off
+}
+
 type TextStyleRef struct {
 	font          *FontRef
 	fontSize      float64
@@ -56,6 +62,7 @@ type TextStyleRef struct {
 	lineHeight    float64 // 0 = emit -1 (auto); non-zero value used verbatim
 	letterSpacing float64
 	axes          []axisConfig
+	features      []featureConfig
 
 	idx              uint64 // artboard-relative TextStyle index, set on emit
 	solidColorIdx    uint64
@@ -83,6 +90,13 @@ func (s *TextStyleRef) LetterSpacing(v float64) *TextStyleRef {
 // FontVariation adds a variable font axis override (e.g. tag "wght", value 700).
 func (s *TextStyleRef) FontVariation(tag string, value float64) *TextStyleRef {
 	s.axes = append(s.axes, axisConfig{tag: tag, value: value})
+	return s
+}
+
+// Feature adds an OpenType feature override (e.g. tag "liga", value 1 to enable).
+// tag must be a 4-character OpenType feature tag; value 1 = on, 0 = off.
+func (s *TextStyleRef) Feature(tag string, value uint64) *TextStyleRef {
+	s.features = append(s.features, featureConfig{tag: tag, value: value})
 	return s
 }
 
@@ -270,6 +284,15 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 			tsa.Tag = packTag(ax.tag)
 			tsa.AxisValue = ax.value
 			*objects = append(*objects, tsa)
+		}
+
+		// --- TextStyleFeature children (OpenType feature overrides) ---
+		for _, ft := range style.features {
+			tsf := &rive.TextStyleFeature{}
+			tsf.ParentId = style.idx
+			tsf.Tag = packTag(ft.tag)
+			tsf.FeatureValue = ft.value
+			*objects = append(*objects, tsf)
 		}
 	}
 
