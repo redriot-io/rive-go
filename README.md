@@ -17,7 +17,8 @@ Read, write, and build [Rive](https://rive.app) `.riv` files entirely in Go — 
 - **Binary writer** — serialize an object graph back to spec-compliant bytes
 - **Fluent builder API** — construct scenes, animations, and state machines programmatically
 - **350 generated types** — full coverage of Rive runtime property definitions (shapes, paths, animations, state machines, layouts, …)
-- **`rivtool` CLI** — inspect and validate `.riv` files from the command line
+- **Text support** (Phase 2B) — embedded fonts, multi-run styled text, alignment/overflow/sizing, animated text properties (fontSize, color keyframes via builder + FromJSON)
+- **`rivtool` CLI** — inspect, validate, and font-check `.riv` files; `--deep` verifies glyph coverage
 - **Pure Go** — no cgo, no external runtime required
 
 ---
@@ -135,6 +136,9 @@ rivtool inspect scene.riv
 
 # Validate fingerprint, version, and parent references
 rivtool validate scene.riv
+
+# Deep validation: also checks font glyph coverage for all text objects
+rivtool verify --deep scene.riv
 ```
 
 Sample output:
