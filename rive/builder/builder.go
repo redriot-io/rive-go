@@ -64,6 +64,22 @@ func (b *Builder) Build() ([]rive.Object, error) {
 		}
 	}
 
+	// Emit all image assets globally BEFORE any Artboard, after fonts.
+	// ImageRef.idx is 0-based index among ImageAssets in the global stream.
+	imageListIdx := uint64(0)
+	for _, ab := range b.artboards {
+		for _, img := range ab.images {
+			img.idx = imageListIdx
+			imageListIdx++
+			ia := &rive.ImageAsset{}
+			ia.Name = img.name
+			objects = append(objects, ia)
+			fac2 := &rive.FileAssetContents{}
+			fac2.Bytes = img.pngBytes
+			objects = append(objects, fac2)
+		}
+	}
+
 	for _, ab := range b.artboards {
 		if err := ab.emit(&objects); err != nil {
 			return nil, err
@@ -94,6 +110,7 @@ type ArtboardBuilder struct {
 	width, height float64
 
 	fonts         []*FontRef
+	images        []*ImageRef
 	children      []childEmitter
 	animations    []*AnimationBuilder
 	stateMachines []*StateMachineBuilder
