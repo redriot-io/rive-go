@@ -60,6 +60,9 @@ func (n *ImageNodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, art
 	img.ParentId = parentIdx
 	img.X = n.x
 	img.Y = n.y
+	img.Opacity = 1.0
+	img.ScaleX = 1.0
+	img.ScaleY = 1.0
 	img.AssetId = n.asset.idx
 	img.OriginX = n.originX
 	img.OriginY = n.originY
