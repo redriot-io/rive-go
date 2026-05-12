@@ -426,7 +426,7 @@ func dumpTypeKeyName(k uint32) string {
 		71: "TransitionBoolCondition", 84: "KeyFrameBool",
 		91: "WorldTransformComponent", 92: "NestedArtboard",
 		95: "NestedLinearAnimation", 99: "Asset", 100: "Image",
-		103: "FileAsset", 106: "FileAssetContents", 109: "Mesh",
+		103: "FileAsset", 105: "ImageAsset", 106: "FileAssetContents", 109: "Mesh",
 		114: "NestedStateMachine", 128: "Event", 134: "Text",
 		135: "TextValueRun", 137: "TextStyle", 138: "TextModifierGroup",
 		141: "FontAsset", 168: "NestedTrigger", 170: "InterpolatingKeyFrame",

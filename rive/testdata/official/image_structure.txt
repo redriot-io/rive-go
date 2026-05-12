@@ -1,0 +1,78 @@
+image_asset_test.riv — official conformance asset structure
+Source: rive-app/rive-runtime/tests/unit_tests/assets/custom_image_name.riv
+Generated: 2026-05-12
+
+=== FILE HEADER ===
+Fingerprint: RIVE  Major: 7  Minor: 0  FileID: 1
+File size: 336 bytes
+
+=== TABLE OF CONTENTS (4 keys) ===
+Key 203 (name)     string/bytes
+Key 204 (assetId)  uint           ← ImageAsset's own ID in Rive cloud
+Key 206 (assetId)  uint           ← Image drawable's reference to asset (0-indexed among image assets)
+Key 212 (bytes)    bytes          ← FileAssetContents embedded bytes
+
+=== OBJECT STREAM (5 objects) ===
+[0] Backboard (typeKey=23)       — no properties
+[1] ImageAsset (typeKey=105)     — name="customLibraryImageAsset", assetId=123
+[2] FileAssetContents (typeKey=106) — bytes=<245 bytes> (tiny PNG)
+[3] Artboard (typeKey=1)         — 500×500, name="My Artboard"
+[4] Image (typeKey=100)          — parentId=0→Artboard, assetId=0 (→ ImageAsset[1])
+
+=== KEY TYPE MAPPING ===
+ImageAsset (typeKey=105):
+  key 203 = name (string) — inherited from FileAsset
+  key 204 = assetId (uint) — the asset's Rive cloud ID (inherited from FileAsset)
+  key 207 = height (float) — inherited from DrawableAsset (not in this file)
+  key 208 = width (float)  — inherited from DrawableAsset (not in this file)
+  key 241 = format (uint)  — image format (not in this file)
+  key 242 = quality (float) — quality % (not in this file)
+
+FileAssetContents (typeKey=106):
+  key 212 = bytes (bytes) — the raw image data (same key as for font files)
+  SAME TYPE as used for font embedding — no difference at the type level
+
+Image drawable (typeKey=100):
+  key 5   = parentId (uint) — artboard-relative parent
+  key 13  = x (float) — position x
+  key 14  = y (float) — position y
+  key 18  = opacity (float) — from WorldTransformComponent
+  key 206 = assetId (uint) — 0-indexed index among ImageAsset objects in stream
+              default=^uint64(0) (sentinel, "missing" — not emitted when sentinel)
+              value=0 means "first ImageAsset in file"
+  key 380 = originX (float) — default=0.5 (center)
+  key 381 = originY (float) — default=0.5 (center)
+  key 974 = fit (uint) — fit mode
+  key 975 = alignmentX (float)
+  key 976 = alignmentY (float)
+
+=== EMISSION ORDER ===
+Pattern mirrors FontAsset pattern exactly:
+  Backboard → ImageAsset → FileAssetContents → Artboard → Image(drawable) → …
+
+=== ASSET REFERENCE MECHANISM ===
+Image.assetId (key 206) uses 0-based indexing among ImageAsset objects in the
+global object stream. Unlike artboard-relative parentId, this counts only
+ImageAsset objects in order of appearance in the stream.
+
+Example: if there is 1 ImageAsset at global index [1], then Image.assetId=0
+references it. This parallels TextStylePaint.fontAssetId (key 279) which also
+uses 0-based asset indexing among FontAsset objects.
+
+=== KEY DISTINCTIONS from FontAsset ===
+- FontAsset typeKey=141, ImageAsset typeKey=105
+- FontAsset.fontAssetId ref key on TextStyle = 279
+  ImageAsset.assetId ref key on Image        = 206
+- Both use FileAssetContents (typeKey=106) for embedded bytes (key 212)
+- Both use key 203 (name) and key 204 (assetId/cloud-id) on the asset object
+
+=== ALREADY GENERATED (no schema work needed) ===
+- rive/gen_shapes.go: type Image struct (typeKey=100) with AssetId, OriginX/Y, Fit, etc.
+- rive/gen_assets.go: type ImageAsset struct (typeKey=105)
+- rive/gen_registry.go: 100→Image, 105→ImageAsset both registered
+- cmd/rivtool/main.go: dumpTypeKeyName now includes 105→"ImageAsset" (fixed in T-503)
+
+=== WHAT NEEDS TO BE BUILT ===
+1. builder/image.go: ImageRef + EmbedImage on ArtboardBuilder
+2. fromjson: "image" child type + image asset loading
+3. Tests + preview .riv
