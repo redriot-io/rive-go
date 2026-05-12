@@ -767,3 +767,84 @@ func TestConformance_Image(t *testing.T) {
 		t.Logf("builder_roundtrip ok: typeKeys=%v → %d bytes", typeKeys(objects), len(data))
 	})
 }
+
+func TestConformance_Audio(t *testing.T) {
+	silenceWAV, err := os.ReadFile("testdata/silence.wav")
+	if err != nil {
+		t.Fatalf("read silence.wav: %v", err)
+	}
+
+	getProp := func(obj rive.Object, key uint32) (interface{}, bool) {
+		for _, p := range obj.Properties() {
+			if p.Key == key {
+				return p.Value, true
+			}
+		}
+		return nil, false
+	}
+
+	t.Run("builder_roundtrip", func(t *testing.T) {
+		b := builder.New()
+		ab := b.Artboard("Main", 400, 300)
+		asset := ab.EmbedAudio("click", silenceWAV)
+		ab.AudioEvent("ClickSound", asset)
+		objects, err := b.Build()
+		if err != nil {
+			t.Fatalf("Build: %v", err)
+		}
+
+		// Emission order: Backboard(23) → AudioAsset(406) → FileAssetContents(106) → Artboard(1) → AudioEvent(407)
+		wantKeys := []uint32{23, 406, 106, 1, 407}
+		if len(objects) != len(wantKeys) {
+			t.Fatalf("object count: got %d, want %d\n  got:  %v\n  want: %v",
+				len(objects), len(wantKeys), typeKeys(objects), wantKeys)
+		}
+		for i, want := range wantKeys {
+			if objects[i].TypeKey() != want {
+				t.Errorf("objects[%d] typeKey=%d, want %d", i, objects[i].TypeKey(), want)
+			}
+		}
+
+		// AudioAsset[1]: name="click"
+		if v, ok := getProp(objects[1], 203); !ok || v.(string) != "click" {
+			t.Errorf("AudioAsset.name: got %v, want \"click\"", v)
+		}
+
+		// FileAssetContents[2]: bytes = silenceWAV
+		if v, ok := getProp(objects[2], 212); !ok || len(v.([]byte)) != len(silenceWAV) {
+			t.Errorf("FileAssetContents.bytes length: got %v, want %d", v, len(silenceWAV))
+		}
+
+		// AudioEvent[4]: assetId=0, name="ClickSound"
+		if v, ok := getProp(objects[4], 408); !ok || v.(uint64) != 0 {
+			t.Errorf("AudioEvent.assetId: got %v, want 0", v)
+		}
+		if v, ok := getProp(objects[4], 4); !ok || v.(string) != "ClickSound" {
+			t.Errorf("AudioEvent.name: got %v, want \"ClickSound\"", v)
+		}
+
+		// Write → Read → verify round-trip structural dimensions
+		data, err := rive.WriteBytes(objects)
+		if err != nil {
+			t.Fatalf("WriteBytes: %v", err)
+		}
+		f2, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		if len(f2.Objects) != len(wantKeys) {
+			t.Fatalf("roundtrip object count: got %d, want %d", len(f2.Objects), len(wantKeys))
+		}
+		for i, want := range wantKeys {
+			if f2.Objects[i].TypeKey() != want {
+				t.Errorf("roundtrip objects[%d] typeKey=%d, want %d", i, f2.Objects[i].TypeKey(), want)
+			}
+		}
+		// AudioEvent[4] after roundtrip: assetId=0
+		if v, ok := getProp(f2.Objects[4], 408); !ok || v.(uint64) != 0 {
+			t.Errorf("roundtrip AudioEvent.assetId: got %v, want 0", v)
+		}
+
+		t.Logf("builder_roundtrip ok: typeKeys=%v → %d bytes", typeKeys(objects), len(data))
+	})
+}

@@ -629,6 +629,12 @@ const fromjsonDemos = [
     desc: "8×8 red square PNG embedded via the builder image API. Validates the Phase 3-3 image embedding pipeline: EmbedImage → FileAssetContents → Image node.",
     tags: ["fromjson", "image"],
   },
+  {
+    file: "fromjson_audio_demo.riv",
+    title: "🔊 Embedded Audio (FromJSON)",
+    desc: "44-byte silent WAV embedded via the builder audio API. AudioAsset(406) + FileAssetContents(106) + AudioEvent(407). Validates the Phase 3-5 audio embedding pipeline.",
+    tags: ["fromjson", "audio"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, tagClass, animations, stateMachines, inputDriver }) => {
