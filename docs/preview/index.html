@@ -623,6 +623,12 @@ const fromjsonDemos = [
     tags: ["fromjson", "text", "animation", "loop"],
     animations: ["grow"],
   },
+  {
+    file: "fromjson_image_demo.riv",
+    title: "🖼️ Embedded Image (FromJSON)",
+    desc: "8×8 red square PNG embedded via the builder image API. Validates the Phase 3-3 image embedding pipeline: EmbedImage → FileAssetContents → Image node.",
+    tags: ["fromjson", "image"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, tagClass, animations, stateMachines, inputDriver }) => {

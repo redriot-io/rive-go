@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "ImageDemo",
+    "width": 400,
+    "height": 300,
+    "images": [
+      {"name": "redSquare", "file": "red_square.png"}
+    ],
+    "children": [
+      {
+        "type": "image",
+        "name": "hero",
+        "image": "redSquare",
+        "x": 200,
+        "y": 150
+      }
+    ]
+  }
+}

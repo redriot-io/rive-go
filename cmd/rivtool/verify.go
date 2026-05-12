@@ -39,6 +39,16 @@ func cmdVerify(path string, deep bool) bool {
 				errs = append(errs, e)
 			}
 		}
+
+		ip, ie := verifyImages(f)
+		passes = append(passes, ip...)
+		for _, e := range ie {
+			if strings.HasPrefix(e, "\u26a0") {
+				fmt.Printf("%s\n", e)
+			} else {
+				errs = append(errs, e)
+			}
+		}
 	}
 
 	for _, p := range passes {
