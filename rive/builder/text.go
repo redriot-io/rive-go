@@ -55,6 +55,53 @@ type featureConfig struct {
 	value uint64 // 1 = on, 0 = off
 }
 
+// modifierRangeConfig stores one TextModifierRange config.
+type modifierRangeConfig struct {
+	modifyFrom  float64
+	modifyTo    float64 // default 1.0
+	strength    float64 // default 1.0
+	falloffFrom float64
+	falloffTo   float64 // default 1.0
+	offset      float64
+}
+
+// modifierVariationConfig stores one TextVariationModifier config.
+type modifierVariationConfig struct {
+	tag   string
+	value float64
+}
+
+// modifierGroupConfig stores one TextModifierGroup config.
+type modifierGroupConfig struct {
+	name       string
+	ranges     []modifierRangeConfig
+	variations []modifierVariationConfig
+}
+
+// ModifierGroupRef is a handle to a TextModifierGroup under a Text object.
+type ModifierGroupRef struct {
+	cfg *modifierGroupConfig
+}
+
+// Range adds a TextModifierRange to this group. modifyFrom/modifyTo select which
+// characters are affected (0.0–1.0 normalized range); strength controls intensity.
+func (mg *ModifierGroupRef) Range(modifyFrom, modifyTo, strength float64) *ModifierGroupRef {
+	mg.cfg.ranges = append(mg.cfg.ranges, modifierRangeConfig{
+		modifyFrom: modifyFrom,
+		modifyTo:   modifyTo,
+		strength:   strength,
+		falloffTo:  1.0,
+	})
+	return mg
+}
+
+// VariationModifier adds a TextVariationModifier to this group that overrides
+// the given variable font axis (e.g. "wght") to axisValue.
+func (mg *ModifierGroupRef) VariationModifier(tag string, axisValue float64) *ModifierGroupRef {
+	mg.cfg.variations = append(mg.cfg.variations, modifierVariationConfig{tag: tag, value: axisValue})
+	return mg
+}
+
 type TextStyleRef struct {
 	font          *FontRef
 	fontSize      float64
@@ -136,10 +183,19 @@ type TextRef struct {
 
 	overflow TextOverflow
 
-	styles []*TextStyleRef
-	runs   []runConfig
+	styles         []*TextStyleRef
+	runs           []runConfig
+	modifierGroups []*modifierGroupConfig
 
 	idx uint64 // artboard-relative Text index, set on emit
+}
+
+// ModifierGroup adds a TextModifierGroup to this text object and returns a ref
+// for further configuration (add ranges and variation modifiers).
+func (t *TextRef) ModifierGroup(name string) *ModifierGroupRef {
+	cfg := &modifierGroupConfig{name: name}
+	t.modifierGroups = append(t.modifierGroups, cfg)
+	return &ModifierGroupRef{cfg: cfg}
 }
 
 // Position sets the text object's x, y coordinates.
@@ -303,5 +359,37 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 		tvr.Text = run.text
 		tvr.StyleId = run.style.idx
 		*objects = append(*objects, tvr)
+	}
+
+	// --- TextModifierGroup children ---
+	for _, mgCfg := range t.modifierGroups {
+		groupIdx := uint64(len(*objects)) - artboardOffset
+		tmg := &rive.TextModifierGroup{}
+		tmg.Name = mgCfg.name
+		tmg.ParentId = t.idx
+		tmg.ScaleX = 1.0
+		tmg.ScaleY = 1.0
+		tmg.Opacity = 1.0
+		*objects = append(*objects, tmg)
+
+		for _, rc := range mgCfg.ranges {
+			tmr := &rive.TextModifierRange{}
+			tmr.ParentId = groupIdx
+			tmr.ModifyFrom = rc.modifyFrom
+			tmr.ModifyTo = rc.modifyTo
+			tmr.Strength = rc.strength
+			tmr.FalloffTo = rc.falloffTo
+			tmr.FalloffFrom = rc.falloffFrom
+			tmr.Offset = rc.offset
+			*objects = append(*objects, tmr)
+		}
+
+		for _, vc := range mgCfg.variations {
+			tvm := &rive.TextVariationModifier{}
+			tvm.ParentId = groupIdx
+			tvm.AxisTag = packTag(vc.tag)
+			tvm.AxisValue = vc.value
+			*objects = append(*objects, tvm)
+		}
 	}
 }

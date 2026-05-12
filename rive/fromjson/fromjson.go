@@ -161,6 +161,31 @@ type Child struct {
 	// Multi-run format: use Styles + Runs instead of Style + Text.
 	Styles []NamedStyleDef `json:"styles,omitempty"`
 	Runs   []RunDef        `json:"runs,omitempty"`
+	// text modifier groups (variable font axis animation, range-based effects)
+	Modifiers []ModifierGroupDef `json:"modifiers,omitempty"`
+}
+
+// ModifierRangeDef describes one TextModifierRange.
+type ModifierRangeDef struct {
+	ModifyFrom  float64 `json:"modifyFrom"`          // default 0.0
+	ModifyTo    float64 `json:"modifyTo,omitempty"`  // default 1.0
+	Strength    float64 `json:"strength,omitempty"`  // default 1.0
+	FalloffFrom float64 `json:"falloffFrom,omitempty"`
+	FalloffTo   float64 `json:"falloffTo,omitempty"` // default 1.0
+	Offset      float64 `json:"offset,omitempty"`
+}
+
+// ModifierVariationDef describes one TextVariationModifier.
+type ModifierVariationDef struct {
+	Tag   string  `json:"tag"`   // 4-char OT axis tag, e.g. "wght"
+	Value float64 `json:"value"` // axis value, e.g. 900
+}
+
+// ModifierGroupDef describes one TextModifierGroup with its ranges and variations.
+type ModifierGroupDef struct {
+	Name       string                 `json:"name,omitempty"`
+	Ranges     []ModifierRangeDef     `json:"ranges,omitempty"`
+	Variations []ModifierVariationDef `json:"variations,omitempty"`
 }
 
 // DrawRuleDef describes one draw-order constraint on a shape.
@@ -1803,6 +1828,7 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 			ref.Run(run.Text, s)
 		}
 
+		applyModifiers(ref, child.Modifiers)
 		return ref, nil
 	}
 
@@ -1851,7 +1877,33 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 	}
 
 	ref.Run(child.Text, style)
+	applyModifiers(ref, child.Modifiers)
 	return ref, nil
+}
+
+// applyModifiers wires ModifierGroupDef entries onto a TextRef.
+func applyModifiers(ref *builder.TextRef, defs []ModifierGroupDef) {
+	for _, mgd := range defs {
+		mg := ref.ModifierGroup(mgd.Name)
+		for _, rd := range mgd.Ranges {
+			modifyTo := rd.ModifyTo
+			if modifyTo == 0 {
+				modifyTo = 1.0 // default
+			}
+			strength := rd.Strength
+			if strength == 0 {
+				strength = 1.0 // default
+			}
+			falloffTo := rd.FalloffTo
+			if falloffTo == 0 {
+				falloffTo = 1.0 // default
+			}
+			mg.Range(rd.ModifyFrom, modifyTo, strength)
+		}
+		for _, vd := range mgd.Variations {
+			mg.VariationModifier(vd.Tag, vd.Value)
+		}
+	}
 }
 
 // parseTextAlign maps an align string to builder.TextAlign.
