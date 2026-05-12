@@ -37,6 +37,13 @@ type ImageDef struct {
 	File string `json:"file"` // PNG path relative to the JSON file (FromJSONFile only)
 }
 
+// AudioDef describes an audio asset to embed in the scene.
+type AudioDef struct {
+	Name   string  `json:"name"`             // logical name used in audioEvent references
+	File   string  `json:"file"`             // audio file path relative to JSON file (FromJSONFile only)
+	Volume float64 `json:"volume,omitempty"` // playback volume 0–1 (default 1.0)
+}
+
 // TextStyleDef describes the style properties of a text child.
 type TextStyleDef struct {
 	Font          string  `json:"font"`                    // matches a FontDef.Name
@@ -71,6 +78,7 @@ type Artboard struct {
 	Height        float64        `json:"height"`
 	Fonts         []FontDef      `json:"fonts,omitempty"`
 	Images        []ImageDef     `json:"images,omitempty"`
+	Audios        []AudioDef     `json:"audios,omitempty"`
 	Children      []Child        `json:"children,omitempty"`
 	Animations    []AnimationDef `json:"animations,omitempty"`
 	StateMachines []SMDef        `json:"state_machines,omitempty"`
@@ -98,6 +106,7 @@ type Child struct {
 	Clip     string         `json:"clip,omitempty"` // name of a path child to use as clip source
 	// image-specific fields
 	ImageName string         `json:"image,omitempty"` // for type="image": references an ImageDef.Name
+	AudioName string         `json:"audio,omitempty"` // for type="audioEvent": references an AudioDef.Name
 	// text-specific fields — single-run format (mutually exclusive with Styles/Runs)
 	Text  string        `json:"text,omitempty"`  // for type="text"
 	Style *TextStyleDef `json:"style,omitempty"` // for type="text"
@@ -303,7 +312,7 @@ func FromJSON(data []byte) (*builder.Builder, error) {
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, "", nil, nil)
+	return buildScene(&scene, "", nil, nil, nil)
 }
 
 // FromJSONFile reads path and builds a scene with font files resolved relative to path's directory.
@@ -319,7 +328,7 @@ func FromJSONFile(path string) (*builder.Builder, error) {
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, filepath.Dir(path), nil, nil)
+	return buildScene(&scene, filepath.Dir(path), nil, nil, nil)
 }
 
 // FromJSONWithFonts parses a JSON scene and resolves font file references from
@@ -333,7 +342,7 @@ func FromJSONWithFonts(data []byte, fonts map[string][]byte) (*builder.Builder, 
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, "", fonts, nil)
+	return buildScene(&scene, "", fonts, nil, nil)
 }
 
 // FromJSONWithImages parses a JSON scene and resolves image file references from
@@ -347,7 +356,21 @@ func FromJSONWithImages(data []byte, images map[string][]byte) (*builder.Builder
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, "", nil, images)
+	return buildScene(&scene, "", nil, images, nil)
+}
+
+// FromJSONWithAudio parses a JSON scene and resolves audio file references from
+// the provided bytes map (keyed by the "file" value in the JSON). Intended for
+// testing where real audio files are not available on disk.
+func FromJSONWithAudio(data []byte, audios map[string][]byte) (*builder.Builder, error) {
+	var scene Scene
+	if err := json.Unmarshal(data, &scene); err != nil {
+		return nil, &ParseError{Message: fmt.Sprintf("invalid JSON: %v", err)}
+	}
+	if scene.Version != 1 {
+		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
+	}
+	return buildScene(&scene, "", nil, nil, audios)
 }
 
 // ValidateJSON checks JSON structure without building the .riv.
@@ -557,7 +580,7 @@ func ValidateJSON(data []byte) []error {
 
 // ── Internal scene builder ────────────────────────────────────────────────────
 
-func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, injectImages map[string][]byte) (*builder.Builder, error) {
+func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, injectImages map[string][]byte, injectAudios map[string][]byte) (*builder.Builder, error) {
 	ab := &scene.Artboard
 
 	if ab.Name == "" {
@@ -629,6 +652,36 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, inj
 		imageMap[id.Name] = artboard.EmbedImage(id.Name, pngBytes)
 	}
 
+	// Load audio assets and embed them in the artboard.
+	audioMap := map[string]*builder.AudioAssetRef{}
+	for i, ad := range ab.Audios {
+		af := fmt.Sprintf("artboard.audios[%d]", i)
+		if ad.Name == "" {
+			return nil, &ParseError{Field: af + ".name", Message: "required"}
+		}
+		if ad.File == "" {
+			return nil, &ParseError{Field: af + ".file", Message: "required"}
+		}
+		var audioBytes []byte
+		if ab2, ok := injectAudios[ad.File]; ok {
+			audioBytes = ab2
+		} else {
+			if baseDir == "" {
+				return nil, &ParseError{Field: af + ".file", Message: "audio file references require FromJSONFile (base directory unknown)"}
+			}
+			var err error
+			audioBytes, err = os.ReadFile(filepath.Join(baseDir, ad.File))
+			if err != nil {
+				return nil, &ParseError{Field: af + ".file", Message: fmt.Sprintf("cannot read %q: %v", ad.File, err)}
+			}
+		}
+		var opts []builder.AudioOption
+		if ad.Volume > 0 && ad.Volume != 1.0 {
+			opts = append(opts, builder.WithVolume(ad.Volume))
+		}
+		audioMap[ad.Name] = artboard.EmbedAudio(ad.Name, audioBytes, opts...)
+	}
+
 	for i, child := range ab.Children {
 		cf := fmt.Sprintf("artboard.children[%d]", i)
 		if child.Name == "" {
@@ -660,6 +713,12 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, inj
 			animMap[child.Name] = ref
 		case "image":
 			ref, err := addImageChild(artboard, &child, imageMap, cf)
+			if err != nil {
+				return nil, err
+			}
+			animMap[child.Name] = ref
+		case "audioevent":
+			ref, err := addAudioEventChild(artboard, &child, audioMap, cf)
 			if err != nil {
 				return nil, err
 			}
@@ -1700,4 +1759,15 @@ func addImageChild(artboard *builder.ArtboardBuilder, child *Child, imageMap map
 		return nil, &ParseError{Field: cf + ".image", Message: fmt.Sprintf("image %q not defined in artboard.images", child.ImageName)}
 	}
 	return artboard.Image(asset).Position(child.X, child.Y), nil
+}
+
+func addAudioEventChild(artboard *builder.ArtboardBuilder, child *Child, audioMap map[string]*builder.AudioAssetRef, cf string) (*builder.AudioEventRef, error) {
+	if child.AudioName == "" {
+		return nil, &ParseError{Field: cf + ".audio", Message: "audio reference required for type=audioEvent"}
+	}
+	asset, ok := audioMap[child.AudioName]
+	if !ok {
+		return nil, &ParseError{Field: cf + ".audio", Message: fmt.Sprintf("audio %q not defined in artboard.audios", child.AudioName)}
+	}
+	return artboard.AudioEvent(child.Name, asset), nil
 }

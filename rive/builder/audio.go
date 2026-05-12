@@ -22,7 +22,14 @@ func WithVolume(v float64) AudioOption { return func(a *AudioAssetRef) { a.volum
 type AudioEventRef struct {
 	name  string
 	asset *AudioAssetRef
+	idx   uint64 // artboard-relative index, set during emitObjects
 }
+
+// animIdx implements AnimTarget.
+func (r *AudioEventRef) animIdx() uint64 { return r.idx }
+
+// animColorIdx implements AnimTarget — audio events have no color property.
+func (r *AudioEventRef) animColorIdx() (uint64, bool) { return 0, false }
 
 // EmbedAudio registers an audio asset with raw audio bytes and returns an AudioAssetRef.
 // The AudioAssetRef is passed to ArtboardBuilder.AudioEvent to place the event node.
@@ -44,6 +51,7 @@ func (ab *ArtboardBuilder) AudioEvent(name string, asset *AudioAssetRef) *AudioE
 }
 
 func (r *AudioEventRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
+	r.idx = uint64(len(*objects)) - artboardOffset
 	ae := &rive.AudioEvent{}
 	ae.ParentId = parentIdx
 	ae.Name = r.name
