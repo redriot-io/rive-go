@@ -768,6 +768,90 @@ func TestConformance_Image(t *testing.T) {
 	})
 }
 
+// TestConformance_Bones validates the builder's bone hierarchy + IK constraint +
+// rotation animation round-trip (T-546).
+//
+// Emission order (styles-first is N/A here):
+//
+//	[0] Backboard(23)
+//	[1] Artboard(1)
+//	[2] RootBone(41) "root"
+//	[3] Bone(40) "arm"
+//	[4] Bone(40) "hand"
+//	[5] IKConstraint(81) — constrained=root(1), target=hand(3), chainLength=2
+//	[6] LinearAnimation(31)
+//	[7] KeyedObject(25)   — objectId=arm(2)
+//	[8] KeyedProperty(26) — propKey=15 (rotation)
+//	[9] KeyFrameDouble(30) frame=0, value=0.0
+//	[10] KeyFrameDouble(30) frame=30, value=1.57
+func TestConformance_Bones(t *testing.T) {
+	wantKeys := []uint32{23, 1, 41, 40, 40, 81, 31, 25, 26, 30, 30}
+
+	build := func(t *testing.T) ([]rive.Object, []byte) {
+		t.Helper()
+		b := builder.New()
+		ab := b.Artboard("Main", 400, 400)
+		root := ab.RootBone("root", builder.WithTranslation(100, 200), builder.WithLength(100))
+		arm := ab.Bone(root, "arm", builder.WithLength(80))
+		hand := ab.Bone(arm, "hand", builder.WithLength(40))
+		ab.IKConstraint("arm_ik", root, hand, builder.WithChainLength(2))
+		anim := ab.Animation("wave", builder.WithDuration(30))
+		anim.KeyframeFloat(arm, builder.PropRotation, 0, 0.0)
+		anim.KeyframeFloat(arm, builder.PropRotation, 30, 1.57)
+
+		objects, err := b.Build()
+		if err != nil {
+			t.Fatalf("Build: %v", err)
+		}
+		data, err := rive.WriteBytes(objects)
+		if err != nil {
+			t.Fatalf("WriteBytes: %v", err)
+		}
+		return objects, data
+	}
+
+	t.Run("builder_typekeys", func(t *testing.T) {
+		objects, _ := build(t)
+		if len(objects) != len(wantKeys) {
+			t.Fatalf("object count: got %d want %d\n  got:  %v\n  want: %v",
+				len(objects), len(wantKeys), typeKeys(objects), wantKeys)
+		}
+		for i, want := range wantKeys {
+			if objects[i].TypeKey() != want {
+				t.Errorf("objects[%d] typeKey=%d, want %d", i, objects[i].TypeKey(), want)
+			}
+		}
+		t.Logf("builder typeKeys ok: %v", typeKeys(objects))
+	})
+
+	t.Run("roundtrip", func(t *testing.T) {
+		_, data := build(t)
+		f2, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		if len(f2.Objects) != len(wantKeys) {
+			t.Fatalf("roundtrip object count: got %d want %d\n  got:  %v\n  want: %v",
+				len(f2.Objects), len(wantKeys), typeKeys(f2.Objects), wantKeys)
+		}
+		for i, want := range wantKeys {
+			if f2.Objects[i].TypeKey() != want {
+				t.Errorf("roundtrip objects[%d] typeKey=%d, want %d", i, f2.Objects[i].TypeKey(), want)
+			}
+		}
+
+		// Write again from read-back objects and verify byte-identical output.
+		data2, err := rive.WriteBytes(f2.Objects)
+		if err != nil {
+			t.Fatalf("WriteBytes(roundtrip): %v", err)
+		}
+		if len(data2) != len(data) {
+			t.Errorf("byte length mismatch: got %d, want %d", len(data2), len(data))
+		}
+		t.Logf("roundtrip ok: %d objects, %d bytes", len(f2.Objects), len(data))
+	})
+}
+
 func TestConformance_Audio(t *testing.T) {
 	silenceWAV, err := os.ReadFile("testdata/silence.wav")
 	if err != nil {
