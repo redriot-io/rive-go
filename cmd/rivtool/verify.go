@@ -49,6 +49,16 @@ func cmdVerify(path string, deep bool) bool {
 				errs = append(errs, e)
 			}
 		}
+
+		ap, ae2 := verifyAudio(f)
+		passes = append(passes, ap...)
+		for _, e := range ae2 {
+			if strings.HasPrefix(e, "⚠") {
+				fmt.Printf("%s\n", e)
+			} else {
+				errs = append(errs, e)
+			}
+		}
 	}
 
 	for _, p := range passes {
