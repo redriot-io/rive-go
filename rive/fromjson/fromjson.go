@@ -1332,6 +1332,27 @@ func resolveTarget(path string, names map[string]builder.AnimTarget) (ref builde
 		return nil, 0, false, fmt.Errorf("no shape named %q (available: %s)", shapeName, strings.Join(available, ", "))
 	}
 
+	// Text-specific sub-paths: "style.fontSize", "style.fill.color", etc.
+	if textRef, ok := ref.(*builder.TextRef); ok && strings.HasPrefix(prop, "style.") {
+		styleProp := prop[len("style."):]
+		style := textRef.FirstStyle()
+		if style == nil {
+			return nil, 0, false, fmt.Errorf("text %q has no styles defined", shapeName)
+		}
+		switch styleProp {
+		case "fontSize":
+			return style, builder.PropFontSize, false, nil
+		case "letterSpacing":
+			return style, builder.PropLetterSpacing, false, nil
+		case "lineHeight":
+			return style, builder.PropLineHeight, false, nil
+		case "fill.color":
+			return style, builder.PropColorValue, true, nil
+		default:
+			return nil, 0, false, fmt.Errorf("unknown text style property %q (supported: fontSize, letterSpacing, lineHeight, fill.color)", styleProp)
+		}
+	}
+
 	switch prop {
 	case "x":
 		return ref, builder.PropX, false, nil
@@ -1348,7 +1369,7 @@ func resolveTarget(path string, names map[string]builder.AnimTarget) (ref builde
 	case "fill.color":
 		return ref, builder.PropColorValue, true, nil
 	default:
-		supported := "x, y, rotation, scaleX, scaleY, opacity, fill.color"
+		supported := "x, y, rotation, scaleX, scaleY, opacity, fill.color, style.fontSize, style.fill.color, style.letterSpacing, style.lineHeight"
 		return nil, 0, false, fmt.Errorf("unknown property %q (supported: %s)", prop, supported)
 	}
 }

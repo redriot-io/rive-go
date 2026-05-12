@@ -154,6 +154,15 @@ func (t *TextRef) Run(text string, style *TextStyleRef) *TextRef {
 	return t
 }
 
+// FirstStyle returns the first TextStyleRef added to this Text, or nil if none.
+// Consumed by fromjson to resolve "name.style.X" animation dot-paths.
+func (t *TextRef) FirstStyle() *TextStyleRef {
+	if len(t.styles) == 0 {
+		return nil
+	}
+	return t.styles[0]
+}
+
 // animIdx implements AnimTarget — returns the Text object's artboard-relative index.
 func (t *TextRef) animIdx() uint64 { return t.idx }
 
