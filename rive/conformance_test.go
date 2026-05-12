@@ -625,3 +625,145 @@ func TestConformance_Ellipsis(t *testing.T) {
 		assertText(t, p, 0, 2, 3, "fromjson")
 	})
 }
+
+// TestConformance_Image validates the image asset emission pattern against
+// the official image_asset_test.riv (T-503).
+//
+// Ground truth from image_structure.txt:
+//   [0] Backboard(23), [1] ImageAsset(105), [2] FileAssetContents(106),
+//   [3] Artboard(1), [4] Image(100)
+//   ImageAsset: name="customLibraryImageAsset", assetId(cloud)=123
+//   FileAssetContents: 245 embedded bytes
+//   Image: assetId=0 (first ImageAsset, 0-indexed), parentId absent (=artboard)
+func TestConformance_Image(t *testing.T) {
+	getProp := func(obj rive.Object, key uint32) (interface{}, bool) {
+		for _, p := range obj.Properties() {
+			if p.Key == key {
+				return p.Value, true
+			}
+		}
+		return nil, false
+	}
+
+	wantKeys := []uint32{23, 105, 106, 1, 100}
+
+	// ── Step 1: Parse official image_asset_test.riv ──
+	t.Run("official_parse", func(t *testing.T) {
+		data, err := os.ReadFile("testdata/official/image_asset_test.riv")
+		if err != nil {
+			t.Skip("image_asset_test.riv not available")
+		}
+		f, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("parse: %v", err)
+		}
+
+		if len(f.Objects) != 5 {
+			t.Fatalf("object count: got %d, want 5", len(f.Objects))
+		}
+		for i, want := range wantKeys {
+			if f.Objects[i].TypeKey() != want {
+				t.Errorf("objects[%d] typeKey=%d, want %d", i, f.Objects[i].TypeKey(), want)
+			}
+		}
+
+		// ImageAsset[1]: name and cloud assetId
+		if v, ok := getProp(f.Objects[1], 203); !ok || v.(string) != "customLibraryImageAsset" {
+			t.Errorf("ImageAsset.name: got %v, want customLibraryImageAsset", v)
+		}
+		if v, ok := getProp(f.Objects[1], 204); !ok || v.(uint64) != 123 {
+			t.Errorf("ImageAsset.assetId: got %v, want 123", v)
+		}
+
+		// FileAssetContents[2]: bytes present and 245 bytes
+		v, ok := getProp(f.Objects[2], 212)
+		if !ok {
+			t.Error("FileAssetContents.bytes (key 212) missing")
+		} else if b, ok := v.([]byte); !ok || len(b) != 245 {
+			t.Errorf("FileAssetContents.bytes: got %d bytes, want 245", len(v.([]byte)))
+		}
+
+		// Image[4]: assetId=0, parentId=0 (artboard).
+		// Note: the official encoder explicitly emits parentId=0 even though it is the default.
+		if v, ok := getProp(f.Objects[4], 206); !ok || v.(uint64) != 0 {
+			t.Errorf("Image.assetId (key 206): got %v, want 0", v)
+		}
+		if v, has := getProp(f.Objects[4], 5); has {
+			if v.(uint64) != 0 {
+				t.Errorf("Image.parentId (key 5): got %v, want 0 (artboard)", v)
+			}
+		}
+
+		t.Logf("official_parse ok: %d objects, typeKeys=%v", len(f.Objects), typeKeys(f.Objects))
+	})
+
+	// ── Step 2: Build equivalent via builder API, write → read back, compare ──
+	t.Run("builder_roundtrip", func(t *testing.T) {
+		fakePNG := []byte("FAKE-PNG-BYTES")
+		b := builder.New()
+		ab := b.Artboard("My Artboard", 500, 500)
+		asset := ab.EmbedImage("customLibraryImageAsset", fakePNG)
+		ab.Image(asset)
+
+		objects, err := b.Build()
+		if err != nil {
+			t.Fatalf("Build: %v", err)
+		}
+
+		if len(objects) != len(wantKeys) {
+			t.Fatalf("object count: got %d, want %d\n  got:  %v\n  want: %v",
+				len(objects), len(wantKeys), typeKeys(objects), wantKeys)
+		}
+		for i, want := range wantKeys {
+			if objects[i].TypeKey() != want {
+				t.Errorf("objects[%d] typeKey=%d, want %d", i, objects[i].TypeKey(), want)
+			}
+		}
+
+		// Image node: assetId=0 (0-indexed first ImageAsset), parentId absent
+		var assetId uint64
+		assetIdFound := false
+		for _, p := range objects[4].Properties() {
+			if p.Key == 206 {
+				assetId = p.Value.(uint64)
+				assetIdFound = true
+			}
+			if p.Key == 5 {
+				t.Errorf("Image.parentId should be absent (artboard default), got %v", p.Value)
+			}
+		}
+		if !assetIdFound {
+			t.Error("Image.assetId (key 206) missing from builder output")
+		} else if assetId != 0 {
+			t.Errorf("Image.assetId: got %d, want 0", assetId)
+		}
+
+		// Write → ReadBytes → verify roundtrip structural dimensions
+		data, err := rive.WriteBytes(objects)
+		if err != nil {
+			t.Fatalf("WriteBytes: %v", err)
+		}
+		f2, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		if len(f2.Objects) != len(wantKeys) {
+			t.Fatalf("roundtrip object count: got %d, want %d", len(f2.Objects), len(wantKeys))
+		}
+		for i, want := range wantKeys {
+			if f2.Objects[i].TypeKey() != want {
+				t.Errorf("roundtrip objects[%d] typeKey=%d, want %d", i, f2.Objects[i].TypeKey(), want)
+			}
+		}
+
+		// Image[4] after roundtrip: assetId=0, parentId absent
+		if v, ok := getProp(f2.Objects[4], 206); !ok || v.(uint64) != 0 {
+			t.Errorf("roundtrip Image.assetId: got %v, want 0", v)
+		}
+		if _, has := getProp(f2.Objects[4], 5); has {
+			t.Error("roundtrip Image.parentId should be absent")
+		}
+
+		t.Logf("builder_roundtrip ok: typeKeys=%v → %d bytes", typeKeys(objects), len(data))
+	})
+}
