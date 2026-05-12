@@ -129,6 +129,7 @@ type ArtboardBuilder struct {
 	fonts         []*FontRef
 	images        []*ImageRef
 	audios        []*AudioAssetRef
+	boneTrees     []*BoneRef
 	children      []childEmitter
 	animations    []*AnimationBuilder
 	stateMachines []*StateMachineBuilder
@@ -221,6 +222,11 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	a.ViewModelId = ^uint64(0)
 	*objects = append(*objects, a)
 
+	// Emit bone trees before other children (bones must precede shapes for Tendon.BoneId).
+	for _, bt := range ab.boneTrees {
+		emitBoneTree(bt, objects, artboardOffset)
+	}
+
 	// Emit children in REVERSE declaration order.
 	// The Rive runtime renders first-emitted children IN FRONT (not painter's algorithm).
 	// Reversing here means JSON children[0] (declared first) emits last → renders at the back.
@@ -239,6 +245,13 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	for _, sm := range ab.stateMachines {
 		if err := sm.emit(objects, ab.animations); err != nil {
 			return err
+		}
+	}
+
+	// Emit skin bindings post-pass: bone indices are resolved, shapeIdx is set.
+	for _, child := range ab.children {
+		if sr, ok := child.(*ShapeRef); ok {
+			sr.emitSkins(objects, artboardOffset)
 		}
 	}
 

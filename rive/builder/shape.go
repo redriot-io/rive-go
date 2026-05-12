@@ -58,6 +58,7 @@ type ShapeRef struct {
 
 	drawRules []drawRuleConfig
 	clips     []*PathRef
+	skins     []*SkinBinding
 
 	// Set during emitObjects — used by AnimationBuilder to resolve objectIds.
 	shapeIdx uint64 // Shape object global index
