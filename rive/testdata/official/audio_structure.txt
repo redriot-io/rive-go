@@ -1,0 +1,116 @@
+audio_event_test.riv — official conformance asset structure
+Source: rive-app/rive-runtime/tests/unit_tests/assets/event_on_listener.riv
+Generated: 2026-05-12
+
+=== FILE HEADER ===
+Fingerprint: RIVE  Major: 7  Minor: 0  FileID: 12234
+File size: 429 bytes
+
+=== OBJECT STREAM (34 objects) ===
+[0]  Backboard (typeKey=23)
+[1]  Artboard (typeKey=1)              width=500 height=500 name="New Artboard"
+[2]    Shape (typeKey=3)               parentId=0 (Artboard) x=343 y=116.7
+[3]    Rectangle (typeKey=7)           parentId=1 (Shape[2])
+[4]      SolidColor (typeKey=18)       parentId=19 (Fill[20])
+[5]    Node (typeKey=2)                parentId=0 x=172.4 y=129.8
+[6]      SolidColor (typeKey=18)       parentId=20 (Fill[21])
+[7]    OpenUrlEvent (typeKey=131)      parentId=0  name="Somewhere.com" k248="http://rive.app/delete-me"
+[8]      CustomPropertyString(130)    parentId=6  name="First Proeprty" k246="test"
+[9-13]  CustomPropertyBoolean(129)    parentId=6  (5 boolean properties, no values)
+[14]   Event (typeKey=128)             parentId=0  name="Event 2"     (generic trigger, no audio)
+[15]   OpenUrlEvent (typeKey=131)      parentId=0  name="Event 3"
+[16]   Event (typeKey=128)             parentId=0  name="Footstep"    <- AUDIO EVENT
+[17]     CustomPropertyBoolean(129)   parentId=15 name="Stereo"      (default false, not emitted)
+[18]     CustomPropertyString(130)    parentId=15 name="AudioFile"   k246="step.wav"  <- audio file path
+[19]     CustomPropertyNumber(127)    parentId=15 name="Volume"      k243=80          <- volume 0-100
+[20]   Fill (typeKey=20)               parentId=1
+[21]   Fill (typeKey=20)               parentId=0
+[22] LinearAnimation (typeKey=31)     name="Timeline 1"
+[23] StateMachine (typeKey=53)         name="State Machine 1"
+[24]   StateMachineTrigger(58)         name="Trigger 1"
+[25]   StateMachineLayer (typeKey=57)  name="Layer 1"
+[26]     AnimationState (typeKey=61)   animId=0
+[27]     AnyState (typeKey=62)
+[28]     ExitState (typeKey=64)
+[29]     EntryState (typeKey=63)
+[30]     StateTransition (typeKey=65)  stateTo=0
+[31]   StateMachineListenerSingle(114) name="Rectangle" k224=1 k225=2  <- pointer listener on Shape
+[32]   ListenerFireEvent (typeKey=168) k389=15  <- fires artboard-relative index 15 -> "Footstep" [16]
+[33]   ListenerFireEvent (typeKey=168) k389=14  <- fires artboard-relative index 14 -> "Event 3" [15]
+
+=== KEY TYPE MAPPING ===
+
+Event (typeKey=128):
+  key 4   = name (string) -- inherited from Component
+  key 5   = parentId (uint) -- artboard-relative parent
+
+OpenUrlEvent (typeKey=131) extends Event:
+  key 248 = url (string) -- the URL to open on fire
+
+CustomPropertyNumber (typeKey=127) -- numeric property on Event:
+  key 4   = name (string)
+  key 5   = parentId (uint) -- artboard-relative, points to parent Event
+  key 243 = propertyValue (float64) -- the number value (e.g. Volume=80)
+
+CustomPropertyBoolean (typeKey=129) -- boolean property on Event:
+  key 4   = name (string)
+  key 5   = parentId (uint)
+  key 245 = propertyValue (bool) -- not emitted when false (default)
+
+CustomPropertyString (typeKey=130) -- string property on Event:
+  key 4   = name (string)
+  key 5   = parentId (uint)
+  key 246 = propertyValue (string) -- the string value (e.g. AudioFile="step.wav")
+
+ListenerFireEvent (typeKey=168) -- SM listener action that fires an event:
+  (no parentId -- belongs to current StateMachine context)
+  key 389 = eventId (uint) -- artboard-relative index of the Event to fire
+
+StateTransitionEvent (typeKey=169) -- fires an event on a state transition:
+  key 392 = eventId (uint) -- artboard-relative index of the Event to fire
+  key 393 = direction (uint) -- 0=enter (default, not emitted), 1=exit
+
+=== AUDIO TRIGGER PATTERN ===
+Audio in Rive uses a generic Rive Event (typeKey=128) with specific CustomProperty children:
+
+  Event (typeKey=128)  name="<sound name>"
+  +-- CustomPropertyBoolean (typeKey=129)  name="Stereo"    (is stereo? default false)
+  +-- CustomPropertyString  (typeKey=130)  name="AudioFile" key=246  (file path / asset name)
+  +-- CustomPropertyNumber  (typeKey=127)  name="Volume"    key=243  (0-100, 80 = default)
+
+The event fires when:
+  A) A StateMachineListener triggers -> ListenerFireEvent (typeKey=168) with k389=event_artboard_idx
+  B) A state transition occurs -> StateTransitionEvent (typeKey=169) with k392=event_artboard_idx
+
+=== TWO AUDIO PATTERNS IN RIVE ===
+
+Pattern A -- Event-based audio trigger (this file, no embedded bytes):
+  - Event(128) with child CustomPropertyString(130) "AudioFile" = external file path
+  - Audio file loaded by the Rive WASM runtime from the host application
+  - typeKeys needed: 127, 128, 129, 130, 168 -- ALL ALREADY REGISTERED in gen_registry.go
+
+Pattern B -- Embedded AudioAsset (audio_script.riv, typeKey=406):
+  - AudioAsset(406) -> FileAssetContents(106) with raw audio bytes (same as ImageAsset pattern)
+  - Larger files (audio_script.riv = 1.28MB with embedded audio)
+  - typeKey 406 already registered in gen_registry.go
+
+=== PARENTID SEMANTICS (artboard-relative) ===
+parentId on Event/CustomProperty children works the same as all artboard children:
+  global_index = artboard_global_index + parentId_value
+Example: Event "Footstep" at global [16], artboard at [1]
+  artboard-relative index of Footstep = 16 - 1 = 15
+  CustomProperty child uses parentId=15 -> global 1+15=16 = "Footstep" (correct)
+
+=== ALREADY REGISTERED (no schema work needed) ===
+- typeKey 127 -> CustomPropertyNumber  (gen_registry.go line 91)
+- typeKey 128 -> Event                 (gen_registry.go line 92)
+- typeKey 129 -> CustomPropertyBoolean (gen_registry.go line 93)
+- typeKey 130 -> CustomPropertyString  (gen_registry.go line 94)
+- typeKey 131 -> OpenUrlEvent          (gen_registry.go line 95)
+- typeKey 168 -> ListenerFireEvent     (gen_registry.go line 120)
+- typeKey 406 -> AudioAsset            (gen_registry.go line 126)
+
+=== WHAT NEEDS TO BE BUILT (Pattern A -- event-based) ===
+1. builder/event.go: EventRef + ArtboardBuilder.Event() + FireEvent SM listener action
+2. fromjson: "event" child type with AudioFile/Volume/Stereo properties
+3. Tests + preview demo
