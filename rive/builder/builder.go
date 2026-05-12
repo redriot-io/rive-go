@@ -80,6 +80,23 @@ func (b *Builder) Build() ([]rive.Object, error) {
 		}
 	}
 
+	// Emit all audio assets globally BEFORE any Artboard, after images.
+	// AudioAssetRef.idx is 0-based index among AudioAssets in the global stream.
+	audioListIdx := uint64(0)
+	for _, ab := range b.artboards {
+		for _, a := range ab.audios {
+			a.idx = audioListIdx
+			audioListIdx++
+			aa := &rive.AudioAsset{}
+			aa.Name = a.name
+			aa.Volume = a.volume
+			objects = append(objects, aa)
+			fac3 := &rive.FileAssetContents{}
+			fac3.Bytes = a.audioBytes
+			objects = append(objects, fac3)
+		}
+	}
+
 	for _, ab := range b.artboards {
 		if err := ab.emit(&objects); err != nil {
 			return nil, err
@@ -111,6 +128,7 @@ type ArtboardBuilder struct {
 
 	fonts         []*FontRef
 	images        []*ImageRef
+	audios        []*AudioAssetRef
 	children      []childEmitter
 	animations    []*AnimationBuilder
 	stateMachines []*StateMachineBuilder
