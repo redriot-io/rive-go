@@ -16,7 +16,14 @@ type ImageNodeRef struct {
 	asset          *ImageRef
 	x, y           float64
 	originX, originY float64
+	idx            uint64 // artboard-relative index, set during emitObjects
 }
+
+// animIdx implements AnimTarget.
+func (n *ImageNodeRef) animIdx() uint64 { return n.idx }
+
+// animColorIdx implements AnimTarget — image nodes have no color property.
+func (n *ImageNodeRef) animColorIdx() (uint64, bool) { return 0, false }
 
 // EmbedImage registers an image asset with raw PNG bytes and returns an ImageRef.
 // The ImageRef is passed to ArtboardBuilder.Image to place the image drawable.
@@ -48,6 +55,7 @@ func (n *ImageNodeRef) Origin(x, y float64) *ImageNodeRef {
 }
 
 func (n *ImageNodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
+	n.idx = uint64(len(*objects)) - artboardOffset
 	img := &rive.Image{}
 	img.ParentId = parentIdx
 	img.X = n.x

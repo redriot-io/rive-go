@@ -31,6 +31,12 @@ type FontDef struct {
 	File string `json:"file"` // TTF/OTF path relative to the JSON file (FromJSONFile only)
 }
 
+// ImageDef describes an image to embed in the scene.
+type ImageDef struct {
+	Name string `json:"name"` // logical name used in image child references
+	File string `json:"file"` // PNG path relative to the JSON file (FromJSONFile only)
+}
+
 // TextStyleDef describes the style properties of a text child.
 type TextStyleDef struct {
 	Font          string  `json:"font"`                    // matches a FontDef.Name
@@ -64,6 +70,7 @@ type Artboard struct {
 	Width         float64        `json:"width"`
 	Height        float64        `json:"height"`
 	Fonts         []FontDef      `json:"fonts,omitempty"`
+	Images        []ImageDef     `json:"images,omitempty"`
 	Children      []Child        `json:"children,omitempty"`
 	Animations    []AnimationDef `json:"animations,omitempty"`
 	StateMachines []SMDef        `json:"state_machines,omitempty"`
@@ -89,6 +96,8 @@ type Child struct {
 	Vertices []VertexDef    `json:"vertices,omitempty"`
 	Closed   bool           `json:"closed,omitempty"`
 	Clip     string         `json:"clip,omitempty"` // name of a path child to use as clip source
+	// image-specific fields
+	ImageName string         `json:"image,omitempty"` // for type="image": references an ImageDef.Name
 	// text-specific fields — single-run format (mutually exclusive with Styles/Runs)
 	Text  string        `json:"text,omitempty"`  // for type="text"
 	Style *TextStyleDef `json:"style,omitempty"` // for type="text"
@@ -294,7 +303,7 @@ func FromJSON(data []byte) (*builder.Builder, error) {
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, "", nil)
+	return buildScene(&scene, "", nil, nil)
 }
 
 // FromJSONFile reads path and builds a scene with font files resolved relative to path's directory.
@@ -310,7 +319,7 @@ func FromJSONFile(path string) (*builder.Builder, error) {
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, filepath.Dir(path), nil)
+	return buildScene(&scene, filepath.Dir(path), nil, nil)
 }
 
 // FromJSONWithFonts parses a JSON scene and resolves font file references from
@@ -324,7 +333,21 @@ func FromJSONWithFonts(data []byte, fonts map[string][]byte) (*builder.Builder, 
 	if scene.Version != 1 {
 		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
 	}
-	return buildScene(&scene, "", fonts)
+	return buildScene(&scene, "", fonts, nil)
+}
+
+// FromJSONWithImages parses a JSON scene and resolves image file references from
+// the provided bytes map (keyed by the "file" value in the JSON). Intended for
+// testing where real image files are not available on disk.
+func FromJSONWithImages(data []byte, images map[string][]byte) (*builder.Builder, error) {
+	var scene Scene
+	if err := json.Unmarshal(data, &scene); err != nil {
+		return nil, &ParseError{Message: fmt.Sprintf("invalid JSON: %v", err)}
+	}
+	if scene.Version != 1 {
+		return nil, &ParseError{Field: "version", Message: fmt.Sprintf("unsupported version %d, want 1", scene.Version)}
+	}
+	return buildScene(&scene, "", nil, images)
 }
 
 // ValidateJSON checks JSON structure without building the .riv.
@@ -383,10 +406,12 @@ func ValidateJSON(data []byte) []error {
 					errs = append(errs, &ParseError{Field: vf + ".out", Message: "must be [x, y] (2 elements)"})
 				}
 			}
+		case "image":
+			// image validation handled in buildScene
 		case "":
 			errs = append(errs, &ParseError{Field: field + ".type", Message: "required"})
 		default:
-			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse|path|text)", child.Type)})
+			errs = append(errs, &ParseError{Field: field + ".type", Message: fmt.Sprintf("unknown type %q (rectangle|ellipse|path|text|image)", child.Type)})
 		}
 	}
 
@@ -532,7 +557,7 @@ func ValidateJSON(data []byte) []error {
 
 // ── Internal scene builder ────────────────────────────────────────────────────
 
-func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte) (*builder.Builder, error) {
+func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, injectImages map[string][]byte) (*builder.Builder, error) {
 	ab := &scene.Artboard
 
 	if ab.Name == "" {
@@ -578,6 +603,32 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte) (*b
 		fontMap[fd.Name] = artboard.EmbedFont(fd.Name, ttfBytes)
 	}
 
+	// Load images and embed them in the artboard.
+	imageMap := map[string]*builder.ImageRef{}
+	for i, id := range ab.Images {
+		imf := fmt.Sprintf("artboard.images[%d]", i)
+		if id.Name == "" {
+			return nil, &ParseError{Field: imf + ".name", Message: "required"}
+		}
+		if id.File == "" {
+			return nil, &ParseError{Field: imf + ".file", Message: "required"}
+		}
+		var pngBytes []byte
+		if pb, ok := injectImages[id.File]; ok {
+			pngBytes = pb
+		} else {
+			if baseDir == "" {
+				return nil, &ParseError{Field: imf + ".file", Message: "image file references require FromJSONFile (base directory unknown)"}
+			}
+			var err error
+			pngBytes, err = os.ReadFile(filepath.Join(baseDir, id.File))
+			if err != nil {
+				return nil, &ParseError{Field: imf + ".file", Message: fmt.Sprintf("cannot read %q: %v", id.File, err)}
+			}
+		}
+		imageMap[id.Name] = artboard.EmbedImage(id.Name, pngBytes)
+	}
+
 	for i, child := range ab.Children {
 		cf := fmt.Sprintf("artboard.children[%d]", i)
 		if child.Name == "" {
@@ -607,8 +658,14 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte) (*b
 				return nil, err
 			}
 			animMap[child.Name] = ref
+		case "image":
+			ref, err := addImageChild(artboard, &child, imageMap, cf)
+			if err != nil {
+				return nil, err
+			}
+			animMap[child.Name] = ref
 		default:
-			return nil, &ParseError{Field: cf + ".type", Message: fmt.Sprintf("unknown shape type %q (rectangle|ellipse|path|text)", child.Type)}
+			return nil, &ParseError{Field: cf + ".type", Message: fmt.Sprintf("unknown shape type %q (rectangle|ellipse|path|text|image)", child.Type)}
 		}
 	}
 
@@ -1631,4 +1688,16 @@ func parseTextOverflow(s string) builder.TextOverflow {
 	default: // "visible" or ""
 		return builder.OverflowVisible
 	}
+}
+
+// addImageChild places an Image node on the artboard, resolving the asset by name.
+func addImageChild(artboard *builder.ArtboardBuilder, child *Child, imageMap map[string]*builder.ImageRef, cf string) (*builder.ImageNodeRef, error) {
+	if child.ImageName == "" {
+		return nil, &ParseError{Field: cf + ".image", Message: "image reference required for type=image"}
+	}
+	asset, ok := imageMap[child.ImageName]
+	if !ok {
+		return nil, &ParseError{Field: cf + ".image", Message: fmt.Sprintf("image %q not defined in artboard.images", child.ImageName)}
+	}
+	return artboard.Image(asset).Position(child.X, child.Y), nil
 }
