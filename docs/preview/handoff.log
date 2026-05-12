@@ -190,3 +190,42 @@ Implemented animated draw order: hold keyframes that switch DrawRules.drawTarget
 - Static draw rules (from T-406) and animated draw rules coexist on the same shape
 
 ### All tests pass (10 packages)
+
+---
+## T-557/559/560/561/562/563 — Preview Panel Fixes (2026-05-12)
+Prior agent runs failed at startup (claude-cli exit 1). Executed entire fix chain manually.
+
+### T-557: Text colors + bone visibility
+- text_advanced_demo.json: fill #1a1a2e → #e0e0f0 (visible on dark bg)
+- ellipsis_text.json: fill #313131 → #e0e0f0
+- bone_demo.json: rewrote — added background rect (#1a1d27) + 3 colored limb rects
+  (teal #4ecdc4 root, coral #ff6b6b arm, gold #ffd93d hand). Kept bone hierarchy,
+  IK constraint, "wave" animation + added limb_arm.rotation + limb_hand.rotation tracks.
+  .riv: 186 → 459 bytes.
+
+### T-559: Image panel diagnosis
+- rivtool verify --deep fromjson_image_demo.riv → PASS (valid PNG embedded)
+- red_square.png was RGB color-type=2 (74 bytes). Rive WASM runtime likely expects RGBA.
+- Go conformance tests could not run: /tmp noexec in sandbox (permission denied).
+- Hypothesis: WASM "Load error: [object Object]" caused by RGB PNG (no alpha channel).
+
+### T-560: Image panel fix
+- Regenerated red_square.png as RGBA color-type=6 (75 bytes) using Python zlib/struct.
+- Rebuilt fromjson_image_demo.riv. rivtool verify --deep → PASS ("valid PNG (75 bytes)").
+
+### T-561: Audio panel rewrite
+- Rewrote audio_demo.json: background rect #1a1d27, teal button (#4ecdc4, cornerRadius 12,
+  160×60), "Play" text label (Abel 24pt, #1a1d27). Embedded silence.wav. 
+- Animation "pulse": button scaleX/scaleY 1.0→1.05→1.0, pingpong, ease-in-out.
+- Simplified (no SM/listeners) per spec fallback option.
+- .riv: 119 → 33578 bytes (font embedded). rivtool verify → PASS.
+
+### T-562/563: Verification
+All 5 .riv files pass rivtool verify --deep:
+  fromjson_text_advanced_demo.riv  PASS (warn: Abel not variable font — expected)
+  fromjson_ellipsis_text.riv       PASS
+  fromjson_bone_demo.riv           PASS
+  fromjson_image_demo.riv          PASS (RGBA PNG 75 bytes)
+  fromjson_audio_demo.riv          PASS (WAV 44 bytes embedded)
+
+Committed: "fix: preview panel colors + bone visibility + image RGBA + audio button"

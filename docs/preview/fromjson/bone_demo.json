@@ -4,6 +4,47 @@
     "name": "BoneDemo",
     "width": 400,
     "height": 400,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "background",
+        "x": 200,
+        "y": 200,
+        "width": 400,
+        "height": 400,
+        "fill": "#1a1d27"
+      },
+      {
+        "type": "rectangle",
+        "name": "limb_root",
+        "x": 200,
+        "y": 250,
+        "width": 18,
+        "height": 100,
+        "corner_radius": 6,
+        "fill": "#4ecdc4"
+      },
+      {
+        "type": "rectangle",
+        "name": "limb_arm",
+        "x": 200,
+        "y": 162,
+        "width": 14,
+        "height": 80,
+        "corner_radius": 5,
+        "fill": "#ff6b6b"
+      },
+      {
+        "type": "rectangle",
+        "name": "limb_hand",
+        "x": 200,
+        "y": 102,
+        "width": 10,
+        "height": 40,
+        "corner_radius": 4,
+        "fill": "#ffd93d"
+      }
+    ],
     "bones": [
       {"name": "root",  "x": 200, "y": 300, "length": 100},
       {"name": "arm",   "parent": "root",  "length": 80},
@@ -30,6 +71,22 @@
             "keyframes": [
               {"time": 0.0,  "value": 0},
               {"time": 0.5,  "value": 45},
+              {"time": 1.0,  "value": 0}
+            ]
+          },
+          {
+            "target": "limb_arm.rotation",
+            "keyframes": [
+              {"time": 0.0,  "value": 0},
+              {"time": 0.5,  "value": 45},
+              {"time": 1.0,  "value": 0}
+            ]
+          },
+          {
+            "target": "limb_hand.rotation",
+            "keyframes": [
+              {"time": 0.0,  "value": 0},
+              {"time": 0.5,  "value": 30},
               {"time": 1.0,  "value": 0}
             ]
           }

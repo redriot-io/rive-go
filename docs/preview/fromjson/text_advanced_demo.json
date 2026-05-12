@@ -16,7 +16,7 @@
         "style": {
           "font": "Abel",
           "fontSize": 48,
-          "fill": "#1a1a2e",
+          "fill": "#e0e0f0",
           "fontVariations": [
             {"tag": "wght", "value": 700}
           ],

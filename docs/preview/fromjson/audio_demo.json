@@ -4,14 +4,63 @@
     "name": "AudioDemo",
     "width": 400,
     "height": 300,
+    "fonts": [{"name": "Abel", "file": "abel.ttf"}],
     "audios": [
       {"name": "click", "file": "silence.wav"}
     ],
     "children": [
       {
-        "type": "audioEvent",
-        "name": "ClickSound",
-        "audio": "click"
+        "type": "rectangle",
+        "name": "background",
+        "x": 200,
+        "y": 150,
+        "width": 400,
+        "height": 300,
+        "fill": "#1a1d27"
+      },
+      {
+        "type": "rectangle",
+        "name": "button",
+        "x": 200,
+        "y": 150,
+        "width": 160,
+        "height": 60,
+        "corner_radius": 12,
+        "fill": "#4ecdc4"
+      },
+      {
+        "type": "text",
+        "name": "label",
+        "x": 200,
+        "y": 158,
+        "style": {"font": "Abel", "fontSize": 24, "fill": "#1a1d27"},
+        "text": "Play"
+      }
+    ],
+    "animations": [
+      {
+        "name": "pulse",
+        "duration": 1.0,
+        "fps": 60,
+        "loop": "pingpong",
+        "tracks": [
+          {
+            "target": "button.scaleX",
+            "keyframes": [
+              {"time": 0.0, "value": 1.0,  "easing": "ease-in-out"},
+              {"time": 0.5, "value": 1.05, "easing": "ease-in-out"},
+              {"time": 1.0, "value": 1.0,  "easing": "ease-in-out"}
+            ]
+          },
+          {
+            "target": "button.scaleY",
+            "keyframes": [
+              {"time": 0.0, "value": 1.0,  "easing": "ease-in-out"},
+              {"time": 0.5, "value": 1.05, "easing": "ease-in-out"},
+              {"time": 1.0, "value": 1.0,  "easing": "ease-in-out"}
+            ]
+          }
+        ]
       }
     ]
   }

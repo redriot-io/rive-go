@@ -15,7 +15,7 @@
         "sizing": "fixed",
         "width": 120,
         "height": 24,
-        "style": {"font": "Abel", "fontSize": 20, "fill": "#313131"},
+        "style": {"font": "Abel", "fontSize": 20, "fill": "#e0e0f0"},
         "text": "one two three four five"
       }
     ]
