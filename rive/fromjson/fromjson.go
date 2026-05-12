@@ -733,16 +733,19 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, inj
 		if bd.Rotation != 0 {
 			opts = append(opts, builder.WithRotation(bd.Rotation))
 		}
+		var boneRef *builder.BoneRef
 		if bd.Parent == "" {
 			opts = append(opts, builder.WithTranslation(bd.X, bd.Y))
-			boneMap[bd.Name] = artboard.RootBone(bd.Name, opts...)
+			boneRef = artboard.RootBone(bd.Name, opts...)
 		} else {
 			parentRef, ok := boneMap[bd.Parent]
 			if !ok {
 				return nil, &ParseError{Field: bf + ".parent", Message: fmt.Sprintf("parent bone %q not declared before this bone", bd.Parent)}
 			}
-			boneMap[bd.Name] = artboard.Bone(parentRef, bd.Name, opts...)
+			boneRef = artboard.Bone(parentRef, bd.Name, opts...)
 		}
+		boneMap[bd.Name] = boneRef
+		animMap[bd.Name] = boneRef // expose for animation dot-path targeting
 	}
 
 	// Add constraints between named bones.
@@ -1572,9 +1575,9 @@ func resolveTarget(path string, names map[string]builder.AnimTarget) (ref builde
 	}
 
 	switch prop {
-	case "x":
+	case "x", "translationX":
 		return ref, builder.PropX, false, nil
-	case "y":
+	case "y", "translationY":
 		return ref, builder.PropY, false, nil
 	case "rotation":
 		return ref, builder.PropRotation, false, nil
@@ -1587,7 +1590,7 @@ func resolveTarget(path string, names map[string]builder.AnimTarget) (ref builde
 	case "fill.color":
 		return ref, builder.PropColorValue, true, nil
 	default:
-		supported := "x, y, rotation, scaleX, scaleY, opacity, fill.color, style.fontSize, style.fill.color, style.letterSpacing, style.lineHeight"
+		supported := "x/translationX, y/translationY, rotation, scaleX, scaleY, opacity, fill.color, style.fontSize, style.fill.color, style.letterSpacing, style.lineHeight"
 		return nil, 0, false, fmt.Errorf("unknown property %q (supported: %s)", prop, supported)
 	}
 }
