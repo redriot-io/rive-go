@@ -20,6 +20,7 @@ Read, write, and build [Rive](https://rive.app) `.riv` files entirely in Go — 
 - **Text support** (Phase 2B) — embedded fonts, multi-run styled text, alignment/overflow/sizing, animated text properties
 - **Image support** (Phase 3-3) — PNG/JPEG embedding via builder + FromJSON; rivtool --deep image validation
 - **Audio support** (Phase 3-5) — WAV/MP3/OGG embedding via builder + FromJSON; rivtool --deep audio validation; AudioEvent(407) triggers
+- **Bone support** (Phase 3-4) — RootBone/Bone hierarchy, skin binding; IK, Distance, and Transform constraints; bone rotation/translation/scale keyframe animation
 - **`rivtool` CLI** — inspect, validate, font/image/audio-check `.riv` files; `--deep` verifies glyph coverage + image/audio magic bytes
 - **Pure Go** — no cgo, no external runtime required
 

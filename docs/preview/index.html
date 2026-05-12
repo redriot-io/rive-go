@@ -635,6 +635,13 @@ const fromjsonDemos = [
     desc: "44-byte silent WAV embedded via the builder audio API. AudioAsset(406) + FileAssetContents(106) + AudioEvent(407). Validates the Phase 3-5 audio embedding pipeline.",
     tags: ["fromjson", "audio"],
   },
+  {
+    file: "fromjson_bone_demo.riv",
+    title: "🦴 Bone Skeleton + IK (FromJSON)",
+    desc: "Three-bone skeleton (RootBone → arm → hand) with IK constraint and ping-pong rotation animation. Phase 3-4 bone hierarchy + constraint pipeline.",
+    tags: ["fromjson", "bones", "animation"],
+    animations: ["wave"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, tagClass, animations, stateMachines, inputDriver }) => {

@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "BoneDemo",
+    "width": 400,
+    "height": 400,
+    "bones": [
+      {"name": "root",  "x": 200, "y": 300, "length": 100},
+      {"name": "arm",   "parent": "root",  "length": 80},
+      {"name": "hand",  "parent": "arm",   "length": 40}
+    ],
+    "constraints": [
+      {
+        "type": "ik",
+        "name": "arm_ik",
+        "constrained": "root",
+        "target": "hand",
+        "chainLength": 2
+      }
+    ],
+    "animations": [
+      {
+        "name": "wave",
+        "duration": 1.0,
+        "fps": 60,
+        "loop": "pingpong",
+        "tracks": [
+          {
+            "target": "arm.rotation",
+            "keyframes": [
+              {"time": 0.0,  "value": 0},
+              {"time": 0.5,  "value": 45},
+              {"time": 1.0,  "value": 0}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
