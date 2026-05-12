@@ -92,7 +92,9 @@ type Child struct {
 	// text-specific fields — single-run format (mutually exclusive with Styles/Runs)
 	Text  string        `json:"text,omitempty"`  // for type="text"
 	Style *TextStyleDef `json:"style,omitempty"` // for type="text"
-	Align string        `json:"align,omitempty"` // "left"|"center"|"right" for type="text"
+	Align    string `json:"align,omitempty"`    // "left"|"center"|"right" for type="text"
+	Overflow string `json:"overflow,omitempty"` // "visible"|"hidden"|"clipped"|"ellipsis"|"fit"
+	Sizing   string `json:"sizing,omitempty"`   // "auto_width"|"auto_height"|"fixed"
 	// Multi-run format: use Styles + Runs instead of Style + Text.
 	Styles []NamedStyleDef `json:"styles,omitempty"`
 	Runs   []RunDef        `json:"runs,omitempty"`
@@ -1477,7 +1479,15 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 
 	ref := artboard.Text(child.Name).
 		Position(child.X, child.Y).
-		Align(parseTextAlign(child.Align))
+		Align(parseTextAlign(child.Align)).
+		Overflow(parseTextOverflow(child.Overflow))
+
+	switch strings.ToLower(child.Sizing) {
+	case "auto_height":
+		ref.Sizing(builder.SizingAutoHeight)
+	case "fixed":
+		ref.Sizing(builder.SizingFixed).Size(child.Width, child.Height)
+	}
 
 	if len(child.Runs) > 0 {
 		// ── Multi-run format ─────────────────────────────────────────────────
@@ -1583,5 +1593,21 @@ func parseTextAlign(s string) builder.TextAlign {
 		return builder.AlignCenter
 	default: // "left" or ""
 		return builder.AlignLeft
+	}
+}
+
+// parseTextOverflow maps an overflow string to builder.TextOverflow.
+func parseTextOverflow(s string) builder.TextOverflow {
+	switch strings.ToLower(s) {
+	case "hidden":
+		return builder.OverflowHidden
+	case "clipped":
+		return builder.OverflowClipped
+	case "ellipsis":
+		return builder.OverflowEllipsis
+	case "fit":
+		return builder.OverflowFit
+	default: // "visible" or ""
+		return builder.OverflowVisible
 	}
 }

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "Ellipsis Demo",
+    "width": 400,
+    "height": 200,
+    "fonts": [{"name": "Abel", "file": "abel.ttf"}],
+    "children": [
+      {
+        "type": "text",
+        "name": "label",
+        "x": 140,
+        "y": 90,
+        "overflow": "ellipsis",
+        "sizing": "fixed",
+        "width": 120,
+        "height": 24,
+        "style": {"font": "Abel", "fontSize": 20, "fill": "#313131"},
+        "text": "one two three four five"
+      }
+    ]
+  }
+}

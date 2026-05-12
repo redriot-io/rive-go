@@ -1,0 +1,71 @@
+ellipsis.riv — official reference structure
+Generated: 2026-05-11
+
+=== FILE HEADER ===
+Fingerprint: RIVE  Major: 7  Minor: 0  FileID: 11448
+File size: 805828 bytes
+
+=== TABLE OF CONTENTS ===
+Key 203 (name)           string
+Key 204 (assetId)        uint
+Key 212 (bytes)          bytes
+Key 236 (defaultStateMachineId) uint
+Key 268 (text)           string
+Key 272 (styleId)        uint
+Key 274 (fontSize)       float
+Key 279 (fontAssetId)    uint
+Key 284 (sizingValue)    uint
+Key 285 (width)          float
+Key 286 (height)         float
+Key 287 (overflowValue)  uint
+Key 288 (axisValue)      float
+Key 289 (tag/k289)       uint
+
+=== OBJECT STREAM (21 objects) ===
+[0]  Backboard (23)           — no properties
+[1]  FontAsset (141)          — name="Inter", assetId=37163
+[2]  FileAssetContents (106)  — 805528-byte Inter TTF
+[3]  Artboard (1)             — 500×500, name="New Artboard", defaultStateMachineId=0
+[4]  Text (134)               — parentId=0→Artboard, x=129.47, y=175.14,
+                                 sizingValue=2 (fixed), overflowValue=3 (ellipsis),
+                                 width=120.53, height=23.50
+[5]  TextStylePaint (137)     — parentId=1→Text, fontSize=20, fontAssetId=0
+[6]  SolidColor (18)          — parentId=8→Fill[11], colorValue=0xFFFFFFFF (white)
+[7]  TextStyleAxis (144)      — parentId=2→TextStyle, tag=1936486004 ('wdth'), no axisValue
+[8]  TextStyleAxis (144)      — parentId=2→TextStyle, tag=2003265652 ('wght'), axisValue=400
+[9]  TextValueRun (135)       — parentId=1→Text, styleId=2, text="one two three"
+[10] SolidColor (18)          — parentId=9→Fill[12], colorValue=0xFF313131 (dark gray)
+[11] Fill (20)                — parentId=2→TextStyle
+[12] Fill (20)                — parentId=0→Artboard (background fill)
+[13] LinearAnimation (31)     — name="Timeline 1", duration=180, loop=2
+[14] StateMachine (53)        — name="State Machine 1"
+[15] StateMachineLayer (57)   — name="Layer 1"
+[16] AnimationState (61)      — animationId=0
+[17] AnyState (62)
+[18] ExitState (64)
+[19] EntryState (63)
+[20] StateTransition (65)     — stateToId=0
+
+=== KEY OBSERVATIONS ===
+overflowValue:
+  Key 287 on Text (typeKey=134)
+  Values: 0=visible (default), 1=hidden, 2=clipped, 3=ellipsis, 4=fit
+  ellipsis.riv uses value=3 (ellipsis)
+
+alignValue:
+  Key 281 on Text (typeKey=134) — NOT in this file's ToC (default=0, left)
+  Values: 0=left, 1=right, 2=center
+
+sizingValue:
+  Key 284 on Text (typeKey=134)
+  Values: 0=auto_width, 1=auto_height, 2=fixed
+  ellipsis.riv uses value=2 (fixed) with width=120.53, height=23.50
+
+TextStyleAxis (typeKey=144):
+  Key 289 = tag (4-byte ASCII packed as uint32), Key 288 = axisValue (float)
+  These encode OpenType variable font axis values. Not yet supported by our builder.
+
+=== BUILDER EQUIVALENCE ===
+Our builder cannot replicate TextStyleAxis objects. The conformance test
+verifies structural properties (overflow, sizing, alignment) only; byte-exact
+output is not expected.

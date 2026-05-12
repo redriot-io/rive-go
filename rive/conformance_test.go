@@ -470,3 +470,158 @@ func TestConformance_RoundTrip(t *testing.T) {
 		})
 	}
 }
+
+// TestConformance_Ellipsis validates text overflow and sizing against
+// the official ellipsis.riv (T-491 / T-495).
+//
+// Ground truth from ellipsis.riv (see testdata/official/ellipsis_structure.txt):
+//   Text[4]: sizingValue=2 (fixed), overflowValue=3 (ellipsis), width≈120.53, height≈23.50
+//   alignValue NOT in ToC (default=0, left)
+//
+// The builder cannot replicate TextStyleAxis (variable font) objects,
+// so byte-exact output is not the goal. We verify:
+//  1. official_parse: official file has expected property values on the Text object
+//  2. builder_ellipsis: builder produces matching property values
+//  3. fromjson_ellipsis: FromJSONWithFonts produces matching property values
+func TestConformance_Ellipsis(t *testing.T) {
+	// helper: extract Text (typeKey=134) properties from a parsed object list
+	type textP struct {
+		align, sizing, overflow uint64
+		width, height           float64
+		found                   bool
+	}
+	getTextP := func(objects []rive.Object) textP {
+		for _, o := range objects {
+			if o.TypeKey() != 134 {
+				continue
+			}
+			var p textP
+			p.found = true
+			for _, prop := range o.Properties() {
+				switch prop.Key {
+				case 281:
+					if v, ok := prop.Value.(uint64); ok {
+						p.align = v
+					}
+				case 284:
+					if v, ok := prop.Value.(uint64); ok {
+						p.sizing = v
+					}
+				case 285:
+					if v, ok := prop.Value.(float64); ok {
+						p.width = v
+					}
+				case 286:
+					if v, ok := prop.Value.(float64); ok {
+						p.height = v
+					}
+				case 287:
+					if v, ok := prop.Value.(uint64); ok {
+						p.overflow = v
+					}
+				}
+			}
+			return p
+		}
+		return textP{}
+	}
+
+	assertText := func(t *testing.T, p textP, wantAlign, wantSizing, wantOverflow uint64, label string) {
+		t.Helper()
+		if !p.found {
+			t.Fatalf("%s: no Text object (typeKey=134) found", label)
+		}
+		if p.align != wantAlign {
+			t.Errorf("%s: alignValue got %d, want %d", label, p.align, wantAlign)
+		}
+		if p.sizing != wantSizing {
+			t.Errorf("%s: sizingValue got %d, want %d", label, p.sizing, wantSizing)
+		}
+		if p.overflow != wantOverflow {
+			t.Errorf("%s: overflowValue got %d, want %d", label, p.overflow, wantOverflow)
+		}
+		if wantSizing == 2 {
+			if p.width == 0 {
+				t.Errorf("%s: width should be non-zero for fixed sizing", label)
+			}
+			if p.height == 0 {
+				t.Errorf("%s: height should be non-zero for fixed sizing", label)
+			}
+		}
+	}
+
+	t.Run("official_parse", func(t *testing.T) {
+		data, err := os.ReadFile("testdata/official/ellipsis.riv")
+		if err != nil {
+			t.Skipf("ellipsis.riv not found: %v", err)
+		}
+		f, err := rive.ReadBytes(data)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		p := getTextP(f.Objects)
+		// ellipsis.riv: sizingValue=2 (fixed), overflowValue=3 (ellipsis), align=0 (left default, not emitted)
+		assertText(t, p, 0, 2, 3, "official")
+	})
+
+	t.Run("builder_ellipsis", func(t *testing.T) {
+		fakeFont := []byte("FAKE-TTF-BYTES")
+		b := builder.New()
+		ab := b.Artboard("New Artboard", 500, 500)
+		font := ab.EmbedFont("Inter", fakeFont)
+
+		txt := ab.Text("text1").
+			Position(129.47, 175.14).
+			Sizing(builder.SizingFixed).
+			Size(120.53, 23.50).
+			Overflow(builder.OverflowEllipsis)
+		style := txt.Style(font, 20)
+		style.Fill(0xFFFFFFFF)
+		txt.Run("one two three", style)
+
+		rivBytes, err := b.Bytes()
+		if err != nil {
+			t.Fatalf("Bytes: %v", err)
+		}
+		f, err := rive.ReadBytes(rivBytes)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		p := getTextP(f.Objects)
+		// align=0 (left, default), sizing=2 (fixed), overflow=3 (ellipsis)
+		assertText(t, p, 0, 2, 3, "builder")
+	})
+
+	t.Run("fromjson_ellipsis", func(t *testing.T) {
+		scene := []byte(`{
+  "version": 1,
+  "artboard": {
+    "name": "New Artboard", "width": 500, "height": 500,
+    "fonts": [{"name": "Inter", "file": "inter.ttf"}],
+    "children": [{
+      "type": "text", "name": "text1", "x": 129.47, "y": 175.14,
+      "overflow": "ellipsis",
+      "sizing": "fixed",
+      "width": 120.53, "height": 23.50,
+      "style": {"font": "Inter", "fontSize": 20, "fill": "#FFFFFF"},
+      "text": "one two three"
+    }]
+  }
+}`)
+		fonts := map[string][]byte{"inter.ttf": []byte("FAKE-TTF-BYTES")}
+		bld, err := fromjson.FromJSONWithFonts(scene, fonts)
+		if err != nil {
+			t.Fatalf("FromJSONWithFonts: %v", err)
+		}
+		rivBytes, err := bld.Bytes()
+		if err != nil {
+			t.Fatalf("Bytes: %v", err)
+		}
+		f, err := rive.ReadBytes(rivBytes)
+		if err != nil {
+			t.Fatalf("ReadBytes: %v", err)
+		}
+		p := getTextP(f.Objects)
+		assertText(t, p, 0, 2, 3, "fromjson")
+	})
+}

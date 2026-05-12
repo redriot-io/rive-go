@@ -22,6 +22,17 @@ const (
 	SizingFixed      TextSizing = 2
 )
 
+// TextOverflow controls what happens when text exceeds its bounding box.
+type TextOverflow uint64
+
+const (
+	OverflowVisible  TextOverflow = 0
+	OverflowHidden   TextOverflow = 1
+	OverflowClipped  TextOverflow = 2
+	OverflowEllipsis TextOverflow = 3
+	OverflowFit      TextOverflow = 4
+)
+
 // FontRef is a handle to an embedded font asset added to an artboard.
 // Create it via ArtboardBuilder.EmbedFont.
 type FontRef struct {
@@ -86,6 +97,8 @@ type TextRef struct {
 	width  float64
 	height float64
 
+	overflow TextOverflow
+
 	styles []*TextStyleRef
 	runs   []runConfig
 
@@ -108,6 +121,12 @@ func (t *TextRef) Align(a TextAlign) *TextRef {
 // Sizing sets the text sizing mode.
 func (t *TextRef) Sizing(s TextSizing) *TextRef {
 	t.sizing = s
+	return t
+}
+
+// Overflow sets what happens when text content exceeds its bounding box.
+func (t *TextRef) Overflow(o TextOverflow) *TextRef {
+	t.overflow = o
 	return t
 }
 
@@ -165,6 +184,7 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 	txt.BlendModeValue = 3
 	txt.AlignValue = uint64(t.align)
 	txt.SizingValue = uint64(t.sizing)
+	txt.OverflowValue = uint64(t.overflow)
 	txt.FitFromBaseline = true           // Rive default; suppresses k703 emission
 	txt.TextRunListSource = ^uint64(0)   // Rive sentinel; suppresses k932 emission
 	if t.width > 0 {
