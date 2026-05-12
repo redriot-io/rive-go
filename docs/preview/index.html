@@ -604,6 +604,25 @@ const fromjsonDemos = [
     tags: ["fromjson", "text", "font-embed"],
     tagClass: "ref",
   },
+  {
+    file: "fromjson_multi_run_text.riv",
+    title: "📝 Multi-Run Text (FromJSON)",
+    desc: "Three styled runs in one Text object: bold heading, regular body, italic note — all rendered via the multi-run builder path. Phase 2B-3 milestone.",
+    tags: ["fromjson", "text", "multi-run"],
+  },
+  {
+    file: "fromjson_ellipsis_text.riv",
+    title: "✂️ Ellipsis Overflow (FromJSON)",
+    desc: "Text with fixed-width bounding box and overflow=ellipsis. Long text \"one two three four five\" clipped with ellipsis. Phase 2B-4 alignment/overflow milestone.",
+    tags: ["fromjson", "text", "overflow"],
+  },
+  {
+    file: "fromjson_text_animated.riv",
+    title: "🎬 Animated Text (FromJSON)",
+    desc: "Text that pulses: fontSize animates 16→36→16 and fill color fades #000000→#FF4444→#000000 over a 3-second loop. Phase 2B-5 animated text milestone.",
+    tags: ["fromjson", "text", "animation", "loop"],
+    animations: ["grow"],
+  },
 ];
 
 const fromjsonCards = fromjsonDemos.map(({ file, title, desc, tags, tagClass, animations, stateMachines, inputDriver }) => {
@@ -772,6 +791,22 @@ const officialDemos = [
     title: "⚽ Ball Test (Official — rive-runtime)",
     desc: "Official reference file used by rive-runtime's own unit tests. Multiple artboards, nested artboards, animations, state machines. If this renders, the WASM runtime is fully operational.",
     tags: ["official", "shapes", "state-machine", "conformance"],
+    tagClass: "ref",
+    stateMachines: ["State Machine 1"],
+  },
+  {
+    file: "official/new_text.riv",
+    title: "📝 New Text (Official — rive-runtime)",
+    desc: "Official multi-run text reference. 5 Text objects, 22 TextValueRuns, multiple TextStyles with mixed fonts/sizes. Ground truth for Phase 2B-3 multi-run conformance.",
+    tags: ["official", "text", "multi-run", "conformance"],
+    tagClass: "ref",
+    stateMachines: ["State Machine 1"],
+  },
+  {
+    file: "official/ellipsis.riv",
+    title: "✂️ Ellipsis (Official — rive-runtime)",
+    desc: "Official overflow/sizing reference. Text with sizingValue=2 (fixed box) and overflowValue=3 (ellipsis). Ground truth for Phase 2B-4 alignment/overflow conformance.",
+    tags: ["official", "text", "overflow", "conformance"],
     tagClass: "ref",
     stateMachines: ["State Machine 1"],
   },

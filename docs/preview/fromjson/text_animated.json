@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "TextAnimDemo",
+    "width": 400,
+    "height": 200,
+    "fonts": [{"name": "Abel", "file": "abel.ttf"}],
+    "children": [
+      {
+        "type": "text",
+        "name": "title",
+        "x": 50,
+        "y": 90,
+        "style": {"font": "Abel", "fontSize": 16, "fill": "#000000"},
+        "text": "Hello Animated"
+      }
+    ],
+    "animations": [
+      {
+        "name": "grow",
+        "duration": 3.0,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "title.style.fontSize",
+            "keyframes": [
+              {"time": 0,   "value": 16},
+              {"time": 1.5, "value": 36},
+              {"time": 3,   "value": 16}
+            ]
+          },
+          {
+            "target": "title.style.fill.color",
+            "keyframes": [
+              {"time": 0,   "value": "#000000"},
+              {"time": 1.5, "value": "#FF4444"},
+              {"time": 3,   "value": "#000000"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
