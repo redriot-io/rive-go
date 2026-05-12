@@ -129,7 +129,8 @@ type ArtboardBuilder struct {
 	fonts         []*FontRef
 	images        []*ImageRef
 	audios        []*AudioAssetRef
-	boneTrees     []*BoneRef
+	boneTrees       []*BoneRef
+	constraintsList []constraintEmitter
 	children      []childEmitter
 	animations    []*AnimationBuilder
 	stateMachines []*StateMachineBuilder
@@ -196,6 +197,27 @@ func (ab *ArtboardBuilder) Animation(name string, opts ...AnimationOption) *Anim
 }
 
 // StateMachine adds a state machine to this artboard and returns its builder.
+// IKConstraint adds an IK constraint from constrained bone toward target bone.
+func (ab *ArtboardBuilder) IKConstraint(name string, constrained, target *BoneRef, opts ...ConstraintOption) *IKConstraintRef {
+	r := &IKConstraintRef{cfg: newConstraintConfig(name, constrained, target, opts)}
+	ab.constraintsList = append(ab.constraintsList, r)
+	return r
+}
+
+// DistanceConstraint adds a distance constraint between two bones.
+func (ab *ArtboardBuilder) DistanceConstraint(name string, constrained, target *BoneRef, opts ...ConstraintOption) *DistanceConstraintRef {
+	r := &DistanceConstraintRef{cfg: newConstraintConfig(name, constrained, target, opts)}
+	ab.constraintsList = append(ab.constraintsList, r)
+	return r
+}
+
+// TransformConstraint adds a transform-copy constraint from target to constrained bone.
+func (ab *ArtboardBuilder) TransformConstraint(name string, constrained, target *BoneRef, opts ...ConstraintOption) *TransformConstraintRef {
+	r := &TransformConstraintRef{cfg: newConstraintConfig(name, constrained, target, opts)}
+	ab.constraintsList = append(ab.constraintsList, r)
+	return r
+}
+
 func (ab *ArtboardBuilder) StateMachine(name string) *StateMachineBuilder {
 	sm := &StateMachineBuilder{name: name}
 	ab.stateMachines = append(ab.stateMachines, sm)
@@ -225,6 +247,11 @@ func (ab *ArtboardBuilder) emit(objects *[]rive.Object) error {
 	// Emit bone trees before other children (bones must precede shapes for Tendon.BoneId).
 	for _, bt := range ab.boneTrees {
 		emitBoneTree(bt, objects, artboardOffset)
+	}
+
+	// Emit constraints after bone trees so bone.idx values are resolved.
+	for _, c := range ab.constraintsList {
+		c.emitConstraint(objects, artboardOffset)
 	}
 
 	// Emit children in REVERSE declaration order.

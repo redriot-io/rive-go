@@ -79,15 +79,44 @@ type RunDef struct {
 	Style string `json:"style"`
 }
 
+// BoneDef describes one bone in the skeleton hierarchy.
+// Bones with no parent become RootBones; others become child Bones.
+type BoneDef struct {
+	Name     string  `json:"name"`
+	Parent   string  `json:"parent,omitempty"`
+	X        float64 `json:"x,omitempty"`
+	Y        float64 `json:"y,omitempty"`
+	Length   float64 `json:"length,omitempty"`
+	Rotation float64 `json:"rotation,omitempty"`
+}
+
+// ConstraintDef describes one constraint between two bones.
+type ConstraintDef struct {
+	Type        string  `json:"type"`        // "ik", "distance", "transform"
+	Name        string  `json:"name"`
+	Constrained string  `json:"constrained"` // bone name (the affected bone)
+	Target      string  `json:"target"`      // bone name (the reference bone)
+	// IK-specific
+	ChainLength int     `json:"chainLength,omitempty"`
+	Invert      bool    `json:"invert,omitempty"`
+	// Distance-specific
+	Distance    float64 `json:"distance,omitempty"`
+	Mode        uint64  `json:"mode,omitempty"`
+	// Common
+	Strength    float64 `json:"strength,omitempty"`
+}
+
 // Artboard describes the canvas and its children.
 type Artboard struct {
-	Name          string         `json:"name"`
-	Width         float64        `json:"width"`
-	Height        float64        `json:"height"`
-	Fonts         []FontDef      `json:"fonts,omitempty"`
-	Images        []ImageDef     `json:"images,omitempty"`
-	Audios        []AudioDef     `json:"audios,omitempty"`
-	Children      []Child        `json:"children,omitempty"`
+	Name          string          `json:"name"`
+	Width         float64         `json:"width"`
+	Height        float64         `json:"height"`
+	Fonts         []FontDef       `json:"fonts,omitempty"`
+	Images        []ImageDef      `json:"images,omitempty"`
+	Audios        []AudioDef      `json:"audios,omitempty"`
+	Bones         []BoneDef       `json:"bones,omitempty"`
+	Constraints   []ConstraintDef `json:"constraints,omitempty"`
+	Children      []Child         `json:"children,omitempty"`
 	Animations    []AnimationDef `json:"animations,omitempty"`
 	StateMachines []SMDef        `json:"state_machines,omitempty"`
 }
@@ -688,6 +717,71 @@ func buildScene(scene *Scene, baseDir string, injectFonts map[string][]byte, inj
 			opts = append(opts, builder.WithVolume(ad.Volume))
 		}
 		audioMap[ad.Name] = artboard.EmbedAudio(ad.Name, audioBytes, opts...)
+	}
+
+	// Build bone hierarchy and populate boneMap for constraint lookup.
+	boneMap := map[string]*builder.BoneRef{}
+	for i, bd := range ab.Bones {
+		bf := fmt.Sprintf("artboard.bones[%d]", i)
+		if bd.Name == "" {
+			return nil, &ParseError{Field: bf + ".name", Message: "required"}
+		}
+		var opts []builder.BoneOption
+		if bd.Length != 0 {
+			opts = append(opts, builder.WithLength(bd.Length))
+		}
+		if bd.Rotation != 0 {
+			opts = append(opts, builder.WithRotation(bd.Rotation))
+		}
+		if bd.Parent == "" {
+			opts = append(opts, builder.WithTranslation(bd.X, bd.Y))
+			boneMap[bd.Name] = artboard.RootBone(bd.Name, opts...)
+		} else {
+			parentRef, ok := boneMap[bd.Parent]
+			if !ok {
+				return nil, &ParseError{Field: bf + ".parent", Message: fmt.Sprintf("parent bone %q not declared before this bone", bd.Parent)}
+			}
+			boneMap[bd.Name] = artboard.Bone(parentRef, bd.Name, opts...)
+		}
+	}
+
+	// Add constraints between named bones.
+	for i, cd := range ab.Constraints {
+		cf2 := fmt.Sprintf("artboard.constraints[%d]", i)
+		constrained, ok1 := boneMap[cd.Constrained]
+		target, ok2 := boneMap[cd.Target]
+		if !ok1 {
+			return nil, &ParseError{Field: cf2 + ".constrained", Message: fmt.Sprintf("bone %q not found", cd.Constrained)}
+		}
+		if !ok2 {
+			return nil, &ParseError{Field: cf2 + ".target", Message: fmt.Sprintf("bone %q not found", cd.Target)}
+		}
+		var copts []builder.ConstraintOption
+		if cd.Strength > 0 && cd.Strength != 1.0 {
+			copts = append(copts, builder.WithConstraintStrength(cd.Strength))
+		}
+		switch strings.ToLower(cd.Type) {
+		case "ik":
+			if cd.ChainLength > 0 {
+				copts = append(copts, builder.WithChainLength(cd.ChainLength))
+			}
+			if cd.Invert {
+				copts = append(copts, builder.WithInvertDirection(true))
+			}
+			artboard.IKConstraint(cd.Name, constrained, target, copts...)
+		case "distance":
+			if cd.Distance > 0 {
+				copts = append(copts, builder.WithConstraintDistance(cd.Distance))
+			}
+			if cd.Mode != 0 {
+				copts = append(copts, builder.WithConstraintMode(cd.Mode))
+			}
+			artboard.DistanceConstraint(cd.Name, constrained, target, copts...)
+		case "transform":
+			artboard.TransformConstraint(cd.Name, constrained, target, copts...)
+		default:
+			return nil, &ParseError{Field: cf2 + ".type", Message: fmt.Sprintf("unknown constraint type %q (want ik/distance/transform)", cd.Type)}
+		}
 	}
 
 	for i, child := range ab.Children {
