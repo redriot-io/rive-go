@@ -33,6 +33,12 @@ const (
 	OverflowFit      TextOverflow = 4
 )
 
+// axisConfig holds one variable-font axis override.
+type axisConfig struct {
+	tag   string
+	value float64
+}
+
 // FontRef is a handle to an embedded font asset added to an artboard.
 // Create it via ArtboardBuilder.EmbedFont.
 type FontRef struct {
@@ -49,6 +55,7 @@ type TextStyleRef struct {
 	fillColor     *uint32
 	lineHeight    float64 // 0 = emit -1 (auto); non-zero value used verbatim
 	letterSpacing float64
+	axes          []axisConfig
 
 	idx              uint64 // artboard-relative TextStyle index, set on emit
 	solidColorIdx    uint64
@@ -71,6 +78,22 @@ func (s *TextStyleRef) LineHeight(v float64) *TextStyleRef {
 func (s *TextStyleRef) LetterSpacing(v float64) *TextStyleRef {
 	s.letterSpacing = v
 	return s
+}
+
+// FontVariation adds a variable font axis override (e.g. tag "wght", value 700).
+func (s *TextStyleRef) FontVariation(tag string, value float64) *TextStyleRef {
+	s.axes = append(s.axes, axisConfig{tag: tag, value: value})
+	return s
+}
+
+// packTag encodes a 4-character OpenType axis tag to a packed uint64.
+// e.g. "wght" → 0x77676874 (2003265652).
+func packTag(tag string) uint64 {
+	b := [4]byte{}
+	for i := 0; i < 4 && i < len(tag); i++ {
+		b[i] = tag[i]
+	}
+	return uint64(b[0])<<24 | uint64(b[1])<<16 | uint64(b[2])<<8 | uint64(b[3])
 }
 
 // animIdx implements AnimTarget — returns the TextStyle's artboard-relative index.
@@ -238,6 +261,15 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 			fill.IsVisible = true
 			fill.BlendModeValue = 127
 			*objects = append(*objects, fill)
+		}
+
+		// --- TextStyleAxis children (variable font axes) ---
+		for _, ax := range style.axes {
+			tsa := &rive.TextStyleAxis{}
+			tsa.ParentId = style.idx
+			tsa.Tag = packTag(ax.tag)
+			tsa.AxisValue = ax.value
+			*objects = append(*objects, tsa)
 		}
 	}
 

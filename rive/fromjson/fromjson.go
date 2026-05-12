@@ -44,24 +44,32 @@ type AudioDef struct {
 	Volume float64 `json:"volume,omitempty"` // playback volume 0–1 (default 1.0)
 }
 
+// FontVariationDef is one variable-font axis override (e.g. "wght" 700).
+type FontVariationDef struct {
+	Tag   string  `json:"tag"`
+	Value float64 `json:"value"`
+}
+
 // TextStyleDef describes the style properties of a text child.
 type TextStyleDef struct {
-	Font          string  `json:"font"`                    // matches a FontDef.Name
-	FontSize      float64 `json:"fontSize"`
-	Fill          string  `json:"fill,omitempty"`          // hex color e.g. "#FF0000"
-	LineHeight    float64 `json:"lineHeight,omitempty"`    // 0 = auto
-	LetterSpacing float64 `json:"letterSpacing,omitempty"`
+	Font           string             `json:"font"`                     // matches a FontDef.Name
+	FontSize       float64            `json:"fontSize"`
+	Fill           string             `json:"fill,omitempty"`           // hex color e.g. "#FF0000"
+	LineHeight     float64            `json:"lineHeight,omitempty"`     // 0 = auto
+	LetterSpacing  float64            `json:"letterSpacing,omitempty"`
+	FontVariations []FontVariationDef `json:"fontVariations,omitempty"` // variable font axes
 }
 
 // NamedStyleDef is one entry in the multi-run `"styles"` array.
 // The Name field is used by RunDef.Style to reference this style.
 type NamedStyleDef struct {
-	Name          string  `json:"name"`
-	Font          string  `json:"font"`
-	FontSize      float64 `json:"fontSize"`
-	Fill          string  `json:"fill,omitempty"`
-	LineHeight    float64 `json:"lineHeight,omitempty"`
-	LetterSpacing float64 `json:"letterSpacing,omitempty"`
+	Name           string             `json:"name"`
+	Font           string             `json:"font"`
+	FontSize       float64            `json:"fontSize"`
+	Fill           string             `json:"fill,omitempty"`
+	LineHeight     float64            `json:"lineHeight,omitempty"`
+	LetterSpacing  float64            `json:"letterSpacing,omitempty"`
+	FontVariations []FontVariationDef `json:"fontVariations,omitempty"`
 }
 
 // RunDef is one text span in the multi-run `"runs"` array.
@@ -1662,6 +1670,9 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 			if sd.LetterSpacing != 0 {
 				s.LetterSpacing(sd.LetterSpacing)
 			}
+			for _, fv := range sd.FontVariations {
+				s.FontVariation(fv.Tag, fv.Value)
+			}
 			styleRefs[sd.Name] = s
 		}
 
@@ -1715,6 +1726,9 @@ func addText(artboard *builder.ArtboardBuilder, child *Child, fontMap map[string
 	}
 	if child.Style.LetterSpacing != 0 {
 		style.LetterSpacing(child.Style.LetterSpacing)
+	}
+	for _, fv := range child.Style.FontVariations {
+		style.FontVariation(fv.Tag, fv.Value)
 	}
 
 	ref.Run(child.Text, style)
