@@ -64,6 +64,7 @@ type ProvenEntry struct {
 	ParentChain      []string               `json:"parent_chain,omitempty"`
 	RequiredDefaults map[string]interface{} `json:"required_defaults,omitempty"`
 	ToCRequiredKeys  []int                  `json:"toc_required_keys"`
+	ToCOrdering      []OrderingConstraint   `json:"toc_ordering"`
 	Notes            string                 `json:"notes,omitempty"`
 	FailureReason    string                 `json:"failure_reason,omitempty"`
 	Suggestions      []Suggestion           `json:"suggestions,omitempty"`
@@ -190,6 +191,7 @@ func main() {
 				ParentChain:      parentChains[typeName],
 				RequiredDefaults: proposedEntry.RequiredDefaults,
 				ToCRequiredKeys:  tocCoerce(proposedEntry.ToCRequiredKeys),
+				ToCOrdering:      []OrderingConstraint{},
 				Notes:            proposedEntry.Notes,
 			})
 			continue
@@ -239,6 +241,21 @@ func main() {
 		// Seeds represent known-required keys that the WASM load test may not catch.
 		proven[i].ToCRequiredKeys = tocUnion(entry.ToCRequiredKeys, bisected)
 	}
+
+	// ── ToC Ordering Detection pass ─────────────────────────────────────────────
+	fmt.Printf("\n── ToC Ordering Detection ─────────────────────────────────\n")
+	orderResults := runToCOrderDetection(*harness, tocResults, buildFuncs)
+	for i, entry := range proven {
+		if !entry.Proven {
+			continue
+		}
+		if ordering, ok := orderResults[entry.Type]; ok {
+			proven[i].ToCOrdering = ordering
+		}
+	}
+
+	// ── Image ToC ordering regression fixture ─────────────────────────────────
+	generateImageOrderingFixture(*harness, *fixtureDir)
 
 	// ── Write proven contract ─────────────────────────────────────────────────
 	contract := ProvenContract{
