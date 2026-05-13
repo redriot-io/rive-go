@@ -108,6 +108,8 @@ Commands:
   dump     <file.riv>                    full structural decoder with parentId resolution
   analyze  --assets <dir> [--defs <dir>] [-o <file.json>]
                                          extract format_contract.json from .riv assets + dev/defs
+  analyze  --assets <dir> --prove [--proposed <proposed.json>] [--proven <proven.json>]
+                                         static analysis + WASM proof step (run 'analyze --help' for details)
   generate                               regenerate docs/preview/examples/
 
 JSON Scene format (version 1):

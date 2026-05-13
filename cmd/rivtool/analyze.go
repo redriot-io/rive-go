@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -13,6 +14,9 @@ import (
 
 	"github.com/redriot-io/rive-go/rive"
 )
+
+// execCommand is a thin wrapper around exec.Command for testability.
+var execCommand = exec.Command
 
 // ── Output schema ─────────────────────────────────────────────────────────────
 
@@ -144,6 +148,10 @@ func cmdAnalyze(args []string) {
 	assetsDir := ""
 	defsDir := ""
 	outputPath := "format_contract.json"
+	prove := false
+	proposedPath := "format_contract_proposed.json"
+	provenPath := "format_contract_proven.json"
+	harnessPath := "tools/wasm-harness/validate.js"
 
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -162,11 +170,46 @@ func cmdAnalyze(args []string) {
 				i++
 				outputPath = args[i]
 			}
+		case "--prove":
+			prove = true
+		case "--proposed":
+			if i+1 < len(args) {
+				i++
+				proposedPath = args[i]
+			}
+		case "--proven":
+			if i+1 < len(args) {
+				i++
+				provenPath = args[i]
+			}
+		case "--harness":
+			if i+1 < len(args) {
+				i++
+				harnessPath = args[i]
+			}
+		case "--help", "-h":
+			fmt.Println(`rivtool analyze — extract format_contract.json from .riv assets
+
+Usage:
+  rivtool analyze --assets <dir> [--defs <dir>] [-o <file.json>]
+  rivtool analyze --assets <dir> --prove [--proposed <file>] [--proven <file>] [--harness <file>]
+
+Flags:
+  --assets <dir>       Directory of .riv files to analyze (required)
+  --defs   <dir>       Path to dev/defs JSON schema directory (optional)
+  -o       <file>      Output path for format_contract.json (default: format_contract.json)
+  --prove              After static analysis, run Contract Prover to validate all types
+                       via the Rive WASM runtime and emit format_contract_proven.json
+  --proposed <file>    Proposed contract input for --prove (default: format_contract_proposed.json)
+  --proven   <file>    Proven contract output for --prove (default: format_contract_proven.json)
+  --harness  <file>    WASM validate.js path for --prove (default: tools/wasm-harness/validate.js)`)
+			return
 		}
 	}
 
 	if assetsDir == "" {
 		fmt.Fprintln(os.Stderr, "analyze: --assets <dir> is required")
+		fmt.Fprintln(os.Stderr, "Run 'rivtool analyze --help' for usage.")
 		os.Exit(1)
 	}
 
@@ -188,6 +231,30 @@ func cmdAnalyze(args []string) {
 	}
 	fmt.Printf("✓ wrote %s (%d bytes, %d types, %d defaults)\n",
 		outputPath, len(data), len(contract.TypeRegistry), len(contract.Defaults))
+
+	if prove {
+		runContractProver(proposedPath, provenPath, harnessPath)
+	}
+}
+
+// runContractProver invokes cmd/contract-prover via go run.
+// It streams stdout/stderr so the user sees progress in real time.
+func runContractProver(proposedPath, provenPath, harnessPath string) {
+	fmt.Println("\n── Contract Prover ──────────────────────────────────────────")
+	fmt.Printf("  proposed: %s\n  proven:   %s\n  harness:  %s\n\n", proposedPath, provenPath, harnessPath)
+
+	cmd := execCommand("go", "run", "./cmd/contract-prover/",
+		"--proposed", proposedPath,
+		"--out", provenPath,
+		"--harness", harnessPath,
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(os.Stderr, "analyze --prove: prover failed: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 // ── Contract builder ──────────────────────────────────────────────────────────
