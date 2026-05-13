@@ -1,13 +1,13 @@
 {
   "contract_version": "1",
-  "proven_at": "2026-05-13T05:16:08Z",
+  "proven_at": "2026-05-13T05:24:22Z",
   "wasm_version": "@rive-app/canvas-advanced@2.37.6",
   "entries": [
     {
       "type": "Artboard",
       "proven": true,
       "fixture_path": "testdata/prover/Artboard_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "required_defaults": {
         "blendModeValue": 3,
         "fractionalHeight": 1,
@@ -22,7 +22,7 @@
       "type": "Node",
       "proven": true,
       "fixture_path": "testdata/prover/Node_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -37,7 +37,7 @@
       "type": "Shape",
       "proven": true,
       "fixture_path": "testdata/prover/Shape_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -53,7 +53,7 @@
       "type": "Rectangle",
       "proven": true,
       "fixture_path": "testdata/prover/Rectangle_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -72,7 +72,7 @@
       "type": "Ellipse",
       "proven": true,
       "fixture_path": "testdata/prover/Ellipse_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -90,7 +90,7 @@
       "type": "ParametricPath",
       "proven": true,
       "fixture_path": "testdata/prover/ParametricPath_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -108,7 +108,7 @@
       "type": "Fill",
       "proven": true,
       "fixture_path": "testdata/prover/Fill_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -123,7 +123,7 @@
       "type": "Stroke",
       "proven": true,
       "fixture_path": "testdata/prover/Stroke_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -140,7 +140,7 @@
       "type": "SolidColor",
       "proven": true,
       "fixture_path": "testdata/prover/SolidColor_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape",
@@ -152,7 +152,7 @@
       "type": "LinearGradient",
       "proven": true,
       "fixture_path": "testdata/prover/LinearGradient_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "Shape",
@@ -164,7 +164,7 @@
       "type": "LinearAnimation",
       "proven": true,
       "fixture_path": "testdata/prover/LinearAnimation_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -178,7 +178,7 @@
       "type": "KeyedObject",
       "proven": true,
       "fixture_path": "testdata/prover/KeyedObject_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "LinearAnimation"
@@ -189,7 +189,7 @@
       "type": "KeyedProperty",
       "proven": true,
       "fixture_path": "testdata/prover/KeyedProperty_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard",
         "LinearAnimation",
@@ -201,7 +201,7 @@
       "type": "Image",
       "proven": true,
       "fixture_path": "testdata/prover/Image_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -220,7 +220,7 @@
       "type": "StateMachine",
       "proven": true,
       "fixture_path": "testdata/prover/StateMachine_minimal.riv",
-      "verified_at": "2026-05-13T05:16:08Z",
+      "verified_at": "2026-05-13T05:24:22Z",
       "parent_chain": [
         "Artboard"
       ],
