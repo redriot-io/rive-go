@@ -1,0 +1,26 @@
+{
+  "name": "rive-go",
+  "version": "1.0.0",
+  "description": "[![Go Reference](https://pkg.go.dev/badge/github.com/redriot-io/rive-go.svg)](https://pkg.go.dev/github.com/redriot-io/rive-go) [![CI](https://img.shields.io/github/actions/workflow/status/redriot-io/rive-go/ci.yml?label=CI&logo=githubactions&logoColor=white)](https://github.com/redriot-io/rive-go/actions) [![Go 1.25](https://img.shields.io/badge/Go-1.25-00acd7?logo=go&logoColor=white)](https://go.dev/doc/go1.25) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/redriot-io/rive-go.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/redriot-io/rive-go/issues"
+  },
+  "homepage": "https://github.com/redriot-io/rive-go#readme"
+}

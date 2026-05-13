@@ -8,3 +8,4 @@ tests/e2e/test-results/
 /rive_test_bin
 /rivtool_bin
 /validate_test_bin
+node_modules/
