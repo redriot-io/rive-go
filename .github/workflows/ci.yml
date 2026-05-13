@@ -21,6 +21,19 @@ jobs:
       - name: Run Go tests
         run: go test ./...
 
+      - name: Verify generated files are current
+        run: |
+          go run ./cmd/gen-defaults/ \
+            --contract format_contract_proven.json \
+            --out rive/gen_defaults.go \
+            --package rive
+          git diff --exit-code rive/gen_defaults.go rive/gen_defaults_types.txt
+
+      - name: Vet (bare struct check)
+        run: |
+          cd tools/vet && go build -o /tmp/bare_structs .
+          go vet -vettool=/tmp/bare_structs ./...
+
   wasm-validate:
     name: WASM validation (23 .riv files)
     runs-on: ubuntu-latest
