@@ -1,4 +1,4 @@
-.PHONY: generate test build test-integration validate validate-wasm test-no-wasm prove-contract conformance
+.PHONY: generate test build test-integration validate validate-wasm test-no-wasm prove-contract prove-contract-bisect-demo conformance
 
 generate:
 	go run ./cmd/rivegen -defs=internal/schema/defs -out=rive
@@ -35,13 +35,23 @@ test-no-wasm:
 
 # prove-contract: generate minimal .riv fixtures per object type and validate via WASM.
 # Reads format_contract_proposed.json, writes format_contract_proven.json.
-# Requires Node.js >= 20 and tools/wasm-harness/ set up.
+# All types in typeOrder must pass; exit 1 if none pass.
 prove-contract:
 	go run ./cmd/contract-prover/ \
 		--proposed format_contract_proposed.json \
 		--out format_contract_proven.json \
 		--harness tools/wasm-harness/validate.js
 	node tools/wasm-harness/validate-all.js testdata/prover/
+
+# prove-contract-bisect-demo: same as prove-contract but forces Image into broken mode.
+# Demonstrates property bisection: Image fails, bisection suggests blendModeValue=3.
+# Output written to format_contract_proven_demo.json (not the canonical proven file).
+prove-contract-bisect-demo:
+	go run ./cmd/contract-prover/ \
+		--proposed format_contract_proposed.json \
+		--out format_contract_proven_demo.json \
+		--harness tools/wasm-harness/validate.js \
+		--force-fail Image
 
 # conformance: pull latest rive-runtime golden files, regenerate format contract
 # and format rules, then run the full test suite.

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/redriot-io/rive-go/rive"
 	"github.com/redriot-io/rive-go/rive/builder"
 )
 
@@ -67,6 +68,15 @@ var buildFuncs = map[string]func() ([]byte, error){
 	"Image":           buildImage,
 	"StateMachine":    buildStateMachine,
 }
+
+// bisectFuncs maps type names to BisectFunc implementations for bisection testing.
+// These build a deliberately broken .riv (required defaults missing/zeroed) and apply
+// only the specified candidates. Used with --force-fail to demonstrate bisection.
+var bisectFuncs = map[string]BisectFunc{
+	"Image": bisectImageFunc,
+}
+
+// ── Normal build functions ───────────────────────────────────────────────────
 
 func buildArtboard() ([]byte, error) {
 	b := builder.New()
@@ -163,7 +173,7 @@ func buildKeyedProperty() ([]byte, error) {
 	return buildLinearAnimation()
 }
 
-// minimalPNG is a 1×1 opaque red PNG for Image type testing.
+// minimalPNG is a 1×1 transparent PNG used for Image type testing.
 var minimalPNG = []byte{
 	0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
 	0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
@@ -190,6 +200,90 @@ func buildStateMachine() ([]byte, error) {
 	ab.StateMachine("sm")
 	return b.Bytes()
 }
+
+// ── Bisect build functions ───────────────────────────────────────────────────
+
+// bisectImageFunc builds a broken Image scene for bisection testing.
+// The broken state zeros BlendModeValue, Opacity, ScaleX, ScaleY on the Image node.
+// Only the specified candidates are applied back before serialization.
+// Calling with nil/empty candidates produces the pure broken state (expected to FAIL WASM).
+func bisectImageFunc(candidates []CandidateProp) ([]byte, error) {
+	b := builder.New()
+	ab := b.Artboard("Main", 100, 100)
+	asset := ab.EmbedImage("testimg", minimalPNG)
+	ab.Image(asset).Position(50, 50)
+
+	objects, err := b.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	// Find the Image node and corrupt its required defaults.
+	for _, obj := range objects {
+		img, ok := obj.(*rive.Image)
+		if !ok {
+			continue
+		}
+		// Zero out all required defaults (simulates missing defaults).
+		img.BlendModeValue = 0 // Go zero; guard !=3 will emit key 23=0 → WASM null load
+		img.Opacity = 0        // guard !=1 will emit key 18=0
+		img.ScaleX = 0         // guard !=1 will emit key 16=0
+		img.ScaleY = 0         // guard !=1 will emit key 17=0
+
+		// Apply only the specified candidate properties.
+		for _, c := range candidates {
+			applyImageCandidate(img, c)
+		}
+		break
+	}
+
+	return rive.WriteBytes(objects)
+}
+
+// applyImageCandidate applies a single candidate property to an Image object.
+func applyImageCandidate(img *rive.Image, c CandidateProp) {
+	switch c.Name {
+	case "blendModeValue":
+		img.BlendModeValue = toUint64(c.Value)
+	case "opacity":
+		img.Opacity = toFloat64(c.Value)
+	case "scaleX":
+		img.ScaleX = toFloat64(c.Value)
+	case "scaleY":
+		img.ScaleY = toFloat64(c.Value)
+	}
+}
+
+// ── Type coercion helpers ────────────────────────────────────────────────────
+
+// toUint64 converts JSON-decoded interface{} to uint64.
+// JSON numbers decode as float64 in Go.
+func toUint64(v interface{}) uint64 {
+	switch x := v.(type) {
+	case float64:
+		return uint64(x)
+	case uint64:
+		return x
+	case int:
+		return uint64(x)
+	}
+	return 0
+}
+
+// toFloat64 converts JSON-decoded interface{} to float64.
+func toFloat64(v interface{}) float64 {
+	switch x := v.(type) {
+	case float64:
+		return x
+	case int:
+		return float64(x)
+	case uint64:
+		return float64(x)
+	}
+	return 0
+}
+
+// ── Init validation ──────────────────────────────────────────────────────────
 
 func init() {
 	for _, t := range typeOrder {

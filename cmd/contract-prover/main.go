@@ -1,6 +1,7 @@
 // Contract Prover — generates minimal .riv fixtures per object type and validates
 // them against the Rive WASM runtime. Reads format_contract_proposed.json, emits
 // format_contract_proven.json with proven:true for every type that passes WASM load.
+// On failure, runs property bisection to identify which required_defaults are missing.
 //
 // Usage:
 //
@@ -8,6 +9,14 @@
 //	    --proposed format_contract_proposed.json \
 //	    --out format_contract_proven.json \
 //	    --harness tools/wasm-harness/validate.js
+//
+// Demo (bisection):
+//
+//	go run ./cmd/contract-prover/ \
+//	    --proposed format_contract_proposed.json \
+//	    --out format_contract_proven.json \
+//	    --harness tools/wasm-harness/validate.js \
+//	    --force-fail Image
 package main
 
 import (
@@ -18,6 +27,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -73,7 +83,16 @@ func main() {
 	outPath      := flag.String("out", "format_contract_proven.json", "output path for proven contract")
 	harness      := flag.String("harness", "tools/wasm-harness/validate.js", "path to validate.js")
 	fixtureDir   := flag.String("fixtures", "testdata/prover", "directory for generated .riv fixtures")
+	forceFail    := flag.String("force-fail", "", "comma-separated type names to force into broken/bisect mode (demo)")
 	flag.Parse()
+
+	// Parse --force-fail list into a set for O(1) lookup.
+	forceFailSet := map[string]bool{}
+	if *forceFail != "" {
+		for _, t := range strings.Split(*forceFail, ",") {
+			forceFailSet[strings.TrimSpace(t)] = true
+		}
+	}
 
 	// ── Read proposed contract ────────────────────────────────────────────────
 	raw, err := os.ReadFile(*proposedPath)
@@ -85,7 +104,7 @@ func main() {
 		log.Fatalf("parse %s: %v", *proposedPath, err)
 	}
 
-	// Build index: type name → proposed entry
+	// Build index: type name → proposed entry.
 	proposedByType := map[string]ProposedEntry{}
 	for _, e := range proposed.Entries {
 		proposedByType[e.Type] = e
@@ -98,7 +117,7 @@ func main() {
 	if err := os.MkdirAll(filepath.Join(*fixtureDir, "assets"), 0o755); err != nil {
 		log.Fatalf("mkdir assets: %v", err)
 	}
-	// Write test PNG asset for Image fixtures
+	// Write test PNG asset alongside fixtures for reference.
 	pngPath := filepath.Join(*fixtureDir, "assets", "test.png")
 	if err := os.WriteFile(pngPath, minimalPNG, 0o644); err != nil {
 		log.Fatalf("write test.png: %v", err)
@@ -110,21 +129,36 @@ func main() {
 	passCount, failCount := 0, 0
 
 	for _, typeName := range typeOrder {
-		buildFn, hasBuild := buildFuncs[typeName]
-		if !hasBuild {
-			log.Printf("SKIP  %-20s  (no build function)", typeName)
-			continue
-		}
-
 		proposedEntry, hasProposed := proposedByType[typeName]
 		if !hasProposed {
 			log.Printf("SKIP  %-20s  (not in proposed contract)", typeName)
 			continue
 		}
 
-		// Generate minimal .riv
-		rivBytes, buildErr := buildFn()
 		fixturePath := filepath.Join(*fixtureDir, typeName+"_minimal.riv")
+		forcedBroken := forceFailSet[typeName]
+
+		// ── Build the fixture .riv ─────────────────────────────────────────
+		var rivBytes []byte
+		var buildErr error
+
+		if forcedBroken {
+			// Use the broken build function (for bisection demo).
+			bisectFn, hasBisect := bisectFuncs[typeName]
+			if !hasBisect {
+				log.Printf("SKIP  %-20s  (--force-fail set but no bisect function)", typeName)
+				continue
+			}
+			rivBytes, buildErr = bisectFn(nil) // nil = broken state
+		} else {
+			buildFn, hasBuild := buildFuncs[typeName]
+			if !hasBuild {
+				log.Printf("SKIP  %-20s  (no build function)", typeName)
+				continue
+			}
+			rivBytes, buildErr = buildFn()
+		}
+
 		if buildErr != nil {
 			log.Printf("FAIL  %-20s  (build error: %v)", typeName, buildErr)
 			proven = append(proven, ProvenEntry{
@@ -142,7 +176,7 @@ func main() {
 			log.Fatalf("write fixture %s: %v", fixturePath, err)
 		}
 
-		// Run WASM harness
+		// ── Run WASM harness ───────────────────────────────────────────────
 		exitCode, stdout, stderr := runHarness(*harness, fixturePath)
 
 		if exitCode == 0 {
@@ -158,25 +192,38 @@ func main() {
 				ToCRequiredKeys:  proposedEntry.ToCRequiredKeys,
 				Notes:            proposedEntry.Notes,
 			})
-		} else {
-			reason := strings.TrimSpace(stderr)
-			if reason == "" {
-				reason = strings.TrimSpace(stdout)
-			}
-			if reason == "" {
-				reason = fmt.Sprintf("exit code %d", exitCode)
-			}
-			log.Printf("FAIL  %-20s  exit=%d reason=%q", typeName, exitCode, reason)
-			failCount++
-			proven = append(proven, ProvenEntry{
-				Type:          typeName,
-				Proven:        false,
-				FixturePath:   fixturePath,
-				VerifiedAt:    now,
-				ParentChain:   parentChains[typeName],
-				FailureReason: reason,
-			})
+			continue
 		}
+
+		// ── FAIL path: run bisection ───────────────────────────────────────
+		reason := strings.TrimSpace(stderr)
+		if reason == "" {
+			reason = strings.TrimSpace(stdout)
+		}
+		if reason == "" {
+			reason = fmt.Sprintf("exit code %d", exitCode)
+		}
+		log.Printf("FAIL  %-20s  exit=%d reason=%q", typeName, exitCode, reason)
+		failCount++
+
+		var suggestions []Suggestion
+		bisectFn, hasBisect := bisectFuncs[typeName]
+		if hasBisect && len(proposedEntry.RequiredDefaults) > 0 {
+			candidates := defaultsToCandidates(proposedEntry.RequiredDefaults)
+			suggestions = bisect(typeName, *harness, candidates, bisectFn)
+		} else if !hasBisect {
+			fmt.Printf("BISECT %-20s  skip (no bisect function registered)\n", typeName)
+		}
+
+		proven = append(proven, ProvenEntry{
+			Type:          typeName,
+			Proven:        false,
+			FixturePath:   fixturePath,
+			VerifiedAt:    now,
+			ParentChain:   parentChains[typeName],
+			FailureReason: reason,
+			Suggestions:   suggestions,
+		})
 	}
 
 	// ── Write proven contract ─────────────────────────────────────────────────
@@ -220,4 +267,19 @@ func runHarness(harness, rivPath string) (int, string, string) {
 		}
 	}
 	return code, outBuf.String(), errBuf.String()
+}
+
+// defaultsToCandidates converts a required_defaults map to a sorted CandidateProp slice.
+// Sorted by name for deterministic bisection ordering.
+func defaultsToCandidates(defaults map[string]interface{}) []CandidateProp {
+	keys := make([]string, 0, len(defaults))
+	for k := range defaults {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	out := make([]CandidateProp, 0, len(keys))
+	for _, k := range keys {
+		out = append(out, CandidateProp{Name: k, Value: defaults[k]})
+	}
+	return out
 }
