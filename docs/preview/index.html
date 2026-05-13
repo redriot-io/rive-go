@@ -632,9 +632,9 @@ const fromjsonDemos = [
   {
     file: "fromjson_audio_demo.riv",
     title: "🔊 Embedded Audio (FromJSON)",
-    desc: "Play button with embedded 44-byte silent WAV. Background + teal button + text label. Pulse animation (scale 1.0→1.05 pingpong). Validates Phase 3-5 audio embedding pipeline.",
-    tags: ["fromjson", "audio", "animation"],
-    animations: ["pulse"],
+    desc: "Click-to-play button with embedded 44-byte WAV. PointerDown listener fires PlaySM — button flashes coral #ff6b6b on press, returns to teal on release. Validates Phase 3-5 audio + state machine pipeline.",
+    tags: ["fromjson", "audio", "state-machine"],
+    stateMachines: ["PlaySM"],
   },
   {
     file: "fromjson_bone_demo.riv",

@@ -61,6 +61,61 @@
             ]
           }
         ]
+      },
+      {
+        "name": "flash",
+        "duration": 0.3,
+        "fps": 60,
+        "loop": "oneshot",
+        "tracks": [
+          {
+            "target": "button.fill.color",
+            "keyframes": [
+              {"time": 0.0,  "value": "#FF4ecdc4"},
+              {"time": 0.15, "value": "#FFff6b6b"},
+              {"time": 0.3,  "value": "#FF4ecdc4"}
+            ]
+          }
+        ]
+      }
+    ],
+    "state_machines": [
+      {
+        "name": "PlaySM",
+        "inputs": [
+          {"name": "clicked", "type": "bool", "default": false}
+        ],
+        "layers": [
+          {
+            "name": "Main",
+            "states": [
+              {"name": "idle",  "animation": "pulse"},
+              {"name": "flash", "animation": "flash"}
+            ],
+            "transitions": [
+              {
+                "from": "idle",  "to": "flash", "duration_ms": 0,
+                "conditions": [{"input": "clicked", "value": true}]
+              },
+              {
+                "from": "flash", "to": "idle",  "duration_ms": 0,
+                "conditions": [{"input": "clicked", "value": false}]
+              }
+            ]
+          }
+        ],
+        "listeners": [
+          {
+            "target": "button",
+            "event": "pointer_down",
+            "actions": [{"type": "set_bool", "input": "clicked", "value": true}]
+          },
+          {
+            "target": "button",
+            "event": "pointer_up",
+            "actions": [{"type": "set_bool", "input": "clicked", "value": false}]
+          }
+        ]
       }
     ]
   }
