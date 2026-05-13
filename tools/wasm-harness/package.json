@@ -1,0 +1,15 @@
+{
+  "name": "goriv-wasm-harness",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WASM validation harness for goriv CI. Not a library.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "node validate-all.js"
+  },
+  "dependencies": {
+    "@rive-app/canvas-advanced": "2.37.6"
+  }
+}

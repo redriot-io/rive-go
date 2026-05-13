@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  go-test:
+    name: Go tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Run Go tests
+        run: go test ./...
+
+  wasm-validate:
+    name: WASM validation (23 .riv files)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: tools/wasm-harness/package-lock.json
+
+      - name: Install harness deps
+        working-directory: tools/wasm-harness
+        run: npm ci
+
+      - name: Validate .riv files via WASM
+        run: node tools/wasm-harness/validate-all.js docs/preview/

@@ -1,4 +1,4 @@
-.PHONY: generate test build test-integration validate conformance
+.PHONY: generate test build test-integration validate validate-wasm test-no-wasm conformance
 
 generate:
 	go run ./cmd/rivegen -defs=internal/schema/defs -out=rive
@@ -22,6 +22,16 @@ test-integration:
 validate:
 	go run ./cmd/examples/
 	GOTMPDIR=/app/workspace/tmp go test -v -timeout 60s ./test/validate/...
+
+# validate-wasm: run all docs/preview/*.riv files through the Rive WASM runtime.
+# Requires Node.js >= 20 and `npm ci` in tools/wasm-harness/ to have been run.
+validate-wasm:
+	cd tools/wasm-harness && npm ci
+	node tools/wasm-harness/validate-all.js docs/preview/
+
+# test-no-wasm: Go tests only, no WASM or browser dependency.
+test-no-wasm:
+	GOTMPDIR=/app/workspace/tmp go test ./...
 
 # conformance: pull latest rive-runtime golden files, regenerate format contract
 # and format rules, then run the full test suite.
