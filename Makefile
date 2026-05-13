@@ -1,7 +1,16 @@
-.PHONY: generate test build test-integration validate validate-wasm test-no-wasm prove-contract prove-contract-bisect-demo conformance
+.PHONY: generate gen-defaults test build test-integration validate validate-wasm test-no-wasm prove-contract prove-contract-bisect-demo conformance
 
 generate:
 	go run ./cmd/rivegen -defs=internal/schema/defs -out=rive
+	$(MAKE) gen-defaults
+
+# gen-defaults: prove all contract types then regenerate rive/gen_defaults.go.
+gen-defaults:
+	$(MAKE) prove-contract
+	GOTMPDIR=$(CURDIR)/gotmp go run ./cmd/gen-defaults/ \
+		--contract format_contract_proven.json \
+		--out rive/gen_defaults.go \
+		--package rive
 
 test:
 	GOTMPDIR=/app/workspace/tmp go test ./...
