@@ -326,10 +326,8 @@ func (t *TextRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 			sc.ParentId = fillFwdRef
 			*objects = append(*objects, sc)
 
-			fill := &rive.Fill{}
+			fill := rive.NewFill()
 			fill.ParentId = style.idx
-			fill.IsVisible = true
-			fill.BlendModeValue = 127
 			*objects = append(*objects, fill)
 		}
 

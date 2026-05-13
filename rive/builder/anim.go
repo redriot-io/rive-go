@@ -256,7 +256,7 @@ func (a *AnimationBuilder) emit(objects *[]rive.Object, artboardOffset uint64) e
 
 	// LinearAnimation follows the interpolator objects.
 	a.idx = uint64(len(*objects))
-	la := &rive.LinearAnimation{}
+	la := rive.NewLinearAnimation()
 	la.Name = a.name
 	la.Fps = a.fps
 	la.Duration = a.duration

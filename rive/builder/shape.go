@@ -180,15 +180,11 @@ func (s *ShapeRef) emitDrawRules(objects *[]rive.Object, artboardOffset uint64) 
 func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
 	// --- Shape (transform node) ---
 	s.shapeIdx = uint64(len(*objects)) - artboardOffset
-	shape := &rive.Shape{}
+	shape := rive.NewShape()
 	shape.Name = s.name
 	shape.ParentId = parentIdx
 	shape.X = s.x
 	shape.Y = s.y
-	shape.Opacity = 1.0
-	shape.ScaleX = 1.0
-	shape.ScaleY = 1.0
-	shape.BlendModeValue = 3
 	if s.opacitySet {
 		shape.Opacity = s.opacity
 	}
@@ -205,30 +201,19 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 	s.pathIdx = uint64(len(*objects)) - artboardOffset
 	switch s.kind {
 	case shapeRect:
-		r := &rive.Rectangle{}
+		r := rive.NewRectangle()
 		r.Width = s.param1
 		r.Height = s.param2
 		r.ParentId = s.shapeIdx
-		r.Opacity = 1.0
-		r.ScaleX = 1.0
-		r.ScaleY = 1.0
-		r.OriginX = 0.5
-		r.OriginY = 0.5
-		r.LinkCornerRadius = true
 		if s.cornerRadiusSet {
 			r.CornerRadiusTL = s.cornerRadius
 		}
 		*objects = append(*objects, r)
 	case shapeEllipse:
-		e := &rive.Ellipse{}
+		e := rive.NewEllipse()
 		e.Width = s.param1
 		e.Height = s.param2
 		e.ParentId = s.shapeIdx
-		e.Opacity = 1.0
-		e.ScaleX = 1.0
-		e.ScaleY = 1.0
-		e.OriginX = 0.5
-		e.OriginY = 0.5
 		*objects = append(*objects, e)
 	}
 
@@ -236,10 +221,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 	if s.fill != nil {
 		if s.fill.gradient != nil {
 			fillRelIdx := uint64(len(*objects)) - artboardOffset
-			fill := &rive.Fill{}
+			fill := rive.NewFill()
 			fill.ParentId = s.shapeIdx
-			fill.IsVisible = true
-			fill.BlendModeValue = 127
 			*objects = append(*objects, fill)
 			emitGradient(objects, fillRelIdx, artboardOffset, s.fill.gradient)
 		} else {
@@ -253,10 +236,8 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 			sc.ParentId = fillFwdRef
 			*objects = append(*objects, sc)
 
-			fill := &rive.Fill{}
+			fill := rive.NewFill()
 			fill.ParentId = s.shapeIdx
-			fill.IsVisible = true
-			fill.BlendModeValue = 127
 			*objects = append(*objects, fill)
 		}
 	}
@@ -264,11 +245,9 @@ func (s *ShapeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboar
 	// --- Stroke paint ---
 	if s.stroke != nil {
 		strokeRelIdx := uint64(len(*objects)) - artboardOffset
-		st := &rive.Stroke{}
+		st := rive.NewStroke()
 		st.Thickness = s.stroke.thickness
 		st.ParentId = s.shapeIdx
-		st.IsVisible = true
-		st.BlendModeValue = 127
 		*objects = append(*objects, st)
 
 		sc := &rive.SolidColor{}
@@ -312,13 +291,10 @@ type NodeRef struct {
 
 func (n *NodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
 	n.idx = uint64(len(*objects)) - artboardOffset
-	node := &rive.Node{}
+	node := rive.NewNode()
 	node.Name = n.name
 	node.X = n.x
 	node.Y = n.y
 	node.ParentId = parentIdx
-	node.Opacity = 1.0
-	node.ScaleX = 1.0
-	node.ScaleY = 1.0
 	*objects = append(*objects, node)
 }

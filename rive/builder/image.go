@@ -56,14 +56,10 @@ func (n *ImageNodeRef) Origin(x, y float64) *ImageNodeRef {
 
 func (n *ImageNodeRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
 	n.idx = uint64(len(*objects)) - artboardOffset
-	img := &rive.Image{}
+	img := rive.NewImage()
 	img.ParentId = parentIdx
 	img.X = n.x
 	img.Y = n.y
-	img.Opacity = 1.0
-	img.ScaleX = 1.0
-	img.ScaleY = 1.0
-	img.BlendModeValue = 3 // Rive runtime default; Go zero-value (0) != 3 → would be emitted and break WASM load
 	img.AssetId = n.asset.idx
 	img.OriginX = n.originX
 	img.OriginY = n.originY

@@ -168,15 +168,11 @@ func (p *PathRef) DrawBelow(target *ShapeRef) *PathRef {
 func (p *PathRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboardOffset uint64) {
 	// Shape
 	p.shapeIdx = uint64(len(*objects)) - artboardOffset
-	shape := &rive.Shape{}
+	shape := rive.NewShape()
 	shape.Name = p.name
 	shape.ParentId = parentIdx
 	shape.X = p.x
 	shape.Y = p.y
-	shape.Opacity = 1.0
-	shape.ScaleX = 1.0
-	shape.ScaleY = 1.0
-	shape.BlendModeValue = 3
 	if p.opacitySet {
 		shape.Opacity = p.opacity
 	}
@@ -207,10 +203,8 @@ func (p *PathRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 	// Fill paint chain
 	if p.fill != nil {
 		fillRelIdx := uint64(len(*objects)) - artboardOffset
-		fill := &rive.Fill{}
+		fill := rive.NewFill()
 		fill.ParentId = p.shapeIdx
-		fill.IsVisible = true
-		fill.BlendModeValue = 127
 		*objects = append(*objects, fill)
 
 		if p.fill.gradient != nil {
@@ -228,11 +222,9 @@ func (p *PathRef) emitObjects(objects *[]rive.Object, parentIdx uint64, artboard
 	// Stroke paint chain
 	if p.stroke != nil {
 		strokeRelIdx := uint64(len(*objects)) - artboardOffset
-		st := &rive.Stroke{}
+		st := rive.NewStroke()
 		st.Thickness = p.stroke.thickness
 		st.ParentId = p.shapeIdx
-		st.IsVisible = true
-		st.BlendModeValue = 127
 		*objects = append(*objects, st)
 
 		sc := &rive.SolidColor{}
