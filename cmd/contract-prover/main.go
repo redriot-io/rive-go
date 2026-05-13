@@ -63,7 +63,7 @@ type ProvenEntry struct {
 	VerifiedAt       string                 `json:"verified_at"`
 	ParentChain      []string               `json:"parent_chain,omitempty"`
 	RequiredDefaults map[string]interface{} `json:"required_defaults,omitempty"`
-	ToCRequiredKeys  []int                  `json:"toc_required_keys,omitempty"`
+	ToCRequiredKeys  []int                  `json:"toc_required_keys"`
 	Notes            string                 `json:"notes,omitempty"`
 	FailureReason    string                 `json:"failure_reason,omitempty"`
 	Suggestions      []Suggestion           `json:"suggestions,omitempty"`
@@ -189,7 +189,7 @@ func main() {
 				VerifiedAt:       now,
 				ParentChain:      parentChains[typeName],
 				RequiredDefaults: proposedEntry.RequiredDefaults,
-				ToCRequiredKeys:  proposedEntry.ToCRequiredKeys,
+				ToCRequiredKeys:  tocCoerce(proposedEntry.ToCRequiredKeys),
 				Notes:            proposedEntry.Notes,
 			})
 			continue
@@ -224,6 +224,20 @@ func main() {
 			FailureReason: reason,
 			Suggestions:   suggestions,
 		})
+	}
+
+
+	// ── ToC Key Bisection pass ───────────────────────────────────────────────────
+	fmt.Printf("\n── ToC Key Bisection ──────────────────────────────────────\n")
+	tocResults := runToCBisection(*harness)
+	for i, entry := range proven {
+		if !entry.Proven {
+			continue
+		}
+		bisected := tocResults[entry.Type]
+		// Union bisected keys with seeds from the proposed contract.
+		// Seeds represent known-required keys that the WASM load test may not catch.
+		proven[i].ToCRequiredKeys = tocUnion(entry.ToCRequiredKeys, bisected)
 	}
 
 	// ── Write proven contract ─────────────────────────────────────────────────

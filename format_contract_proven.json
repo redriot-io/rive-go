@@ -1,13 +1,13 @@
 {
   "contract_version": "1",
-  "proven_at": "2026-05-13T05:24:22Z",
+  "proven_at": "2026-05-13T08:27:00Z",
   "wasm_version": "@rive-app/canvas-advanced@2.37.6",
   "entries": [
     {
       "type": "Artboard",
       "proven": true,
       "fixture_path": "testdata/prover/Artboard_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "required_defaults": {
         "blendModeValue": 3,
         "fractionalHeight": 1,
@@ -16,13 +16,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "blendModeValue=3 is pass-through. Go zero=0 would differ. fractionalWidth/Height needed for layout."
     },
     {
       "type": "Node",
       "proven": true,
       "fixture_path": "testdata/prover/Node_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -31,13 +32,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "Transform node. No blendModeValue needed (Node is not a Drawable)."
     },
     {
       "type": "Shape",
       "proven": true,
       "fixture_path": "testdata/prover/Shape_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -47,13 +49,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "Shape is the container node for paths and paints. blendModeValue=3 (pass-through)."
     },
     {
       "type": "Rectangle",
       "proven": true,
       "fixture_path": "testdata/prover/Rectangle_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -66,13 +69,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "Rectangle is a ParametricPath child of Shape. originX/Y=0.5 centers the pivot."
     },
     {
       "type": "Ellipse",
       "proven": true,
       "fixture_path": "testdata/prover/Ellipse_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -84,13 +88,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "Ellipse is also a ParametricPath. Width/height are radiusX/radiusY * 2."
     },
     {
       "type": "ParametricPath",
       "proven": true,
       "fixture_path": "testdata/prover/ParametricPath_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -102,13 +107,14 @@
         "scaleX": 1,
         "scaleY": 1
       },
+      "toc_required_keys": [],
       "notes": "Base class for Rectangle and Ellipse. Tested via Rectangle."
     },
     {
       "type": "Fill",
       "proven": true,
       "fixture_path": "testdata/prover/Fill_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -117,13 +123,14 @@
         "blendModeValue": 127,
         "isVisible": true
       },
+      "toc_required_keys": [],
       "notes": "ShapePaint defaults: isVisible=true, blendModeValue=127 (normal blend). Go zero for isVisible=false causes invisible fills."
     },
     {
       "type": "Stroke",
       "proven": true,
       "fixture_path": "testdata/prover/Stroke_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape"
@@ -134,37 +141,40 @@
         "miterLimit": 4,
         "thickness": 1
       },
+      "toc_required_keys": [],
       "notes": "Stroke inherits ShapePaint defaults. thickness=0 (Go zero) would render invisible."
     },
     {
       "type": "SolidColor",
       "proven": true,
       "fixture_path": "testdata/prover/SolidColor_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape",
         "Fill"
       ],
+      "toc_required_keys": [],
       "notes": "colorValue=0 is valid (transparent black). SolidColor is emitted BEFORE its parent Fill as a forward-reference pattern."
     },
     {
       "type": "LinearGradient",
       "proven": true,
       "fixture_path": "testdata/prover/LinearGradient_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "Shape",
         "Fill"
       ],
+      "toc_required_keys": [],
       "notes": "GradientStops are children of LinearGradient. No Go-zero traps at the gradient level."
     },
     {
       "type": "LinearAnimation",
       "proven": true,
       "fixture_path": "testdata/prover/LinearAnimation_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -172,36 +182,39 @@
         "fps": 60,
         "speed": 1
       },
+      "toc_required_keys": [],
       "notes": "fps=0 and speed=0 (Go zero) would cause animation playback issues. Builder defaults to fps=60, speed=1.0."
     },
     {
       "type": "KeyedObject",
       "proven": true,
       "fixture_path": "testdata/prover/KeyedObject_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "LinearAnimation"
       ],
+      "toc_required_keys": [],
       "notes": "KeyedObject.objectId references the animated target by artboard-relative index. Tested via LinearAnimation fixture."
     },
     {
       "type": "KeyedProperty",
       "proven": true,
       "fixture_path": "testdata/prover/KeyedProperty_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard",
         "LinearAnimation",
         "KeyedObject"
       ],
+      "toc_required_keys": [],
       "notes": "KeyedProperty.propertyKey is the animated property key. Tested via LinearAnimation fixture."
     },
     {
       "type": "Image",
       "proven": true,
       "fixture_path": "testdata/prover/Image_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard"
       ],
@@ -220,10 +233,11 @@
       "type": "StateMachine",
       "proven": true,
       "fixture_path": "testdata/prover/StateMachine_minimal.riv",
-      "verified_at": "2026-05-13T05:24:22Z",
+      "verified_at": "2026-05-13T08:27:00Z",
       "parent_chain": [
         "Artboard"
       ],
+      "toc_required_keys": [],
       "notes": "Tested with load-only (no render assertion). An empty state machine with no layers is valid."
     }
   ]
