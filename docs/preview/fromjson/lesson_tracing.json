@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "artboard": {
+    "name": "LetterTracing",
+    "width": 400,
+    "height": 300,
+    "children": [
+      {
+        "type": "rectangle",
+        "name": "bg",
+        "x": 200, "y": 150,
+        "width": 400, "height": 300,
+        "fill": "#FFF9F4E9"
+      },
+      {
+        "type": "rectangle",
+        "name": "leg_left",
+        "x": 162, "y": 158,
+        "width": 22, "height": 196,
+        "corner_radius": 6,
+        "fill": "#FFC1440E",
+        "rotation": -23
+      },
+      {
+        "type": "rectangle",
+        "name": "leg_right",
+        "x": 238, "y": 158,
+        "width": 22, "height": 196,
+        "corner_radius": 6,
+        "fill": "#FFC1440E",
+        "rotation": 23
+      },
+      {
+        "type": "rectangle",
+        "name": "crossbar",
+        "x": 200, "y": 178,
+        "width": 120, "height": 22,
+        "corner_radius": 5,
+        "fill": "#FFC1440E"
+      },
+      {
+        "type": "ellipse",
+        "name": "dot",
+        "x": 126, "y": 252,
+        "width": 22, "height": 22,
+        "fill": "#FF2980B9"
+      }
+    ],
+    "animations": [
+      {
+        "name": "trace",
+        "duration": 12.0,
+        "fps": 60,
+        "loop": "loop",
+        "tracks": [
+          {
+            "target": "dot.x",
+            "keyframes": [
+              { "time": 0.0,  "value": 126, "easing": "ease-in-out" },
+              { "time": 2.5,  "value": 200, "easing": "ease-in-out" },
+              { "time": 5.0,  "value": 274, "easing": "ease-in-out" },
+              { "time": 5.4,  "value": 274, "easing": "linear" },
+              { "time": 5.7,  "value": 143, "easing": "ease-in-out" },
+              { "time": 7.8,  "value": 257, "easing": "ease-in-out" },
+              { "time": 8.3,  "value": 257, "easing": "linear" },
+              { "time": 8.7,  "value": 126, "easing": "ease-in-out" },
+              { "time": 12.0, "value": 126 }
+            ]
+          },
+          {
+            "target": "dot.y",
+            "keyframes": [
+              { "time": 0.0,  "value": 252, "easing": "ease-in-out" },
+              { "time": 2.5,  "value": 64,  "easing": "ease-in-out" },
+              { "time": 5.0,  "value": 252, "easing": "ease-in-out" },
+              { "time": 5.4,  "value": 252, "easing": "linear" },
+              { "time": 5.7,  "value": 178, "easing": "ease-in-out" },
+              { "time": 7.8,  "value": 178, "easing": "ease-in-out" },
+              { "time": 8.3,  "value": 178, "easing": "linear" },
+              { "time": 8.7,  "value": 252, "easing": "ease-in-out" },
+              { "time": 12.0, "value": 252 }
+            ]
+          },
+          {
+            "target": "dot.opacity",
+            "keyframes": [
+              { "time": 0.0,  "value": 1, "easing": "linear" },
+              { "time": 5.0,  "value": 1, "easing": "linear" },
+              { "time": 5.2,  "value": 0, "easing": "linear" },
+              { "time": 5.6,  "value": 0, "easing": "linear" },
+              { "time": 5.8,  "value": 1, "easing": "linear" },
+              { "time": 7.8,  "value": 1, "easing": "linear" },
+              { "time": 8.0,  "value": 0, "easing": "linear" },
+              { "time": 8.6,  "value": 0, "easing": "linear" },
+              { "time": 8.8,  "value": 1, "easing": "linear" },
+              { "time": 12.0, "value": 1 }
+            ]
+          },
+          {
+            "target": "dot.fill.color",
+            "keyframes": [
+              { "time": 0.0,  "value": "#FF2980B9", "easing": "linear" },
+              { "time": 5.8,  "value": "#FF2980B9", "easing": "linear" },
+              { "time": 6.0,  "value": "#FF27AE60", "easing": "linear" },
+              { "time": 8.8,  "value": "#FF27AE60", "easing": "linear" },
+              { "time": 9.0,  "value": "#FF2980B9", "easing": "linear" },
+              { "time": 12.0, "value": "#FF2980B9" }
+            ]
+          },
+          {
+            "target": "crossbar.fill.color",
+            "keyframes": [
+              { "time": 0.0,  "value": "#FFC1440E", "easing": "linear" },
+              { "time": 5.7,  "value": "#FFC1440E", "easing": "ease-in-out" },
+              { "time": 6.5,  "value": "#FFD4813A", "easing": "ease-in-out" },
+              { "time": 8.0,  "value": "#FFC1440E", "easing": "linear" },
+              { "time": 12.0, "value": "#FFC1440E" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

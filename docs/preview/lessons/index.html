@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Montessori Lessons — rive-go</title>
+  <style>
+    :root { --bg:#F9F4E9; --surface:#EEEAE0; --text:#2D2D2D; --muted:#7A7570; --accent:#C1440E; --ok:#27AE60; --err:#E74C3C; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:system-ui,sans-serif; }
+    header { max-width:960px; margin:0 auto; padding:2rem 1.5rem 1rem; }
+    header h1 { font-size:1.8rem; font-weight:800; margin-bottom:0.3rem; }
+    header p { color:var(--muted); font-size:0.9rem; line-height:1.5; }
+    header a { color:var(--accent); text-decoration:none; }
+    header a:hover { text-decoration:underline; }
+    .back { font-size:0.85rem; margin-bottom:0.8rem; }
+    .grid { max-width:960px; margin:1.5rem auto 3rem; padding:0 1.5rem; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1.5rem; }
+    .card { background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.09); display:flex; flex-direction:column; }
+    .canvas-wrap { position:relative; background:var(--surface); }
+    canvas { display:block; width:100%; height:auto; }
+    .status-dot { position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:#ccc; }
+    .status-dot.loading { background:#FFCA28; animation:pulse 1s infinite; }
+    .status-dot.ok { background:var(--ok); }
+    .status-dot.err { background:var(--err); }
+    .loading-msg { position:absolute; bottom:6px; left:8px; font-size:0.7rem; color:var(--muted); }
+    .error-msg { display:none; background:#FDE8E8; color:var(--err); font-size:0.78rem; padding:6px 10px; }
+    .card-body { padding:1rem; flex:1; }
+    .card-title { font-size:0.95rem; font-weight:700; margin-bottom:0.3rem; }
+    .card-desc { font-size:0.82rem; color:var(--muted); line-height:1.4; margin-bottom:0.6rem; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:4px; }
+    .tag { font-size:0.7rem; padding:2px 7px; border-radius:20px; background:#FDE8DC; color:var(--accent); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  </style>
+</head>
+<body>
+<header>
+  <p class="back"><a href="../">← All previews</a></p>
+  <h1>🎓 Montessori Lessons</h1>
+  <p>Three Montessori-inspired lesson animations — LLM-generated JSON compiled to .riv via <code>rivtool create</code>.
+     Covers Practical Life (pouring), Sensorial (color sorting), and Language (letter tracing).
+     All auto-play and loop.</p>
+</header>
+
+<div class="grid" id="grid"></div>
+
+<script src="https://unpkg.com/@rive-app/canvas@2"></script>
+<script>
+const LOAD_TIMEOUT_MS = 8000;
+
+const lessons = [
+  {
+    file: "../fromjson_pouring.riv",
+    title: "🫙 Pouring Grains — Practical Life",
+    desc: "A wooden pitcher tilts and pours golden grains into a bowl. Teaches careful pouring and hand-eye coordination. 13 tracks: rotation, opacity, x/y, fill-color.",
+    tags: ["practical-life", "motion", "loop"],
+    animations: ["pour"],
+  },
+  {
+    file: "../fromjson_sorting.riv",
+    title: "🟥 Color Sorting — Sensorial",
+    desc: "Red, yellow, and blue blocks sort from a shuffled column into matching color zones. Demonstrates color discrimination and order. 6 tracks.",
+    tags: ["sensorial", "color", "loop"],
+    animations: ["sort"],
+  },
+  {
+    file: "../fromjson_tracing.riv",
+    title: "✏️ Letter Tracing A — Language",
+    desc: "A sandpaper-letter 'A' traced by a dot: left leg → right leg → crossbar. Dot blinks between strokes and turns green on the crossbar. 5 tracks.",
+    tags: ["language", "tracing", "loop"],
+    animations: ["trace"],
+  },
+];
+
+const grid = document.getElementById('grid');
+let queue = Promise.resolve();
+
+lessons.forEach(({ file, title, desc, tags, animations }) => {
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'canvas-wrap';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = 400; canvas.height = 280;
+
+  const dot = document.createElement('div');
+  dot.className = 'status-dot';
+
+  const msg = document.createElement('div');
+  msg.className = 'loading-msg';
+  msg.textContent = 'queued…';
+
+  wrap.appendChild(canvas);
+  wrap.appendChild(dot);
+  wrap.appendChild(msg);
+
+  const errDiv = document.createElement('div');
+  errDiv.className = 'error-msg';
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+
+  const h = document.createElement('div');
+  h.className = 'card-title';
+  h.textContent = title;
+
+  const p = document.createElement('div');
+  p.className = 'card-desc';
+  p.textContent = desc;
+
+  const tagRow = document.createElement('div');
+  tagRow.className = 'tag-row';
+  tags.forEach(t => {
+    const s = document.createElement('span');
+    s.className = 'tag';
+    s.textContent = t;
+    tagRow.appendChild(s);
+  });
+
+  body.appendChild(h);
+  body.appendChild(p);
+  body.appendChild(tagRow);
+  card.appendChild(wrap);
+  card.appendChild(errDiv);
+  card.appendChild(body);
+  grid.appendChild(card);
+
+  queue = queue.then(() => new Promise(resolve => {
+    dot.classList.add('loading');
+    msg.textContent = 'loading…';
+
+    let settled = false;
+    const settle = (ok, message) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      dot.classList.remove('loading');
+      msg.remove();
+      if (ok) {
+        dot.classList.add('ok');
+      } else {
+        dot.classList.add('err');
+        errDiv.textContent = message || 'Failed to load';
+        errDiv.style.display = 'block';
+      }
+      setTimeout(resolve, 200);
+    };
+
+    const timer = setTimeout(() => settle(false, `Timed out after ${LOAD_TIMEOUT_MS / 1000}s`), LOAD_TIMEOUT_MS);
+
+    let r;
+    try {
+      r = new rive.Rive({
+        src: file,
+        canvas,
+        autoplay: true,
+        animations,
+        onLoad: () => {
+          r.resizeDrawingSurfaceToCanvas();
+          try { r.play(animations); } catch (_) {}
+          settle(true);
+        },
+        onLoadError: (e) => {
+          const m = (e && e.message) ? e.message : String(e);
+          settle(false, `Load error: ${m}`);
+        },
+      });
+    } catch (e) {
+      settle(false, `Exception: ${e.message || e}`);
+    }
+  }));
+});
+</script>
+</body>
+</html>
