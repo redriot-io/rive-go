@@ -1,4 +1,4 @@
-.PHONY: generate test build test-integration validate validate-wasm test-no-wasm conformance
+.PHONY: generate test build test-integration validate validate-wasm test-no-wasm prove-contract conformance
 
 generate:
 	go run ./cmd/rivegen -defs=internal/schema/defs -out=rive
@@ -32,6 +32,16 @@ validate-wasm:
 # test-no-wasm: Go tests only, no WASM or browser dependency.
 test-no-wasm:
 	GOTMPDIR=/app/workspace/tmp go test ./...
+
+# prove-contract: generate minimal .riv fixtures per object type and validate via WASM.
+# Reads format_contract_proposed.json, writes format_contract_proven.json.
+# Requires Node.js >= 20 and tools/wasm-harness/ set up.
+prove-contract:
+	go run ./cmd/contract-prover/ \
+		--proposed format_contract_proposed.json \
+		--out format_contract_proven.json \
+		--harness tools/wasm-harness/validate.js
+	node tools/wasm-harness/validate-all.js testdata/prover/
 
 # conformance: pull latest rive-runtime golden files, regenerate format contract
 # and format rules, then run the full test suite.

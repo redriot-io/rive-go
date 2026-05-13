@@ -1,0 +1,164 @@
+{
+  "contract_version": "1",
+  "proposed_at": "2026-05-13T00:00:00Z",
+  "wasm_version": "@rive-app/canvas-advanced@2.37.6",
+  "notes": "Initial contract from defaults audit. Covers the 9 types in spec §2.5 plus Shape, Ellipse, LinearGradient, KeyedObject, KeyedProperty, StateMachine. All required_defaults reflect Go zero-value != Rive runtime default traps discovered in T-575.",
+  "entries": [
+    {
+      "type": "Artboard",
+      "parent_chain": [],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "blendModeValue": 3,
+        "fractionalWidth": 1.0,
+        "fractionalHeight": 1.0
+      },
+      "toc_required_keys": [],
+      "notes": "blendModeValue=3 is pass-through. Go zero=0 would differ. fractionalWidth/Height needed for layout."
+    },
+    {
+      "type": "Node",
+      "parent_chain": ["Artboard"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0
+      },
+      "toc_required_keys": [],
+      "notes": "Transform node. No blendModeValue needed (Node is not a Drawable)."
+    },
+    {
+      "type": "Shape",
+      "parent_chain": ["Artboard"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "blendModeValue": 3
+      },
+      "toc_required_keys": [],
+      "notes": "Shape is the container node for paths and paints. blendModeValue=3 (pass-through)."
+    },
+    {
+      "type": "Rectangle",
+      "parent_chain": ["Artboard", "Shape"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "originX": 0.5,
+        "originY": 0.5,
+        "linkCornerRadius": true
+      },
+      "toc_required_keys": [],
+      "notes": "Rectangle is a ParametricPath child of Shape. originX/Y=0.5 centers the pivot."
+    },
+    {
+      "type": "ParametricPath",
+      "parent_chain": ["Artboard", "Shape"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "originX": 0.5,
+        "originY": 0.5
+      },
+      "toc_required_keys": [],
+      "notes": "Base class for Rectangle and Ellipse. Tested via Rectangle."
+    },
+    {
+      "type": "Ellipse",
+      "parent_chain": ["Artboard", "Shape"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "originX": 0.5,
+        "originY": 0.5
+      },
+      "toc_required_keys": [],
+      "notes": "Ellipse is also a ParametricPath. Width/height are radiusX/radiusY * 2."
+    },
+    {
+      "type": "Fill",
+      "parent_chain": ["Artboard", "Shape"],
+      "required_defaults": {
+        "isVisible": true,
+        "blendModeValue": 127
+      },
+      "toc_required_keys": [],
+      "notes": "ShapePaint defaults: isVisible=true, blendModeValue=127 (normal blend). Go zero for isVisible=false causes invisible fills."
+    },
+    {
+      "type": "Stroke",
+      "parent_chain": ["Artboard", "Shape"],
+      "required_defaults": {
+        "isVisible": true,
+        "blendModeValue": 127,
+        "thickness": 1.0,
+        "miterLimit": 4.0
+      },
+      "toc_required_keys": [],
+      "notes": "Stroke inherits ShapePaint defaults. thickness=0 (Go zero) would render invisible."
+    },
+    {
+      "type": "SolidColor",
+      "parent_chain": ["Artboard", "Shape", "Fill"],
+      "required_defaults": {},
+      "toc_required_keys": [],
+      "notes": "colorValue=0 is valid (transparent black). SolidColor is emitted BEFORE its parent Fill as a forward-reference pattern."
+    },
+    {
+      "type": "LinearGradient",
+      "parent_chain": ["Artboard", "Shape", "Fill"],
+      "required_defaults": {},
+      "toc_required_keys": [],
+      "notes": "GradientStops are children of LinearGradient. No Go-zero traps at the gradient level."
+    },
+    {
+      "type": "LinearAnimation",
+      "parent_chain": ["Artboard"],
+      "required_defaults": {
+        "fps": 60,
+        "speed": 1.0
+      },
+      "toc_required_keys": [],
+      "notes": "fps=0 and speed=0 (Go zero) would cause animation playback issues. Builder defaults to fps=60, speed=1.0."
+    },
+    {
+      "type": "KeyedObject",
+      "parent_chain": ["Artboard", "LinearAnimation"],
+      "required_defaults": {},
+      "toc_required_keys": [],
+      "notes": "KeyedObject.objectId references the animated target by artboard-relative index. Tested via LinearAnimation fixture."
+    },
+    {
+      "type": "KeyedProperty",
+      "parent_chain": ["Artboard", "LinearAnimation", "KeyedObject"],
+      "required_defaults": {},
+      "toc_required_keys": [],
+      "notes": "KeyedProperty.propertyKey is the animated property key. Tested via LinearAnimation fixture."
+    },
+    {
+      "type": "Image",
+      "parent_chain": ["Artboard"],
+      "required_defaults": {
+        "opacity": 1.0,
+        "scaleX": 1.0,
+        "scaleY": 1.0,
+        "blendModeValue": 3
+      },
+      "toc_required_keys": [206],
+      "notes": "Image.assetId (key 206) must appear in ToC — WASM 2.37.6 C++ reader cannot resolve it from CoreRegistry. blendModeValue=3 (pass-through); Go zero=0 causes null load in WASM."
+    },
+    {
+      "type": "StateMachine",
+      "parent_chain": ["Artboard"],
+      "required_defaults": {},
+      "toc_required_keys": [],
+      "notes": "Tested with load-only (no render assertion). An empty state machine with no layers is valid."
+    }
+  ]
+}
